@@ -1,0 +1,2 @@
+strategy,z_window,threshold,slow_window,slow_threshold,dd_window,dd_threshold,crash_weight,val_sharpe,val_annual_return,val_crisis_return,test_sharpe,test_annual_return,test_volatility,test_max_drawdown,test_crisis_return,turnover
+Regime-Aware SPY-TLT Allocation,10,2.0,60,-0.05,100,-0.03,0.2,0.8029,0.1176,-0.643,0.839,0.1303,0.1616,-0.1884,-0.1582,12.09
