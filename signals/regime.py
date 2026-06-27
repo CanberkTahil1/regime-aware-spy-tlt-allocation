@@ -76,8 +76,8 @@ def compute_regime(
     # Assemble regimes DataFrame
     regimes = pd.DataFrame(
         {
-            "low_vol": low_vol.shift(1).eq(True),
-            "trend": positive_trend.shift(1).eq(True),
+            "low_vol": low_vol.eq(True),
+            "trend": positive_trend.eq(True),
         },
         index=prices.index,
     )

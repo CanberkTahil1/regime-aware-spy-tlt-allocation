@@ -62,11 +62,11 @@ def generate_bollinger_signals(
 
     # Compute ratio once, reuse in all operations
     ratio = prices["SPY"] / prices["TLT"]
-    ratio = ratio.shift(1)
 
-    # Compute rolling statistics with explicit min_periods
-    rolling_mean = ratio.rolling(window, min_periods=window).mean()
-    rolling_std = ratio.rolling(window, min_periods=window).std()
+    # Compare the current ratio with the prior rolling distribution.
+    ratio_history = ratio.shift(1)
+    rolling_mean = ratio_history.rolling(window, min_periods=window).mean()
+    rolling_std = ratio_history.rolling(window, min_periods=window).std()
 
     # Calculate Bollinger bands
     upper_band = rolling_mean + num_std * rolling_std
@@ -126,7 +126,7 @@ def _validate_inputs(
 
     if len(prices) < window + 1:
         raise ValueError(
-            f"Insufficient data: need >= {window + 1} rows for rolling window + lag, "
+            f"Insufficient data: need >= {window + 1} rows for rolling window, "
             f"got {len(prices)}"
         )
 

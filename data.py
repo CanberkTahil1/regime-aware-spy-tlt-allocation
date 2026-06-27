@@ -12,7 +12,7 @@ from pathlib import Path
 import pandas as pd
 import yfinance as yf
 
-from config import DATA_PATH, START_DATE, TICKERS
+from config import DATA_PATH, START_DATE, TICKERS, TEST_END_DATE
 
 
 def load_data(
@@ -68,6 +68,7 @@ def prepare_data(
             - returns: Daily percentage return DataFrame
     """
     prices = load_data(start=start, force_download=force_download)
+    prices = prices.loc[:TEST_END_DATE]          # <-- freeze the window
     returns = prices.pct_change().dropna()
 
     return prices, returns
@@ -89,8 +90,8 @@ def split_data(
     """
     Split prices and returns into train, validation, and test segments.
 
-    The first row of the validation and test segments is dropped so that
-    boundary dates are not duplicated across adjacent samples.
+    Samples are split with non-overlapping date masks so boundary dates are
+    not duplicated across adjacent samples.
 
     Args:
         prices: Price DataFrame indexed by date.
@@ -112,13 +113,22 @@ def split_data(
     """
     _validate_split_inputs(prices, returns, train_end, val_end)
 
-    train_prices = prices.loc[:train_end]
-    val_prices = prices.loc[train_end:val_end].iloc[1:]
-    test_prices = prices.loc[val_end:].iloc[1:]
+    aligned_prices = prices.loc[returns.index]
 
-    train_returns = returns.loc[:train_end]
-    val_returns = returns.loc[train_end:val_end].iloc[1:]
-    test_returns = returns.loc[val_end:].iloc[1:]
+    train_end_ts = pd.Timestamp(train_end)
+    val_end_ts = pd.Timestamp(val_end)
+
+    train_mask = returns.index <= train_end_ts
+    val_mask = (returns.index > train_end_ts) & (returns.index <= val_end_ts)
+    test_mask = returns.index > val_end_ts
+
+    train_prices = aligned_prices.loc[train_mask]
+    val_prices = aligned_prices.loc[val_mask]
+    test_prices = aligned_prices.loc[test_mask]
+
+    train_returns = returns.loc[train_mask]
+    val_returns = returns.loc[val_mask]
+    test_returns = returns.loc[test_mask]
 
     return (
         train_prices,

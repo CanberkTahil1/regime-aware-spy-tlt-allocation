@@ -79,7 +79,7 @@ This stage is meant to answer a simple question: **what type of market environme
 The project uses two base signal engines.
 
 #### Spread signal
-The spread signal looks at the lagged return spread between SPY and TLT. When that spread becomes unusually wide relative to recent history, the strategy takes a mean-reversion view.
+The spread signal looks at the close-to-close return spread between SPY and TLT. When that spread becomes unusually wide relative to recent history, the strategy takes a mean-reversion view. The backtest applies the execution lag centrally when converting signals into returns.
 
 #### Bollinger-band signal
 The Bollinger framework looks at the SPY/TLT price ratio. When the ratio moves too far from its rolling mean, the model adjusts positioning based on that deviation.
@@ -113,7 +113,7 @@ to scale down SPY exposure when market conditions deteriorate. This allows the s
 
 The backtest is designed for research purposes and includes:
 
-- lagged signals to avoid lookahead bias
+- one-day execution lag to avoid lookahead bias
 - volatility targeting
 - transaction costs
 - turnover measurement
@@ -146,10 +146,11 @@ When executed, the pipeline:
 1. loads or downloads the data
 2. splits the sample into train, validation, and test periods
 3. precomputes reusable features
-4. runs a grid search on the validation set
-5. selects the best parameter combination using validation Sharpe ratio
-6. evaluates the selected strategy on the out-of-sample test period
-7. saves tables and plots for review
+4. runs a grid search on train and validation scoring windows using prior history as warm-up context
+5. uses the train period to shortlist parameters
+6. selects a robust parameter combination using train/validation stability
+7. evaluates the selected strategy on the out-of-sample test period
+8. saves tables and plots for review
 
 The implementation also caches parameter-invariant features to improve efficiency during the search process.
 
@@ -166,7 +167,7 @@ Running the project generates the following outputs.
 - `results/plots/strategy_vs_spy.png`
 
 These artifacts provide:
-- validation results across parameter combinations
+- train and validation results across parameter combinations
 - final selected parameters
 - out-of-sample performance statistics
 - benchmark comparison against SPY

@@ -64,9 +64,9 @@ def compute_strategy_returns(
     )
 
     realized_vol = raw_returns.shift(1).rolling(vol_window).std() * np.sqrt(trading_days)
-    realized_vol = realized_vol.replace(0, np.nan).bfill()
+    realized_vol = realized_vol.replace(0, np.nan)
 
-    scaling = (target_vol / realized_vol).clip(0, 2.0)
+    scaling = (target_vol / realized_vol).clip(0, 2.0).fillna(0.0)
     scaled_positions = positions.mul(scaling, axis=0)
 
     scaled_returns = (
@@ -163,6 +163,77 @@ def run_strategy(
         print_performance(performance)
 
     return performance, strategy_returns
+
+
+def run_strategy_on_window(
+    strategy_func: Callable[[pd.DataFrame, pd.DataFrame], pd.DataFrame],
+    context_prices: pd.DataFrame,
+    context_returns: pd.DataFrame,
+    evaluation_start: str | pd.Timestamp,
+    evaluation_end: str | pd.Timestamp | None = None,
+    label: str = "",
+) -> dict[str, Any]:
+    """
+    Run a strategy on full historical context and score only an evaluation window.
+
+    Signals and portfolio returns are constructed on the full context through
+    `evaluation_end`, then sliced for performance. This preserves legitimate
+    rolling-feature history, volatility-targeting history, execution lag, and
+    first-window transaction costs without including pre-window P&L in metrics.
+    """
+    if context_prices.empty:
+        raise ValueError("context_prices must be non-empty.")
+    if context_returns.empty:
+        raise ValueError("context_returns must be non-empty.")
+
+    evaluation_start_ts = pd.Timestamp(evaluation_start)
+    evaluation_end_ts = (
+        pd.Timestamp(evaluation_end)
+        if evaluation_end is not None
+        else context_returns.index.max()
+    )
+
+    if evaluation_start_ts > evaluation_end_ts:
+        raise ValueError("evaluation_start must be on or before evaluation_end.")
+
+    scoped_returns = context_returns.loc[:evaluation_end_ts]
+    if scoped_returns.empty:
+        raise ValueError("No context returns available through evaluation_end.")
+
+    scoped_prices = context_prices.loc[scoped_returns.index]
+
+    full_signals = strategy_func(scoped_returns, scoped_prices)
+    full_strategy_returns = compute_strategy_returns(full_signals, scoped_returns)
+
+    evaluation_strategy_returns = full_strategy_returns.loc[
+        evaluation_start_ts:evaluation_end_ts
+    ]
+    evaluation_signals = full_signals.loc[evaluation_start_ts:evaluation_end_ts]
+
+    if evaluation_strategy_returns.empty:
+        raise ValueError("Evaluation window contains no strategy returns.")
+
+    performance = compute_performance(evaluation_strategy_returns)
+    turnover = compute_turnover_on_window(
+        full_signals,
+        evaluation_start=evaluation_start_ts,
+        evaluation_end=evaluation_end_ts,
+    )
+
+    if label:
+        print(f"\n=== {label} ===")
+        print_performance(performance)
+
+    return {
+        "performance": performance,
+        "strategy_returns": evaluation_strategy_returns,
+        "signals": evaluation_signals,
+        "turnover": turnover,
+        "full_strategy_returns": full_strategy_returns,
+        "full_signals": full_signals,
+        "context_prices": scoped_prices,
+        "context_returns": scoped_returns,
+    }
 
 
 def print_performance(performance: dict[str, Any]) -> None:
@@ -292,6 +363,39 @@ def compute_turnover(
     return float(turnover.mean() * trading_days)
 
 
+def compute_turnover_on_window(
+    signals: pd.DataFrame,
+    evaluation_start: str | pd.Timestamp,
+    evaluation_end: str | pd.Timestamp | None = None,
+    trading_days: int = TRADING_DAYS,
+) -> float:
+    """
+    Compute annualized turnover on a window after full-context differencing.
+
+    The first evaluation-day turnover includes the transition from the prior
+    context day when one exists.
+    """
+    missing_cols = set(POSITION_COLUMNS) - set(signals.columns)
+    if missing_cols:
+        raise KeyError(f"Missing required signal columns: {sorted(missing_cols)}")
+
+    positions = signals.loc[:, POSITION_COLUMNS].fillna(0.0)
+    turnover = positions.diff().abs().sum(axis=1)
+
+    evaluation_start_ts = pd.Timestamp(evaluation_start)
+    evaluation_end_ts = (
+        pd.Timestamp(evaluation_end)
+        if evaluation_end is not None
+        else turnover.index.max()
+    )
+    evaluation_turnover = turnover.loc[evaluation_start_ts:evaluation_end_ts]
+
+    if evaluation_turnover.empty:
+        raise ValueError("Evaluation window contains no turnover observations.")
+
+    return float(evaluation_turnover.mean() * trading_days)
+
+
 def plot_test_period_performance(
     strategy_returns: pd.Series,
     benchmark_returns: pd.Series,
@@ -321,6 +425,8 @@ def plot_test_period_performance(
 
     strategy_cumulative = (1.0 + strategy_returns).cumprod()
     benchmark_cumulative = (1.0 + benchmark_returns).cumprod()
+    strategy_cumulative = strategy_cumulative / strategy_cumulative.iloc[0]
+    benchmark_cumulative = benchmark_cumulative / benchmark_cumulative.iloc[0]
 
     plt.figure(figsize=(12, 6))
     plt.plot(

@@ -1,2 +1,2 @@
-strategy,z_window,threshold,slow_window,slow_threshold,dd_window,dd_threshold,crash_weight,val_sharpe,val_annual_return,val_crisis_return,test_sharpe,test_annual_return,test_volatility,test_max_drawdown,test_crisis_return,turnover
-Regime-Aware SPY-TLT Allocation,10,2.0,60,-0.05,100,-0.03,0.2,0.8029,0.1176,-0.643,0.839,0.1303,0.1616,-0.1884,-0.1582,12.09
+strategy,z_window,threshold,slow_window,slow_threshold,dd_window,dd_threshold,crash_weight,train_sharpe,train_annual_return,train_crisis_return,val_sharpe,val_annual_return,val_crisis_return,selection_score,test_sharpe,test_annual_return,test_volatility,test_max_drawdown,test_crisis_return,turnover
+Regime-Aware SPY-TLT Allocation,10,2.5,60,-0.03,50,-0.03,0.2,0.5432,0.0775,-0.0041,0.7671,0.115,-0.5978,0.4872,1.0033,0.1631,0.1642,-0.177,-0.133,18.73
