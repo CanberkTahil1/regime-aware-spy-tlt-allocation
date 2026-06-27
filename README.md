@@ -6,6 +6,8 @@ Rather than holding a static mix of equities and long-duration Treasuries, the f
 
 The purpose of the project is strictly **research-oriented**. It is designed to study whether simple, interpretable signals can improve risk-adjusted portfolio behavior across different market environments. It should be viewed as a quantitative research exercise rather than a live trading system or investment product.
 
+**Headline result (out-of-sample, 2020-01-01 to 2025-12-31):** the strategy delivered a **1.00 Sharpe vs. 0.78 for SPY** and roughly **half the maximum drawdown (-17.7% vs. -33.7%)**, while slightly beating SPY's return at lower volatility. This is primarily a **risk-control** result, not a return-alpha claim — see [Results](#results) for full numbers and caveats.
+
 ## Research motivation
 
 The central hypothesis is that the relationship between equities and duration is not constant across market regimes.
@@ -130,20 +132,20 @@ The project uses historical market data for:
 - `TLT`
 - `^VIX`
 
-Data is downloaded through `yfinance`, cached locally in `data/prices.csv`, and then split into three periods:
+Data is downloaded through `yfinance`, cached locally in `data/prices.csv`, and split into three non-overlapping periods:
 
-- **Train:** start date to `2015-01-01`
+- **Train:** start date (`2005-01-01`) to `2015-01-01`
 - **Validation:** `2015-01-01` to `2020-01-01`
-- **Test:** `2020-01-01` onward
+- **Test (out-of-sample):** `2020-01-01` to `2025-12-31`
 
-This structure keeps model development, parameter selection, and final performance evaluation separated in a more disciplined way.
+**Reproducibility — the analysis window is frozen.** The test window has a fixed end date (`test_end_date = 2025-12-31` in `config.py`), and `data.py` truncates the loaded price history at that date (`prices.loc[:TEST_END_DATE]`). This means results do **not** drift as new market data arrives: re-running the pipeline reproduces the same numbers reported below, regardless of when it is run. This structure also keeps model development, parameter selection, and final performance evaluation cleanly separated.
 
 ## Grid search and model selection
 
 The full workflow is orchestrated in `run.py`.
 
 When executed, the pipeline:
-1. loads or downloads the data
+1. loads or downloads the data (and freezes it at `test_end_date`)
 2. splits the sample into train, validation, and test periods
 3. precomputes reusable features
 4. runs a grid search on train and validation scoring windows using prior history as warm-up context
@@ -152,7 +154,31 @@ When executed, the pipeline:
 7. evaluates the selected strategy on the out-of-sample test period
 8. saves tables and plots for review
 
-The implementation also caches parameter-invariant features to improve efficiency during the search process.
+The implementation also caches parameter-invariant features to improve efficiency during the search process. Crucially, the **test period is never used for parameter selection** — it is touched only once, for final evaluation.
+
+## Results
+
+All figures below are **out-of-sample** (test period `2020-01-01` to `2025-12-31`). Parameters were selected on the train/validation windows only.
+
+**Selected parameters:** `z_window=10`, `threshold=2.5`, `slow_window=60`, `slow_threshold=-0.03`, `dd_window=50`, `dd_threshold=-0.03`, `crash_weight=0.2`.
+
+| Metric            | Strategy | SPY (benchmark) |
+|-------------------|---------:|----------------:|
+| Annualized return |   16.3%  |      15.0%      |
+| Volatility        |   16.4%  |      20.7%      |
+| Sharpe            |   1.00   |      0.78       |
+| Sortino           |   1.29   |      0.89       |
+| Max drawdown      |  -17.7%  |     -33.7%      |
+| Calmar            |   0.92   |      0.45       |
+| Win rate          |   55.6%  |      55.2%      |
+
+Sharpe across the three windows: **train 0.54 → validation 0.77 → test 1.00**.
+
+### How to read these results (honestly)
+
+- **This is a risk-control story, not an alpha story.** The strategy roughly matched SPY's return while cutting volatility by about 20% and nearly halving the maximum drawdown. The edge is in the *risk-adjusted* profile (Sharpe, Sortino, Calmar), not in outsized returns.
+- **The out-of-sample result is regime-dependent.** Test Sharpe (1.00) exceeds in-sample/train Sharpe (0.54). This is unusual and should be interpreted with care: the test window (2020–2025) contains the 2020 COVID crash and the 2022 equity/duration selloff — exactly the environments a defensive, crash-overlay design is built to handle. The strong test result therefore reflects a favorable sample period, **not** evidence of a stable, persistent edge.
+- **Costs are included, and turnover is high.** Returns are net of transaction costs and use a one-day execution lag with volatility targeting. Annualized turnover is roughly **18.7x**, so the strategy is turnover-heavy and sensitive to the cost assumption.
 
 ## Outputs
 
@@ -198,14 +224,14 @@ Run the full pipeline with:
 python run.py
 ```
 
-This will execute the full workflow from data loading to final output generation.
+This will execute the full workflow from data loading to final output generation, and reproduce the results reported above.
 
 ## Main files
 
 ### `config.py`
 Centralized configuration for:
 - filesystem paths
-- dataset boundaries
+- dataset boundaries (start, train end, validation end, and the frozen `test_end_date`)
 - default model parameters
 - backtest assumptions
 - grid-search ranges
@@ -215,6 +241,7 @@ Centralized configuration for:
 Handles:
 - market data download
 - local caching
+- freezing the analysis window at `test_end_date`
 - return construction
 - train / validation / test splitting
 
@@ -255,7 +282,7 @@ A few aspects of the project were intentional:
   Data handling, signals, configuration, and evaluation are separated cleanly.
 
 - **Reproducibility**
-  The workflow is configuration-driven and saves outputs systematically.
+  The workflow is configuration-driven, the analysis window is frozen at a fixed `test_end_date`, and outputs are saved systematically — so reported numbers reproduce exactly.
 
 - **Practicality**
   The project includes implementation details that matter in realistic backtesting, such as lagging, turnover, transaction costs, and out-of-sample testing.
@@ -269,7 +296,9 @@ Important limitations include:
 - no broker integration
 - simplified transaction cost modeling
 - only two tradable assets
+- high turnover (~18.7x annualized), so results are sensitive to cost assumptions
 - no walk-forward re-optimization
+- a single out-of-sample window, whose result is regime-dependent (see Results)
 - no broader macro feature set yet
 
 As with any backtest, results are sensitive to assumptions, sample period choice, and modeling decisions.
