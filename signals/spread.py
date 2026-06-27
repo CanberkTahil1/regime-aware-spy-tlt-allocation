@@ -26,7 +26,7 @@ def generate_spread_signals(
     """
     Generate SPY/TLT spread mean-reversion signals from return data.
 
-    The signal is based on the lagged return spread between SPY and TLT.
+    The signal is based on the close-to-close return spread between SPY and TLT.
     A rolling z-score is used to identify unusually large relative moves,
     after which the portfolio is tilted toward a mean-reversion view.
 
@@ -46,7 +46,7 @@ def generate_spread_signals(
         ValueError: If parameters are invalid or the dataset is too short.
 
     Notes:
-        - The spread is lagged by one period to avoid lookahead bias.
+        - Execution lagging is handled centrally by the backtest.
         - Output weights are normalized to unit gross exposure.
         - The implementation is fully vectorized.
     """
@@ -95,20 +95,20 @@ def _compute_spread_z_score(
     window: int,
 ) -> pd.Series:
     """
-    Compute the lagged rolling z-score of the SPY-TLT return spread.
+    Compute the rolling z-score of the SPY-TLT return spread.
 
     Args:
         returns: Return DataFrame containing 'SPY' and 'TLT'.
         window: Rolling window used for normalization.
 
     Returns:
-        Series of lagged spread z-scores.
+        Series of spread z-scores.
     """
     spread = returns["SPY"] - returns["TLT"]
-    spread = spread.shift(1)
 
-    rolling_mean = spread.rolling(window, min_periods=window).mean()
-    rolling_std = spread.rolling(window, min_periods=window).std()
+    spread_history = spread.shift(1)
+    rolling_mean = spread_history.rolling(window, min_periods=window).mean()
+    rolling_std = spread_history.rolling(window, min_periods=window).std()
 
     z_score = (spread - rolling_mean) / rolling_std.replace(0, np.nan)
     return z_score

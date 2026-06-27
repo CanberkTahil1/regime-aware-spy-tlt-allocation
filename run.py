@@ -1,12 +1,12 @@
 # run.py
 """
-Grid search evaluation for Regime-Aware SPY-TLT allocation strategy.
+Train/validation/test evaluation for Regime-Aware SPY-TLT allocation strategy.
 
 This module orchestrates the hyperparameter optimization pipeline:
 1. Load and split data into train/validation/test periods
 2. Pre-compute parameter-invariant features (cached once)
-3. Grid search: evaluate all candidates on validation set
-4. Select best parameters by validation Sharpe ratio
+3. Grid search: evaluate all candidates on train and validation sets
+4. Select robust parameters from a train-screened validation shortlist
 5. Test on hold-out set and evaluate out-of-sample performance
 6. Save results, metrics, and performance plots
 
@@ -30,19 +30,22 @@ import pandas as pd
 from config import *
 from data import prepare_data, split_data
 from backtest import (
-    run_strategy,
     compute_crisis_returns,
     compute_performance,
     compute_detailed_metrics,
-    compute_turnover,
     plot_test_period_performance,
+    run_strategy_on_window,
 )
 from signals.regime_allocation import generate_regime_allocation_signals
 
 
+PARAMETER_COLUMNS = ["z", "th", "sw", "sth", "ddw", "ddt", "cw"]
+TRAIN_SHORTLIST_FRACTION = 0.20
+
+
 def _precompute_invariant_features(
-    validation_prices: pd.DataFrame,
-    validation_returns: pd.DataFrame,
+    prices: pd.DataFrame,
+    returns: pd.DataFrame,
 ) -> Dict:
     """
     Pre-compute parameter-invariant features shared across all grid search candidates.
@@ -51,7 +54,7 @@ def _precompute_invariant_features(
     any grid search parameters. Computing them once and caching reduces total
     grid search time by ~80% (5x speedup).
 
-    **Invariant features (computed once for all 2,187 candidates):**
+    **Invariant features (computed once per dataset):**
     - Volatility scaling multiplier (depends only on TARGET_VOL, VOL_WINDOW)
     - VIX rolling mean (depends only on VIX_WINDOW)
     - Realized volatility statistics (depends only on REALIZED_VOL_WINDOW)
@@ -63,12 +66,12 @@ def _precompute_invariant_features(
     - Allocation blend (depends on SLOW_WINDOWS, SLOW_THRESHOLDS)
 
     Args:
-        validation_prices: DataFrame with 'SPY', 'TLT', '^VIX' columns
-        validation_returns: DataFrame with 'SPY', 'TLT' columns
+        prices: DataFrame with 'SPY', 'TLT', '^VIX' columns
+        returns: DataFrame with 'SPY', 'TLT' columns
 
     Returns:
         Dictionary with cached features:
-        - 'vol_scaling': Annualized volatility scaling vector (length = validation length)
+        - 'vol_scaling': Annualized volatility scaling vector
         - 'vix': VIX price series
         - 'vix_rolling_mean': Rolling VIX mean (10-day window)
         - 'realized_vol': Realized volatility of SPY (20-day rolling)
@@ -82,25 +85,25 @@ def _precompute_invariant_features(
     """
     cache = {}
 
-    raw_returns = validation_returns[["SPY"]].copy()
+    raw_returns = returns[["SPY"]].copy()
     realized_vol = raw_returns.shift(1).rolling(VOL_WINDOW).std() * np.sqrt(TRADING_DAYS)
-    realized_vol = realized_vol.replace(0, np.nan).bfill()
+    realized_vol = realized_vol.replace(0, np.nan)
     vol_scaling = TARGET_VOL / realized_vol
-    vol_scaling = vol_scaling.clip(0, 2.0)
+    vol_scaling = vol_scaling.clip(0, 2.0).fillna(0.0)
     cache["vol_scaling"] = vol_scaling["SPY"]
 
-    vix = validation_prices["^VIX"]
+    vix = prices["^VIX"]
     vix_rolling_mean = vix.rolling(VIX_WINDOW).mean()
     cache["vix_rolling_mean"] = vix_rolling_mean
     cache["vix"] = vix
 
-    realized_volatility = validation_returns["SPY"].rolling(REALIZED_VOL_WINDOW).std()
+    realized_volatility = returns["SPY"].rolling(REALIZED_VOL_WINDOW).std()
     realized_volatility_mean = realized_volatility.rolling(REALIZED_VOL_AVG_WINDOW).mean()
     cache["realized_vol"] = realized_volatility
     cache["realized_vol_mean"] = realized_volatility_mean
 
-    cache["returns"] = validation_returns
-    cache["prices"] = validation_prices
+    cache["returns"] = returns
+    cache["prices"] = prices
 
     return cache
 
@@ -114,6 +117,8 @@ def _evaluate_cached_candidate(
     dd_threshold: float,
     crash_weight: float,
     cached_features: Dict,
+    evaluation_start: str | pd.Timestamp,
+    evaluation_end: str | pd.Timestamp | None = None,
 ) -> Dict:
     """
     Evaluate a single strategy candidate using cached invariant features.
@@ -140,16 +145,22 @@ def _evaluate_cached_candidate(
             cached_features=cached_features,
         )
 
-    validation_performance, validation_strategy_returns = run_strategy(
+    window_result = run_strategy_on_window(
         strategy_func,
         cached_features["prices"],
         cached_features["returns"],
+        evaluation_start=evaluation_start,
+        evaluation_end=evaluation_end,
         label="",
     )
+    evaluation_returns = window_result["strategy_returns"]
+    evaluation_context_returns = window_result["context_returns"]["SPY"].loc[
+        evaluation_returns.index
+    ]
 
     crisis_returns = compute_crisis_returns(
-        validation_strategy_returns,
-        cached_features["returns"]["SPY"],
+        evaluation_returns,
+        evaluation_context_returns,
     )
 
     crisis_annual_return = 0.0
@@ -158,27 +169,38 @@ def _evaluate_cached_candidate(
         crisis_annual_return = crisis_performance["annual_return"]
 
     return {
-        "sharpe": validation_performance["sharpe"],
-        "annual_return": validation_performance["annual_return"],
+        "sharpe": window_result["performance"]["sharpe"],
+        "annual_return": window_result["performance"]["annual_return"],
         "crisis_return": crisis_annual_return,
     }
 
 
-def run_grid_search(
-    validation_prices: pd.DataFrame,
-    validation_returns: pd.DataFrame,
-) -> pd.Series:
+def _evaluate_parameter_grid(
+    context_prices: pd.DataFrame,
+    context_returns: pd.DataFrame,
+    evaluation_start: str | pd.Timestamp,
+    evaluation_end: str | pd.Timestamp | None,
+    label: str,
+) -> pd.DataFrame:
     """
-    Execute grid search over all parameter combinations on validation set.
+    Evaluate all parameter combinations on one dataset.
     """
-    print("\n" + "=" * 70)
-    print("GRID SEARCH ON VALIDATION SET (2015-2020)")
-    print("=" * 70)
+    evaluation_end_ts = (
+        pd.Timestamp(evaluation_end)
+        if evaluation_end is not None
+        else context_returns.index.max()
+    )
+    scoped_returns = context_returns.loc[:evaluation_end_ts]
+    scoped_prices = context_prices.loc[scoped_returns.index]
 
-    print("\n[1] Pre-computing parameter-invariant features...")
-    cached_features = _precompute_invariant_features(validation_prices, validation_returns)
+    print(f"\n[{label}] Pre-computing parameter-invariant features...")
+    cached_features = _precompute_invariant_features(scoped_prices, scoped_returns)
     print("    ✓ Cached volatility scaling, VIX, realized volatility")
-    print(f"    ✓ Data: {len(validation_prices)} trading days")
+    print(f"    ✓ Context data: {len(scoped_prices)} trading days")
+    print(
+        f"    ✓ Scoring window: {pd.Timestamp(evaluation_start).date()} "
+        f"to {evaluation_end_ts.date()}"
+    )
 
     num_candidates = (
         len(Z_WINDOWS)
@@ -189,7 +211,7 @@ def run_grid_search(
         * len(DD_THRESHOLDS)
         * len(CRASH_WEIGHTS)
     )
-    print(f"\n[2] Evaluating {num_candidates} parameter combinations...")
+    print(f"\n[{label}] Evaluating {num_candidates} parameter combinations...")
     print(
         f"    {len(Z_WINDOWS)} z_windows x {len(THRESHOLDS)} thresholds x "
         f"{len(SLOW_WINDOWS)} slow_windows x {len(SLOW_THRESHOLDS)} slow_thresholds x "
@@ -228,6 +250,8 @@ def run_grid_search(
             dd_threshold,
             crash_weight,
             cached_features,
+            evaluation_start=evaluation_start,
+            evaluation_end=evaluation_end_ts,
         )
 
         metrics.update(
@@ -244,20 +268,106 @@ def run_grid_search(
         results.append(metrics)
 
         if iteration % 300 == 0 or iteration == num_candidates:
-            print(f"    {iteration}/{num_candidates} candidates evaluated...")
+            print(f"    {iteration}/{num_candidates} {label.lower()} candidates evaluated...")
 
-    print("\n[3] Analyzing results...")
+    return pd.DataFrame(results)
+
+
+def _select_robust_parameters(grid_results: pd.DataFrame) -> pd.Series:
+    """
+    Select parameters from a train-screened shortlist using train/validation stability.
+    """
+    shortlist_size = max(1, int(np.ceil(len(grid_results) * TRAIN_SHORTLIST_FRACTION)))
+    shortlisted = (
+        grid_results
+        .sort_values("train_sharpe", ascending=False)
+        .head(shortlist_size)
+        .copy()
+    )
+
+    shortlisted["selection_score"] = (
+        np.minimum(shortlisted["train_sharpe"], shortlisted["val_sharpe"])
+        - 0.25 * (shortlisted["train_sharpe"] - shortlisted["val_sharpe"]).abs()
+    )
+
+    return shortlisted.sort_values(
+        ["selection_score", "val_sharpe", "train_sharpe"],
+        ascending=False,
+    ).iloc[0]
+
+
+def run_model_selection(
+    context_prices: pd.DataFrame,
+    context_returns: pd.DataFrame,
+    train_end: str,
+    validation_end: str,
+) -> pd.Series:
+    """
+    Use train data for parameter discovery and validation data for robust selection.
+    """
+    print("\n" + "=" * 70)
+    print("MODEL SELECTION (TRAIN SCREEN + VALIDATION CONFIRMATION)")
+    print("=" * 70)
+
+    train_end_ts = pd.Timestamp(train_end)
+    validation_end_ts = pd.Timestamp(validation_end)
+    train_start = context_returns.index.min()
+    validation_start = context_returns.index[context_returns.index > train_end_ts][0]
+
+    train_results = _evaluate_parameter_grid(
+        context_prices,
+        context_returns,
+        evaluation_start=train_start,
+        evaluation_end=train_end_ts,
+        label="TRAIN",
+    )
+    validation_results = _evaluate_parameter_grid(
+        context_prices,
+        context_returns,
+        evaluation_start=validation_start,
+        evaluation_end=validation_end_ts,
+        label="VALIDATION",
+    )
+
+    train_results = train_results.rename(
+        columns={
+            "sharpe": "train_sharpe",
+            "annual_return": "train_annual_return",
+            "crisis_return": "train_crisis_return",
+        }
+    )
+    validation_results = validation_results.rename(
+        columns={
+            "sharpe": "val_sharpe",
+            "annual_return": "val_annual_return",
+            "crisis_return": "val_crisis_return",
+        }
+    )
+
+    grid_results = train_results.merge(
+        validation_results,
+        on=PARAMETER_COLUMNS,
+        validate="one_to_one",
+    )
+
+    best_params = _select_robust_parameters(grid_results)
+    grid_results["selection_score"] = (
+        np.minimum(grid_results["train_sharpe"], grid_results["val_sharpe"])
+        - 0.25 * (grid_results["train_sharpe"] - grid_results["val_sharpe"]).abs()
+    )
+
+    print("\n[SELECTION] Analyzing train/validation results...")
     os.makedirs(os.path.dirname(GRID_SEARCH_RESULTS_FILE), exist_ok=True)
-    grid_results = pd.DataFrame(results)
     grid_results.to_csv(GRID_SEARCH_RESULTS_FILE, index=False)
     print(f"    ✓ Saved to {GRID_SEARCH_RESULTS_FILE}")
 
-    best_params = grid_results.sort_values("sharpe", ascending=False).iloc[0]
-
-    print("\n[4] Best validation parameters:")
-    print(f"    Sharpe ratio:       {best_params['sharpe']:7.2f}")
-    print(f"    Annual return:      {best_params['annual_return']:7.2%}")
-    print(f"    Crisis return:      {best_params['crisis_return']:7.2%}")
+    print("\n[SELECTION] Selected robust parameters:")
+    print(f"    Train Sharpe:       {best_params['train_sharpe']:7.2f}")
+    print(f"    Validation Sharpe:  {best_params['val_sharpe']:7.2f}")
+    print(f"    Selection score:    {best_params['selection_score']:7.2f}")
+    print(f"    Train return:       {best_params['train_annual_return']:7.2%}")
+    print(f"    Validation return:  {best_params['val_annual_return']:7.2%}")
+    print(f"    Validation crisis:  {best_params['val_crisis_return']:7.2%}")
     print("    Parameters:")
     print(
         f"      z_window={int(best_params['z']):2d}  "
@@ -272,6 +382,21 @@ def run_grid_search(
     )
 
     return best_params
+
+
+def run_grid_search(
+    validation_prices: pd.DataFrame,
+    validation_returns: pd.DataFrame,
+) -> pd.Series:
+    """
+    Backward-compatible wrapper for validation-only search.
+    """
+    return run_model_selection(
+        validation_prices,
+        validation_returns,
+        train_end=str(validation_returns.index.min().date()),
+        validation_end=str(validation_returns.index.max().date()),
+    )
 
 
 def build_strategy_from_params(params: pd.Series):
@@ -304,8 +429,10 @@ def build_strategy_from_params(params: pd.Series):
 
 def run_final_test(
     strategy_func,
-    test_prices: pd.DataFrame,
-    test_returns: pd.DataFrame,
+    context_prices: pd.DataFrame,
+    context_returns: pd.DataFrame,
+    evaluation_start: str | pd.Timestamp,
+    evaluation_end: str | pd.Timestamp | None = None,
 ) -> Tuple[Dict, pd.Series, float, float]:
     """
     Run out-of-sample test on hold-out period.
@@ -314,23 +441,29 @@ def run_final_test(
     print("OUT-OF-SAMPLE TEST (2020-2026)")
     print("=" * 70)
 
-    test_performance, strategy_returns = run_strategy(
+    window_result = run_strategy_on_window(
         strategy_func,
-        test_prices,
-        test_returns,
+        context_prices,
+        context_returns,
+        evaluation_start=evaluation_start,
+        evaluation_end=evaluation_end,
         label="FINAL STRATEGY",
     )
+    test_performance = window_result["performance"]
+    strategy_returns = window_result["strategy_returns"]
+    benchmark_returns = window_result["context_returns"]["SPY"].loc[
+        strategy_returns.index
+    ]
 
-    crisis_returns = compute_crisis_returns(strategy_returns, test_returns["SPY"])
+    crisis_returns = compute_crisis_returns(strategy_returns, benchmark_returns)
     test_crisis_return = 0.0
     if len(crisis_returns) > 0:
         crisis_performance = compute_performance(crisis_returns)
         test_crisis_return = crisis_performance["annual_return"]
 
-    signals = strategy_func(test_returns, test_prices)
-    turnover = compute_turnover(signals)
+    turnover = window_result["turnover"]
 
-    benchmark_performance = compute_performance(test_returns["SPY"])
+    benchmark_performance = compute_performance(benchmark_returns)
 
     print("\nFinal Strategy (test period):")
     print(f"  Sharpe:       {test_performance['sharpe']:7.2f}")
@@ -367,9 +500,13 @@ def save_summary_metrics(
                 "dd_window": int(best_params["ddw"]),
                 "dd_threshold": float(best_params["ddt"]),
                 "crash_weight": float(best_params["cw"]),
-                "val_sharpe": round(best_params["sharpe"], 4),
-                "val_annual_return": round(best_params["annual_return"], 4),
-                "val_crisis_return": round(best_params["crisis_return"], 4),
+                "train_sharpe": round(best_params["train_sharpe"], 4),
+                "train_annual_return": round(best_params["train_annual_return"], 4),
+                "train_crisis_return": round(best_params["train_crisis_return"], 4),
+                "val_sharpe": round(best_params["val_sharpe"], 4),
+                "val_annual_return": round(best_params["val_annual_return"], 4),
+                "val_crisis_return": round(best_params["val_crisis_return"], 4),
+                "selection_score": round(best_params["selection_score"], 4),
                 "test_sharpe": round(test_performance["sharpe"], 4),
                 "test_annual_return": round(test_performance["annual_return"], 4),
                 "test_volatility": round(test_performance["volatility"], 4),
@@ -413,28 +550,29 @@ def main() -> None:
     print("=" * 70)
 
     prices, returns = prepare_data(start=START_DATE, force_download=False)
+    context_prices = prices.loc[returns.index]
 
-    (
-        _train_prices,
-        _train_returns,
-        validation_prices,
-        validation_returns,
-        test_prices,
-        test_returns,
-    ) = split_data(
+    _, _, _, _, _test_prices, test_returns = split_data(
         prices=prices,
         returns=returns,
         train_end=TRAIN_END_DATE,
         val_end=VALIDATION_END_DATE,
     )
 
-    best_params = run_grid_search(validation_prices, validation_returns)
+    best_params = run_model_selection(
+        context_prices,
+        returns,
+        train_end=TRAIN_END_DATE,
+        validation_end=VALIDATION_END_DATE,
+    )
     strategy_func = build_strategy_from_params(best_params)
 
+    test_start = returns.index[returns.index > pd.Timestamp(VALIDATION_END_DATE)][0]
     test_performance, strategy_returns, test_crisis_return, turnover = run_final_test(
         strategy_func,
-        test_prices,
-        test_returns,
+        context_prices,
+        returns,
+        evaluation_start=test_start,
     )
 
     save_summary_metrics(best_params, test_performance, test_crisis_return, turnover)

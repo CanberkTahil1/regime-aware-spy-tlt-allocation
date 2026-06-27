@@ -115,6 +115,7 @@ class DataConfig:
     start_date: str
     train_end_date: str
     validation_end_date: str
+    test_end_date: str
     tickers: tuple[str, ...]
     trading_days: int = 252
 
@@ -123,12 +124,13 @@ class DataConfig:
         start = datetime.strptime(self.start_date, DATE_FORMAT)
         train_end = datetime.strptime(self.train_end_date, DATE_FORMAT)
         validation_end = datetime.strptime(self.validation_end_date, DATE_FORMAT)
+        test_end = datetime.strptime(self.test_end_date, DATE_FORMAT)
 
-        if not start < train_end < validation_end:
+        if not start < train_end < validation_end < test_end:
             raise ValueError(
                 "Invalid date ordering: "
                 f"{self.start_date} < {self.train_end_date} < "
-                f"{self.validation_end_date} must hold."
+                f"{self.validation_end_date} < {self.test_end_date} must hold."
             )
 
         if self.trading_days <= 0:
@@ -331,6 +333,7 @@ def build_config() -> AppConfig:
             start_date="2005-01-01",
             train_end_date="2015-01-01",
             validation_end_date="2020-01-01",
+            test_end_date="2025-12-31",
             tickers=("SPY", "TLT", "^VIX"),
             trading_days=252,
         ),
@@ -396,6 +399,7 @@ PLOT_FILENAME = CONFIG.paths.output.plot_file
 START_DATE = CONFIG.data.start_date
 TRAIN_END_DATE = CONFIG.data.train_end_date
 VALIDATION_END_DATE = CONFIG.data.validation_end_date
+TEST_END_DATE = CONFIG.data.test_end_date
 TRADING_DAYS = CONFIG.data.trading_days
 TICKERS = CONFIG.data.tickers
 

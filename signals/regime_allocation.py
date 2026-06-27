@@ -19,7 +19,7 @@ import numpy as np
 import pandas as pd
 
 from utils import apply_conditional_normalization
-from config import CrashParams, SignalParams
+from config import CrashParams, SignalParams, VIX_WINDOW
 
 from signals.bollinger import generate_bollinger_signals
 from signals.regime import compute_regime
@@ -66,7 +66,7 @@ def generate_regime_allocation_signals(
         returns=returns,
         crash_params=crash_params,
         cached_features=cached_features,
-    ).shift(1)
+    ).fillna(0.0)
     crash_active = crash_intensity > 0.05
 
     spy_pos = _apply_crash_overlay(spy_pos, crash_intensity, crash_active)
@@ -280,7 +280,7 @@ def _get_vix_rolling_mean(
     """
     if cached_features and "vix_rolling_mean" in cached_features:
         return cached_features["vix_rolling_mean"]
-    return prices["^VIX"].rolling(20, min_periods=20).mean()
+    return prices["^VIX"].rolling(VIX_WINDOW, min_periods=VIX_WINDOW).mean()
 
 
 def _get_spy_rolling_max(
