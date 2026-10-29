@@ -10,5 +10,8 @@
   missing. The tests swap in a fake `yfinance` that refuses every call, so v1 can never quietly re-download.
 - **D0.3 (advisor): the tests pin everything v1 committed** (headline test metrics, the one-row summary, and all 648
   grid rows) against the exact data file v1 used, checked by hash. A missing file is a red test, not a silent skip.
+- **D0.4 (advisor, after a miss): the test suite used too much memory in total.** I first checked one process
+  (185 MB) but the budget is for the whole run; with 16 parallel workers it peaks near 2 GB. Recorded as a failed
+  expectation, then capped the workers at 4 (same speed, ~0.7 GB) instead of redefining the budget.
 - **O0.1 (owner, pending): what to do about the Yahoo/Cboe price file already on the public GitHub repo.** The session
   left it alone and is waiting for your call.

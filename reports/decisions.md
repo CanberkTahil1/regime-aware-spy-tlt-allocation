@@ -44,9 +44,23 @@ Research for R0: `reports/research/R0.md`.
 - **Why the others lost:** (b) does not show v1's selection reproduces (R1 and the multiple-testing count need the
   grid); (c) a skipped test is a green test that checks nothing.
 
+### D0.4 — `make test` memory over budget at -n auto · decider = advisor · confidence high · AFTER results (post-hoc: yes)
+- **Trigger:** reviewer R0 MINOR 1. E0.5 was marked held on the largest single process (185 MB); the budget is
+  "≤ 1.5 GB total" (perf.md). Sampled summed RSS of the pytest tree (upper bound): -n auto (16 workers) 1952 MB / 8.57 s;
+  -n 8 1093 MB / 8.45 s; -n 4 665 MB / 8.31 s.
+- **Options:** (a) [rec] E0.5 → failed; fix with `-n auto --maxprocesses 4`; re-measure as E0.5-fix, band unchanged;
+  (b) plain `-n 4`; (c) restate the budget per-process; (d) defer to R1.
+- **Choice:** (a), amended: keep E0.5's text, status → failed with cause; perf.md method = committed sampler
+  (`scripts/rss_peak.py`, summed RSS of the process tree every 0.1 s, upper bound); correction rows added, old rows not
+  edited; both `test` and `test-nolegacy` capped; -n 16/8/4 table recorded. Engineering fix only: no return series
+  touched, so no variants.csv / DSR count. Not a charter change (`--maxprocesses` caps `-n auto`).
+- **Why the others lost:** (b) starts 4 workers even on 2 cores; (c) loosens a pre-registered band after a miss;
+  (d) leaves a known-false "held".
+
 ### O0.1 — v1's `data/prices.csv` (Yahoo + Cboe VIX) on the PUBLIC remote · ESCALATED TO OWNER · pending
 - Options: (a) [rec] `git rm --cached data/prices.csv` in a commit (already gitignored), keep the local untracked copy
   for the legacy tests (they hash the bytes, D0.3), leave history rewriting to the owner; (b) also rewrite history
   (owner runs it; irreversible for anyone who cloned); (c) leave it.
-- Also flagged: tracked `.DS_Store`, `results/.DS_Store` (untracking = delete).
+- Also flagged: tracked `.DS_Store`, `results/.DS_Store`, `signals/.DS_Store` (untracking = delete; the last two are
+  all that remains in the root `results/` and `signals/` after the D0.1 move; reviewer R0 MINOR 3).
 - Status: **not touched by the session.** The session never pushes or rewrites history.
