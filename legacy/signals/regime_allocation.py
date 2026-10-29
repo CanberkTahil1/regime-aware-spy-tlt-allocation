@@ -18,12 +18,12 @@ from typing import Dict, Optional
 import numpy as np
 import pandas as pd
 
-from utils import apply_conditional_normalization
-from config import CrashParams, SignalParams, VIX_WINDOW
+from legacy.utils import apply_conditional_normalization
+from legacy.config import CrashParams, SignalParams, VIX_WINDOW
 
-from signals.bollinger import generate_bollinger_signals
-from signals.regime import compute_regime
-from signals.spread import generate_spread_signals
+from legacy.signals.bollinger import generate_bollinger_signals
+from legacy.signals.regime import compute_regime
+from legacy.signals.spread import generate_spread_signals
 
 
 def generate_regime_allocation_signals(

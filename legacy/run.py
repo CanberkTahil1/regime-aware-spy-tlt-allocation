@@ -27,16 +27,16 @@ import os
 import numpy as np
 import pandas as pd
 
-from config import *
-from data import prepare_data, split_data
-from backtest import (
+from legacy.config import *
+from legacy.data import prepare_data, split_data
+from legacy.backtest import (
     compute_crisis_returns,
     compute_performance,
     compute_detailed_metrics,
     plot_test_period_performance,
     run_strategy_on_window,
 )
-from signals.regime_allocation import generate_regime_allocation_signals
+from legacy.signals.regime_allocation import generate_regime_allocation_signals
 
 
 PARAMETER_COLUMNS = ["z", "th", "sw", "sth", "ddw", "ddt", "cw"]

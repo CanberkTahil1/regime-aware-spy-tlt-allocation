@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from config import (
+from legacy.config import (
     COST_PER_UNIT,
     CRISIS_DRAWDOWN_THRESHOLD,
     PLOT_FILENAME,

@@ -7,7 +7,7 @@ preserving crash overlays when crash conditions are active.
 
 import pandas as pd
 
-from config import POSITION_COLUMNS
+from legacy.config import POSITION_COLUMNS
 
 
 def apply_conditional_normalization(

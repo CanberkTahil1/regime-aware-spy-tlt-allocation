@@ -12,7 +12,7 @@ from pathlib import Path
 import pandas as pd
 import yfinance as yf
 
-from config import DATA_PATH, START_DATE, TICKERS, TEST_END_DATE
+from legacy.config import DATA_PATH, START_DATE, TICKERS, TEST_END_DATE
 
 
 def load_data(

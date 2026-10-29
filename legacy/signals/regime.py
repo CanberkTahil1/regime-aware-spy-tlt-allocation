@@ -12,7 +12,7 @@ rules in the broader strategy.
 
 import pandas as pd
 
-from config import (
+from legacy.config import (
     VIX_WINDOW,
     MOMENTUM_WINDOW,
     REALIZED_VOL_WINDOW,

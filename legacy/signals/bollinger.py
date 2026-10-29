@@ -19,7 +19,7 @@ from typing import Tuple
 import numpy as np
 import pandas as pd
 
-from config import BOLLINGER_NUM_STD, BOLLINGER_WINDOW
+from legacy.config import BOLLINGER_NUM_STD, BOLLINGER_WINDOW
 
 
 def generate_bollinger_signals(

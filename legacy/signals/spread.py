@@ -15,7 +15,7 @@ from typing import Tuple
 import numpy as np
 import pandas as pd
 
-from config import SPREAD_THRESHOLD, SPREAD_WINDOW
+from legacy.config import SPREAD_THRESHOLD, SPREAD_WINDOW
 
 
 def generate_spread_signals(
