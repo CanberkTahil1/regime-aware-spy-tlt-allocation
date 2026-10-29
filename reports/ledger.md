@@ -516,3 +516,48 @@ below.
 | f86e90e | e87bcd9 |
 | f9f418e | 4e98322 |
 | ff40927 | 77b061d |
+
+## R6 — improvements suggested by R5 (expectations committed before any R6 code or number)
+
+**Owner instruction (2026-10-29):** test the R5-inspired ideas directly on both windows (development 1990-01-02 →
+2019-12-31 "in-sample"; test 2020-01-02 → 2026-09-30 "disclosed reuse: ideas inspired by this window"), with
+common-sense verdicts. There is no new holdout and no parameter search. R5's frozen record (spec/freeze.lock.json,
+reports/r5/, `make r5-replay`) is untouched.
+
+**Registration (owner O6.1: a separate file):**
+- `spec/prereg_r6.yaml` sha256 **966103ffa6ac7612d68589b062a36b4b2a40455cb9a8f4882ae91bc8eebcfbfd**.
+- spec/prereg.yaml (1d9c7c4f…) and spec/rules.yaml (a3daa583…) are unchanged and equal the R5 lock.
+- reports/variants.csv adds 15 counted R6 rows: R6a 1, R6b 8, R6c 2, R6d 1, R6e 2, R6f 1. R6g (gold) is registered as
+  "not run" (O6.2).
+- **Deviation recorded:** BUILD_PROMPTS says "`r6:` in spec/prereg.yaml", which was the owner's error (O6.1).
+- Decisions: O6.1–O6.2 (owner), D6.1–D6.5 (advisor), reports/decisions.md.
+
+**Disclosed priors.** Every idea came from R5's test results.
+- SPY was below its SMA at the 2020-02 decision, TLT's trend was out from 2022-01, and the 126-day gate fired only from
+  2022-08.
+- The 25-year bond leg lost heavily in 2022.
+- Some R6 rows already have numbers:
+  - L6-63 development (R3: excess Sharpe 0.784);
+  - 10y L3–L7 development (R4 sensitivity: L3 0.671, L4 0.902, L5 0.906, L7 0.674);
+  - 10y L5/L7 test (R5 sens10y: 0.115 / L7 +0.08 vs 25y).
+- These are identity checks, not new evidence.
+- The author also knows the public 2020–2026 path of 5-year Treasuries: smaller 2022 losses than the 25-year leg.
+
+Predictions are the author's, with low-to-medium confidence. ΔSharpe = vs the candidate's own parent (prereg_r6
+candidates), matched ex post within the window (D6.4).
+
+| ID | Expectation (band) | Source | Status |
+|---|---|---|---|
+| E6.1 | code: R6's reference rungs (L0, L1, L2, L3, L5, L7) reproduce reports/r5/metrics.csv on the test and reports/r2 / r3 metrics.csv on development (every metric ≤ 1e-12); R6c_L6-63 development = R3 L6-63 (≤ 1e-12); R6b 10y development = reports/r4/sensitivity.csv (≤ 1e-9); L5/L7@10y test Sharpe = reports/r5/sens10y.csv (≤ 1e-12) | prereg_r6 checks | open |
+| E6.2 | code: the inflation gate has 0 carried (undefined) scored decisions; `regime.check_coverage` passes on every R6 keep; 1 vs N workers bit-identical; `make r5-replay` byte-identical after the R6 Makefile change; every fast path (R6e recursion, blend) equals its plain reference ≤ 1e-12 | D6.1, D6.2, D6.5; perf contract | open |
+| E6.3 | inflation gate: share of development month-end decisions with v > median in [30%, 70%]; gate high at the 2022-01 … 2022-06 decisions (≥ 4 of 6) | author | open |
+| E6.4 | R6a vs L2: development CDaR-95 ratio ≤ 0.85 and ΔSharpe in [−0.10, +0.20]; test ΔSharpe in [−0.15, +0.40] | author (Faber 2007; 2000–02 / 2008 exits) | open |
+| E6.5 | R6b: L5@5y vs L5 development ΔSharpe in [0, +0.25]; L3@5y vs L3 test ΔSharpe in [0, +0.50]; L7@5y vs L7 test ΔSharpe in [−0.10, +0.40] | author; R4 10y lead | open |
+| E6.6 | R6c_infl vs L5: development ΔSharpe in [−0.25, +0.05] (bonds gated in some hedge years, e.g. 2008 oil swings); test ΔSharpe in [0, +0.60] | author | open |
+| E6.7 | R6c_L6-63 vs L6: development ΔSharpe in [−0.05, +0.10]; test ΔSharpe in [−0.20, +0.40] | R3 (0.784 vs 0.752 unmatched); author | open |
+| E6.8 | R6d vs L5: development ΔSharpe in [−0.15, +0.05]; test ΔSharpe in [0, +0.60] | author (bond bull market in development; 2022 trend exit) | open |
+| E6.9 | R6e_weekly: turnover ≥ 25% below L2's in both windows; ΔSharpe vs L2 in [−0.10, +0.05] (development) and [−0.15, +0.05] (test). R6e_ewma5: turnover cut in [15%, 60%] | author | open |
+| E6.10 | R6f vs the line (L0 matched): development ΔSharpe in [+0.05, +0.35]; test ΔSharpe in [−0.30, +0.10] | author (blend of 0.53 / 0.70 / 0.58 vs L0 0.48 in development; 0.73 / 0.48 / 0.33 vs 0.68 on the test) | open |
+| E6.11 | verdicts: at most 3 of the 15 rows read "better in both periods"; at least 4 read "better only in the period that inspired it" | author | open |
+| E6.12 | DSR: every R6 row's test-window headline DSR (N 20) < 0.95 | R5 E5.14 (max 0.76 at N 5) | open |
+| E6.13 | perf: `make r6` ≤ 120 s cold (one new vol-zoo series: the 5y L4 book) and ≤ 60 s warm, peak RSS ≤ 1.5 GB (rss_peak); `make test` ≤ 60 s | performance contract | open |

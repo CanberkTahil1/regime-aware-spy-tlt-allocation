@@ -142,3 +142,23 @@
   its shuffled version. The placebo can only weaken a claim, never strengthen it.
 - **D5.9 (advisor): the Makefile is checked before the run but not on replays,** because it computes nothing; a replay
   still requires every test table to come out byte for byte the same.
+
+## R6 (owner and advisor decisions, before any R6 number)
+
+- **O6.1 (owner): R6's rules go in their own file, spec/prereg_r6.yaml.** R5's lock fingerprints prereg.yaml, so adding
+  a section there would have made the R5 test tables unreplayable. The build prompt's "r6 section in prereg.yaml" was
+  the owner's slip; the deviation is recorded.
+- **O6.2 (owner): CPI comes straight from the BLS, not FRED; gold is skipped.** BLS data is public domain. FRED's
+  terms forbid storing its content. Gold would need a monthly engine this repo doesn't have.
+- **D6.1 (advisor): the slow-re-entry vol target raises exposure only on Fridays.** It cuts any day. A smoother
+  version (EWMA) is the one allowed variant. Both are compared at the same volatility, with turnover shown.
+- **D6.2 (advisor): the two correlation ideas are tested separately.** One row is the faster 63-day correlation gate.
+  The other drops bonds when inflation has been unusually jumpy (CPI known with a one-month lag, checked against
+  BLS release dates). They are not combined: a combination designed after 2022 would mostly fit 2022.
+- **D6.3 (advisor): the one-third blend is three separate accounts reset monthly.** The reset is a real trade and is
+  charged. Each account pays its own costs, so the blend's costs are, if anything, slightly too high.
+- **D6.4 (advisor): each idea is judged against the one thing it changes, at the same risk, in both periods.** "Better"
+  means Sharpe up by at least 0.05, or drawdown (CDaR) at least 15% lower without a Sharpe loss. When the gain shows only
+  in 2020–26, the table says "better only in the period that inspired it". Every row counts in the multiple-testing N.
+- **D6.5 (advisor): `make all` runs R6 too.** The Makefile change is the kind R5's lock planned for; the R5 replay
+  still proves its tables byte for byte.

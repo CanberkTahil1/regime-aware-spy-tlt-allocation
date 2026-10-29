@@ -1,0 +1,143 @@
+# R6 pre-registration (2026-10-29), written before any R6 number; its sha256 is recorded in reports/ledger.md.
+# Owner O6.1: R6 lives in this file, not in spec/prereg.yaml. R5's lock (spec/freeze.lock.json) content-hashes
+# prereg.yaml / rules.yaml / src/rspy/**, so an `r6:` section there would break `make r5-replay`; the BUILD_PROMPTS
+# wording "r6 section in prereg.yaml" was the owner's error (deviation recorded in reports/decisions.md O6.1).
+# Decisions: O6.1, O6.2 (owner), D6.1-D6.5 (advisor), reports/decisions.md. Research: reports/research/R6.md.
+# Every rung named here (L0..L8, L6-63, the line) is the registered one: spec/prereg.yaml + spec/rules.yaml, unchanged.
+version: 1
+phase: R6
+owner_instruction: "test the R5-inspired improvement ideas directly on both windows, common-sense verdicts, no new holdout, no parameter search (2026-10-29)"
+
+windows:
+  development: {start: 1990-01-02, end: 2019-12-31, label: "in-sample"}
+  test: {start: 2020-01-02, end: 2026-09-30, label: "disclosed reuse: ideas inspired by this window"}
+  books: "every book continuous from 1986-01-02 (R5 D5.1 build: robust.build_core(end=2026-09-30)); windows are slices"
+  warmup_extra: "CPI from 1975-01 for estimation of the inflation gate only (never scored)"
+one_directional: "an R6 verdict promotes, demotes, seats or re-seats nothing; R2/R3/R4/R5 records are untouched"
+
+data:
+  panel: "data/panel.parquet as locked by R5 (sha256 10aeb147...); never rebuilt by R6"
+  bond_5y: "data.build.bond_leg(read_gsw(raw gsw), 5, max_gap_days 7, m 2) -> data.build.to_sessions on the KF sessions (the panel's own construction, rules.yaml bonds); SVENY05 reported from 1961; label 'GSW 5y constant-maturity proxy, not QA'd vs an ETF'"
+  bond_10y: "panel column tlt10 (R4 / R5 sensitivity leg); label 'GSW 10y constant-maturity proxy, not QA'd vs an ETF'"
+  cpi:   # O6.2
+    source: "BLS public API v1, POST https://api.bls.gov/publicAPI/v1/timeseries/data/ (10-year chunks, 1975-2026)"
+    series: CUUR0000SA0          # CPI-U, US city average, all items, NOT seasonally adjusted (never revised)
+    storage: "data/r6/raw/bls/CUUR0000SA0_<y0>_<y1>.json + data/r6/raw/manifest.jsonl (UTC, URL, bytes, sha256); gitignored"
+    parse: "periods M01-M12 only (M13 annual average dropped); value '-' (footnote X, e.g. 2025-10 'Data unavailable due to the 2025 lapse in appropriations') = missing; values as published, no rebasing"
+    licence: "BLS: public domain, cite BLS as source (LICENSES.md)"
+  gold: "skipped (O6.2): no monthly-frequency engine in this repo; R6g not run"
+
+candidates:   # n_R6 = 15 rows, all in reports/variants.csv (counted yes) before any R6 number
+  R6a:
+    id: R6a_L2_trend
+    rule: "L2's daily target (rungs.l2_target, unchanged) x the SPY trend keep: regime.trend_keep(inp, rows, 10)[:, 0] (quantkit.signals.trend.faber on SPY's total-return level, month-end decision rows of offset 0, decision of month-end e = faber's position from e+2), carried by regime.gate; keep 0 => target 0 (T-bills); unbanded like L2"
+    parent: L2
+  R6b:
+    rows:
+      - {id: "R6b_L3@5y", rung: L3, maturity: 5, parent: L3}
+      - {id: "R6b_L4@5y", rung: L4, maturity: 5, parent: L4}
+      - {id: "R6b_L5@5y", rung: L5, maturity: 5, parent: L5}
+      - {id: "R6b_L7@5y", rung: L7, maturity: 5, parent: L7}
+      - {id: "R6b_L3@10y", rung: L3, maturity: 10, parent: L3}
+      - {id: "R6b_L4@10y", rung: L4, maturity: 10, parent: L4}
+      - {id: "R6b_L5@10y", rung: L5, maturity: 10, parent: L5}
+      - {id: "R6b_L7@10y", rung: L7, maturity: 10, parent: L7}
+    rule: "robust.build_core(panel_with_leg, maturity=m, end=2026-09-30, l1=False): every rule and parameter as the 25-year rung (vol zoo re-selected on the m-year L4 book by the registered causal rule); parent = the same rung at 25y"
+    note: "10y L3-L7 development numbers exist (R4 sensitivity) and 10y L5/L7 test numbers exist (R5 sens10y): re-used as identity checks, counted again (R5 precedent)"
+  R6c:
+    rows:
+      - id: R6c_L6-63
+        rule: "R3's registered L6-63 (corr window 63, threshold 0; regime.targets) unchanged"
+        parent: L6
+        note: "development numbers previously computed (R3); only the test row is new"
+      - id: R6c_infl
+        rule: "L5's daily target gated by the inflation keep = [1, 0 if high else 1] on L6's month-end decision rows (offset 0), carried by regime.gate, traded at the next close; L5's vol scale and 5 pp band unchanged (rules.yaml r3.L6.action)"
+        parent: L5
+        beside: L6
+    inflation_gate:   # D6.2
+      pi: "pi_m = ln(CPI_m / CPI_{m-1}); undefined if either is missing"
+      v: "v_m = sample std (ddof 1) of the pi over the 12 months ending at m; defined iff >= 10 of the 12 are defined"
+      median: "plain sample median of v over the 120 months ending at m (v_m included; an even count averages the two middle values); defined iff >= 100 of the 120 are defined"
+      high: "v_m > median_m (strict)"
+      lag: "the decision at the month-end close of month M uses CPI months <= M-1 (BLS publishes month m during m+1)"
+      lag_check: "BLS CPI release archive (bls.gov/bls/news-release/cpi.htm, read 2026-10-29), 1994-2026: every release inside the month after its reference month; latest relative: Sep 2013 on 2013-10-30, Sep 2025 on 2025-10-24, Nov 2025 on 2025-12-18; before 1994 the archive is absent and the lag is assumed (warm-up / development only, disclosed)"
+      undefined_decision: "carries the previous decision (rungs.carry); expected count on scored decision rows = 0, asserted; regime.check_coverage runs unchanged on the keep"
+      combined_row: "not run (D6.2 amendment 4: 'L6 with 63-day ... and an inflation gate' split into two one-layer rows)"
+  R6d:
+    id: R6d_L5_bondtrend
+    rule: "L5's daily target x the trend keep with the SPY column set to 1: regime.trend_keep(...)[:, 1] for TLT only; 5 pp band as L5"
+    parent: L5
+  R6e:   # D6.1
+    raw: "raw_t = L2's target SPY weight at target row t (min(0.15 / sigma20, 2), vol through t-1; rungs.l2_target); NaN rows pass through and do not update the state"
+    rows:
+      - id: R6e_weekly
+        role: "row of record"
+        rule: "held_t = raw_t if raw_t < held_{t-1}; else raw_t if t is the last session of its ISO calendar week; else held_{t-1}; held = raw at the first defined row"
+        parent: L2
+      - id: R6e_ewma5
+        role: "the one sensitivity row"
+        rule: "held_t = raw_t if raw_t < held_{t-1}; else held_{t-1} + (1/3)(raw_t - held_{t-1}) (EWMA span 5)"
+        parent: L2
+    pipeline: "target = [held_t, 0] on L2's target rows; unbanded; L2's cap, timing, financing and costs"
+    report: [turnover_pa, cost_pa, avg_gross, "turnover change vs L2 in %"]
+    disclosed: "the Friday (week-end) anchor; other weekdays not swept"
+  R6f:   # D6.3
+    id: R6f_blend
+    books: [L2, L3, L7]
+    rule: "fund of three books; capital shares v_i carried into row t drift: v_i,t+1 = v_i,t (1 + r_i,t) / (1 + r_t), r_t = sum_i v_i,t r_i,t (each r_i the book's net return after its own costs and financing); at each month-end decision row d (rungs.decision_rows offset 0) the reset trades at close d+1: v = 1/3 carried into row d+2"
+    reset_cost: "per asset a at row d+1: dw_a = sum_i (1/3 - v_i^drifted) * w_i,a with v_i^drifted the shares after row d+1's drift and w_i,a = sub-book i's held weight carried into row d+2 (after its own trade at close d+1); cost = mult * (3 bp |dw_SPY| + 2 bp |dw_TLT|), charged in row d+1; cash residual, free"
+    turnover: "sum_i v_i,t turnover_i,t + sum_a |dw_a|"
+    gross: "sum_i v_i,t sum_a held_i,t,a; report mean and max"
+    start: "v_i = 1/3 at the book's first row (1986-01-02); continuous"
+    stress: "2x / 3x costs and +75 bp financing applied to every sub-book and to the reset charge together"
+    parent: line
+
+references: [L0, L1, L2, L3, L5, L7]          # R5's reference rungs (25-year books)
+line_metrics: "per candidate: the ex-ante line (evaluate.line: quantkit bench.vol_matched, window 63, lag 1) on the candidate's full book, sliced to each window (metrics row only)"
+
+comparisons:   # D6.4
+  per_window: true
+  match: "reference rescaled once ex post to the candidate's excess vol within that window (evaluate.ablation_row: bill + 25 bp above 1x)"
+  columns: {own_parent: "see candidates", L2: L2, L3: L3, line: "L0 rescaled ex post (the same convention; the ex-ante line is a metrics row only)"}
+  interval: "LW 95% (block 21, 1,000 draws, seed 0); CDaR-95 and max-DD ratio dd_ratio_ci 95% (rules.yaml r3.ablation)"
+  crisis: "covid and infl_2022 (prereg crisis_windows), test window: the candidate's in-window return; own parent, L2, L3 and the line (L0) matched on the whole test window (evaluate.crisis_matched); in-crisis vols not matched"
+  costs: "1x, 2x, 3x, +75 bp books: Sharpe and matched dSharpe vs own parent (point) per window"
+  power: "quantkit stats.power.power at the test length with the development point Sharpes and correlation of (candidate, own parent matched on development); optimistic iid planning"
+
+verdict:   # D6.4
+  min_effect: {dsharpe: 0.05, cdar_ratio: 0.85}     # prereg promotion_rule.min_effect
+  per_window:
+    better: "dSharpe >= +0.05, or (CDaR-95 ratio <= 0.85 and dSharpe > -0.05)"
+    worse: "dSharpe <= -0.05, or (CDaR-95 ratio >= 1/0.85 and dSharpe < +0.05)"
+    same: "otherwise"
+    leg: "'Sharpe' if the dSharpe clause decides, else 'drawdown'"
+    clearly: "Sharpe leg: LW 95% interval excludes 0 in the word's direction; drawdown leg: CDaR ratio interval excludes 1 in the word's direction"
+  words:   # (development, test)
+    "better,better": "better in both periods"
+    "same,better": "better only in the period that inspired it"
+    "worse,better": "better only in the period that inspired it"
+    "better,same": "better in development only"
+    "better,worse": "better in development, worse in the test"
+    "same,same": "no real difference"
+    "same,worse": "worse"
+    "worse,same": "worse"
+    "worse,worse": "worse in both periods"
+
+dsr:   # D6.4
+  n_r6: 15
+  test: {impl: "testwin.dsr_rows", n_headline: 20, n_raw: 766, v_dev: 5.379623993123816e-05, k_gap: 3,
+         rule: "V = max(V_dev, 1/(T-1))"}
+  development: {n_used: 19, n_raw: 766, rule: "testwin.dsr_rows on development excess returns, n_headline = R4 n_used 4 + 15"}
+
+checks:
+  references_equal_r5_test: "reference rungs' test metrics equal reports/r5/metrics.csv (<= 1e-12)"
+  references_equal_dev: "reference rungs' development metrics equal reports/r2/metrics.csv / reports/r3/metrics.csv (<= 1e-12)"
+  r6c63_equal_r3: "R6c_L6-63 development metrics equal reports/r3/metrics.csv L6-63 (<= 1e-12)"
+  tenyear_equal: "R6b 10y development metrics equal reports/r4/sensitivity.csv (<= 1e-9); L5/L7@10y test Sharpe equal reports/r5/sens10y.csv (<= 1e-12)"
+  carry_count: 0
+  workers: "1 vs N workers bit-identical"
+
+outputs:
+  committed: "reports/r6/{metrics, compare, verdict, crisis, costs, dsr}.csv, facts.json, run.json (statistics only); reports/figures/R6/ (statistics figures)"
+  local: "data/r6/books.parquet; reports/figures_local/R6/ (viz.headline; gitignored)"
+  readme: "section 'Improvements tried after the test (R6)' drafted; committed only with the owner's approval"

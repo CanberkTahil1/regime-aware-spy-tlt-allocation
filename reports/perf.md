@@ -108,3 +108,13 @@ Note: the grid test is marked `slow` (runtime recorded above, D0.3 amendment 5) 
 | `make test` (147 tests) | ≤ 60 s | — | 10.6 s | yes |
 | D5.8 test placebos (3 gates × 100 books over 1986–2026) | ≤ 20 s inside the run | 300 numba walks O(T·N) | dry run: evaluate 21 s incl. placebos (warm build) | yes |
 | `make dry-run` after review M1 / D5.8 (new synthetic series: cold) | ≤ 120 s | — | 70.3 s | yes |
+
+## R6 budgets (set at the expectation commit, E6.13)
+
+| Step | Budget | Complexity |
+|---|---|---|
+| CPI fetch (BLS API, 6 POSTs) | ≤ 30 s, network | O(months) |
+| 5y bond leg (bond_leg + to_sessions on the raw GSW curve) | ≤ 10 s | O(curve rows) |
+| books: 25y core (cached vol zoo), 10y core (cached from R5), 5y core (one cold vol-zoo series), R6a/c/d/e/f targets | ≤ 90 s cold, ≤ 20 s warm | O(T·N) per book (numba walk); GARCH refits every 21 rows (cold only); R6e recursion O(T) (numba, plain reference); blend O(T·3) |
+| comparisons: 15 candidates × 4 references × 2 windows `ablation_row` (LW 1,000 + 2 dd_ratio_ci 1,000) | ≤ 40 s (process pool over candidates; 1 vs N bit-identical) | O(draws·T) per row |
+| `make r6` total | ≤ 120 s cold, ≤ 60 s warm, peak RSS ≤ 1.5 GB | — |

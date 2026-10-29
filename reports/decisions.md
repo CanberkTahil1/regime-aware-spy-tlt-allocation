@@ -736,3 +736,129 @@ owner's approval; never push.
 - **Why the others lost:**
   - (b) would let a dependency move (uv.lock, pyproject) pass the lock check.
   - (c) would make any later harmless target, such as the forward log, break `make all` permanently.
+
+## R6 (research: reports/research/R6.md, f6e8b38; before any R6 number; owner instruction 2026-10-29: test the R5-inspired ideas on both windows, common-sense verdicts, no new holdout, no parameter search)
+
+Every R6 idea was suggested after seeing 2020–2026. The test window is labelled "disclosed reuse: ideas inspired by
+this window" and development 1990–2019 "in-sample". No R6 verdict promotes or demotes anything.
+
+### O6.1 — Where R6 is registered · ESCALATED TO OWNER · OWNER 2026-10-29
+- **Conflict:** BUILD_PROMPTS R6 says "`r6:` in `spec/prereg.yaml`". R5's lock (spec/freeze.lock.json) content-hashes
+  spec/prereg.yaml, spec/rules.yaml (rules also feed data/build.json's key) and every src/rspy/**/*.py. An appended
+  section fails `make freeze-verify`, `make r5-replay` and `make all` permanently.
+- **Options:** (a) [rec] a separate spec/prereg_r6.yaml, sha256 in the ledger before any R6 number; (b) append and
+  replay the r5-done tree in a temporary worktree from the Makefile; (c) append and accept a broken replay.
+- **Owner's choice:** (a). "The BUILD_PROMPTS wording 'r6 section in prereg.yaml' was the owner's error; record the
+  deviation." Consequence: R6 parameters live in spec/prereg_r6.yaml (rules.yaml stays the parameter source for every
+  locked rung); R6 code lives outside the lock (`r6lib/`, `scripts/r6*.py`, `tests/test_r6.py`).
+
+### O6.2 — New data for R6c (CPI) and R6g (gold) · ESCALATED TO OWNER (licence) · OWNER 2026-10-29
+- **Options:** (a) [rec] CPI only (via FRED CPIAUCNS), skip gold; (b) CPI and gold (Pink Sheet); (c) neither.
+- **Owner's choice (other):** CPI only, fetched **directly from the BLS** (CPI-U NSA, series CUUR0000SA0), with BLS's
+  public-domain notice quoted in LICENSES.md (URL, date). **Not via FRED:** its terms bar storing or caching FRED content
+  without consent, so this repo, like naive-vs-optimal, takes series from the source agency. Skip R6g and say why: this
+  repo has no monthly-frequency engine. Use the CPI release lag (published about mid-month for the prior month).
+
+### D6.1 — R6e, asymmetric vol targeting: weekly step-ups or a 5-day EWMA · confidence high · decider = advisor
+- **Options:** (a) [rec] weekly step-ups as the row of record, plus the EWMA as the one sensitivity row; (b) weekly
+  only; (c) EWMA only.
+- **Choice:** (a), amended:
+  1. raw_t is L2's unchanged scale min(0.15/σ20, 2), vol through t−1 (legacy_bridge.v1_scaled), on L2's target rows.
+     Weekly: held_t = raw_t if raw_t < held_{t−1}; else raw_t if t is the last session of its ISO calendar week (a
+     short week uses its last actual session); else held_{t−1}. held starts at raw on the first defined row.
+  2. EWMA row: held_t = raw_t if raw_t < held_{t−1}, else held_{t−1} + (1/3)(raw_t − held_{t−1}) (span 5).
+  3. The same pipeline as L2: signal timing, `v1_target` next-close mapping, the 2× cap, financing, true-turnover costs.
+  4. Judged at matched vol (lower average gross must not pass as "better"); turnover, cost_pa and avg_gross beside.
+  5. The Friday anchor is disclosed, never swept.
+  6. A plain-loop reference in tests/reference/, plus property tests: a cut applies the same day; the weekly row equals
+     raw at every week-end session.
+  7. Both rows in variants.csv (DSR N +2).
+- **Why the others lost:** (b) gives no reading on whether the form matters; the prompt names the EWMA. (c) trades a
+  little every up-day, cuts turnover less, and drops the prompt's first form without a basis.
+
+### D6.2 — R6c, the faster correlation regime and the inflation-volatility gate · confidence medium-high · decider = advisor
+- **Options:** (a) [rec] two one-layer rows on L5 (R6c-63 = R3's L6-63 unchanged; R6c-infl = L5 with the inflation
+  gate in place of the correlation gate), no combination; (b) one row, the 126-day gate OR the inflation gate; (c) (a)
+  plus "63-day OR inflation" as a sensitivity row.
+- **Choice:** (a), amended:
+  1. The carry fallback should never fire on a scored decision. Expected count = 0 is written in prereg_r6 and tested;
+     `regime.check_coverage` runs on the R6c-infl keep unchanged. A non-zero count is a registration error to log, not
+     a reason to loosen the guard.
+  2. The release lag is a checked fact. The rule: a decision at the month-end close of M uses CPI months ≤ M−1. Checked
+     2026-10-29 against the BLS CPI release archive (bls.gov/bls/news-release/cpi.htm, 1994 → 2026): every release fell
+     inside the month after its reference month. The latest relative releases: Sep 2013 on 2013-10-30, Sep 2025 on
+     2025-10-24, Nov 2025 on 2025-12-18. Before 1994 the archive is absent, so the lag is assumed (disclosed); those
+     decisions are warm-up or development only.
+  3. Free choices written before running:
+     - keep = [1, 0 if high else 1] on L6's month-end rows, traded at the next close, applied to L5's daily target
+       (L5's vol scale unchanged, rules.yaml r3.L6.action);
+     - the plain sample median (an even count averages the two middle values), v_m inside its own 120-month window;
+     - CPI as published, no rebasing;
+     - CPI from 1975 for estimation only.
+  4. The prompt's wording ("L6 with the 63-day window … and an inflation-volatility gate") can be read as one combined
+     row. (a) splits it into two one-layer rows on purpose. The combined row is not run.
+  5. R6c-63's development row is R3's number, marked "previously computed (R3)". Only its test row is new.
+- **Why the others lost:** (b) puts two changes in one row, so a gain cannot be attributed, and it keeps the slow
+  126-day gate. (c) is a third candidate, not one value of an open choice. OR-ing two gates fires at least as often as
+  either, so it would look best exactly in 2022.
+
+### D6.3 — R6f, how the equal-weight blend is booked · confidence high · decider = advisor
+- **Options:** (a) [rec] a fund of three books (L2, L3, L7), shares reset to 1/3 monthly, no cross-book netting, the
+  reset trade charged per asset; (b) one book with daily target (1/3)Σheld_i; (c) a return blend with no reset cost.
+- **Choice:** (a), amended:
+  1. The reset is decided at the month-end close t and traded at close t+1. Shares are 1/3 at t+1 and earn from t+2.
+     Within the month v_i drifts with each book's net return (after its own costs and financing).
+  2. The reset turnover per asset is |Σ_i (1/3 − v_i) · w_i,asset|, using the drifted v_i and the held w_i at the
+     execution close t+1. Cash is the residual, moved free.
+  3. Rates: 3 bp SPY, 2 bp TLT per side (rules.yaml accounting). Netting applies only inside the reset trade itself,
+     never against the books' own trades that day.
+  4. The 2×/3× cost and +75 bp rows stress every sub-book and the reset charge together.
+  5. Turnover reported: Σ_i v_i,t · turnover_i,t + the reset turnover. The fund's average and maximum gross go beside
+     it (L2 runs up to 2×).
+  6. v_i = 1/3 at the fund's first session. Each sub-book's warm-up follows its own rung.
+- **Why the others lost:** (b) rebalances the split daily, which is not the registered "monthly"; L3's band would act
+  on the mix; daily cross-book netting is a cost credit the prompt never gave. (c) drops a real trade's cost.
+
+### D6.4 — Comparators, matching, the common-sense verdict and DSR N · confidence high · decider = advisor
+- **Options:** (a) [rec] one own parent per candidate, ±0.05 ΔSharpe bands, fixed words, DSR N + n_R6; (b) verdict
+  from the LW interval only; (c) a Holm family over R6 rows.
+- **Choice:** (a), amended:
+  1. The charter's full minimum effect (prereg promotion_rule.min_effect), per window, vs the own parent matched:
+     - "better" = ΔSharpe ≥ +0.05, or (CDaR-95 ratio ≤ 0.85 and ΔSharpe > −0.05);
+     - "worse" = ΔSharpe ≤ −0.05, or (CDaR ratio ≥ 1/0.85 and ΔSharpe < +0.05);
+     - else "about the same". The leg that fired ("Sharpe" / "drawdown") is printed.
+  2. "Clearly" only when the 95% interval excludes 0 in the word's direction (LW for Sharpe; dd_ratio_ci excludes 1
+     for a drawdown verdict).
+  3. Fixed words over all 9 (development, test) pairs:
+     - B/B "better in both periods"
+     - S/B, W/B "better only in the period that inspired it"
+     - B/S "better in development only"
+     - B/W "better in development, worse in the test"
+     - S/S "no real difference"
+     - S/W, W/S "worse"
+     - W/W "worse in both periods"
+  4. "The line" in the ΔSharpe columns = L0 rescaled once ex post to the candidate's excess vol in that window, the
+     same convention as every other reference. The ex-ante line is reported only as a metrics row.
+  5. Own parents: R6a → L2; R6b rows → the same rung at 25y; R6c-63 → L6 (126-day, the registered primary); R6c-infl
+     → L5 (L6 beside); R6d → L5; R6e rows → L2; R6f → the line.
+  6. Every table carries the window labels. A verdict promotes and demotes nothing. Power at the test length goes
+     beside the test column (development point Sharpes, quantkit stats.power, optimistic iid).
+  7. DSR, test window: N_headline = 5 + n_R6, N_raw = 751 + n_R6, V = max(V_dev, 1/(T−1)). Development:
+     n_used = 4 + n_R6. n_R6 = 15 is fixed from variants.csv and hashed before any R6 number.
+  - Disclosed: some R6 rows already had numbers before this rule existed. L6-63 has development numbers (R3); the 10y
+    L5–L7 rows have development (R4) and test (R5) numbers. The rule is generic and not tuned to them.
+- **Why the others lost:** (b) ≈ 7 test years gives almost no power, so every row would read "no difference". (c) a
+  confirmatory family on a window that inspired the ideas would overstate the evidence; the owner asked for plain words.
+
+### D6.5 — Orchestration · confidence high · decider = advisor
+- **Options:** (a) [rec] Makefile targets r6-data / r6 / r6-figures-local, `r6` in `all`; (b) no Makefile change.
+- **Choice:** (a), amended:
+  1. `r6-data` stays out of `all`, like `fetch`. `r6` depends on `logs data omp` and fails clearly if data/r6/raw, its
+     manifest or a sha256 is missing or wrong. It never fetches on its own.
+  2. The R6 local figures hook into `report-site-local`; the standalone `r6-figures-local` target is kept.
+  3. In `all`, `r6` goes after `r5-figures` and before `report-site`.
+  4. The Makefile edit is committed on its own, before any R6 number. The ledger records the old/new Makefile sha256 and
+     the expected `make freeze-verify` output ("locked file changed: Makefile"), the outcome D5.9 foresaw.
+  5. freeze.py, the lock and prereg.yaml are not edited. `make r5-replay` runs once after the edit and must print the
+     D5.9 line and stay byte-identical; logged.
+- **Why the other lost:** (b) breaks the charter's "make all reproduces every figure".
