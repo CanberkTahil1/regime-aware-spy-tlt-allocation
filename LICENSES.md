@@ -1,0 +1,54 @@
+# Data licences and terms (re-read 2026-10-28, R0)
+
+Every source is quoted (clause, URL, date read) **before first use**. Every quote below marked **[raw]** was re-read on
+2026-10-28 from the page source (curl, then tags stripped), not through a summariser; the wording was first collected in
+naive-vs-optimal's `LICENSES.md` @ b5f6278 (read 2026-10-27, COPIED.md) and every clause was confirmed verbatim on the
+live page today. Paraphrase is in [brackets]. Standing rules: free data only; storage permitted (or public domain); no
+outreach; licensed or unclear-terms data never enters git (`data/` is gitignored; the pre-commit hook refuses it).
+**This repository has a public GitHub remote**, so "never redistributed" means: never committed.
+
+## Permitted sources
+
+### Federal Reserve Board: GSW nominal curve (TLT proxy) and H.15 (cash) — public domain
+- **Terms [raw]** (https://www.federalreserve.gov/disclaimer.htm, read 2026-10-28, page "Last Update: August 02, 2024"):
+  "Unless otherwise indicated, information on Board's website is in the public domain and may be copied and distributed
+  without permission. Please cite to the Board as the source of the information." Third-party material: "permission to
+  copy and distribute such photo, graphic, or material must be obtained from the non-Board source."
+- **GSW nominal [raw]** (https://www.federalreserve.gov/data/nominal-yield-curve.htm, read 2026-10-28, page "Last Update:
+  November 05, 2019"): "this model is a staff research product and not an official statistical release. Accordingly, it
+  is subject to delay, revision, or methodological changes without advance notice." "We generally try to post the
+  updated series once per week". → [pin vintages: hash every download (R1).]
+- **H.15 [raw]** (https://www.federalreserve.gov/releases/h15/, read 2026-10-28, "Release date: October 28, 2026"):
+  Treasury bill footnotes "Annualized using a 360-day year or bank interest." and "On a discount basis." → [convert
+  bills from the discount basis before use (R1).]
+- **Verdict:** permitted (public domain); cite the Board. Derived files may be stored; raw files stay in `data/` anyway.
+
+### Ken French Data Library: daily "Hi 20" (SPY proxy) — THE ONE DISCLOSED RELAXATION (owner standing rule)
+- **Notice [raw]** (https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html, page source read
+  2026-10-28, HTML comment in the page header): "All images and code are property of Ken French. Use in part or whole is
+  illegal -- except by permission of Ken French or Dimensional Fund Advisors". Page footer: "Copyright Eugene F. Fama and
+  Kenneth R. French". No data licence or storage clause is stated.
+- **Stance (owner):** unclear terms; used as the SPY proxy for personal research only, **gitignored, never committed or
+  redistributed**, labelled "SPY proxy" everywhere. Same stance as naive-vs-optimal, resid-book and enhanced-60-40.
+- KF's own risk-free series is not used; cash comes from H.15.
+
+## Excluded sources (v1 used both; v2 removes them)
+
+| Source | URL read [raw] 2026-10-28 | Clause | Page date | Verdict |
+|---|---|---|---|---|
+| Yahoo (v1 prices via `yfinance`) | https://legal.yahoo.com/us/en/yahoo/terms/otos/index.html | "access or collect data, or attempt to access or collect data, from our Services using any automated means, devices, programs, algorithms or methodologies, including but not limited to robots, spiders, scrapers, data mining tools, or data gathering or extraction tools, for any purpose without our express, prior permission" [listed among prohibited uses] | Last updated: 4 August 2026 | **excluded** |
+| Cboe (v1 `^VIX`) | https://www.cboe.com/terms | "You may view, print and download one copy of the Materials for your personal non-commercial use … You may not otherwise copy, reproduce, alter, store either in hard copy or in an electronic retrieval system, license, transmit, display, broadcast, create a derivative work …, publish, rent, sublicense, distribute" | Last Updated: November 16, 2022 | **excluded** |
+
+**Why v2 switched.** v1 downloaded SPY/TLT prices from Yahoo with an automated client and `^VIX` (Cboe data, served by
+Yahoo), then committed both in `data/prices.csv` to a public GitHub repository. Yahoo's terms bar automated collection;
+Cboe's bar storing and distributing its materials. v2 replaces them with storage-permitted or disclosed sources: Ken
+French Hi 20 (SPY proxy, gitignored), a GSW-constructed 25-year Treasury (TLT proxy, public domain), H.15 bills (public
+domain), and realised vol / vol-model forecasts instead of VIX.
+
+**v1's committed `data/prices.csv`.** It is still tracked in git and present on the public remote. What to do with it
+(untrack, rewrite history, or leave) is the owner's decision (R0 escalation, `reports/decisions.md`); the session never
+pushes or rewrites history. The R0 legacy characterization tests read the local copy only, to reproduce v1 exactly; no
+v2 result uses it.
+
+Gaps: the Ken French page has no data licence (hence the disclosed relaxation). Re-read every permitted source's terms
+before R5 (test run) and record the date here.
