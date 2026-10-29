@@ -1,0 +1,74 @@
+{
+ "data": {
+  "build_key": {
+   "code": {
+    "__init__.py": "093e299f66fbeaf6c8a815807c7438b6c71c4194bff4e23819d339a22da31409",
+    "build.py": "bbe1e65338ad7794bd1a969ceeb603ec0eb5c25db146949bc84d03fc8cb970bf",
+    "fetch.py": "2a6982f712c4625b77204534c694406087a98d3515dbf2bdc40d32611e92e0c8",
+    "readers.py": "f8ce7a2762c01fa47824dbf54e6491dbc186c8e0c3ddceac102296c03b5d37b8"
+   },
+   "raw": {
+    "gsw_nominal": "88cab90e84ad765ab79d9854b33e5813051210f2ac2285eaa6e720149fdd256d",
+    "h15": "30b4633373e4da5817d10bb15b1aae0e800354f4eab42321b5b2a8bf0d2ebf60",
+    "kf_size_daily": "ec992e0687117877a617e5900ad21ff212a846276fe0e67ddcbe23197d3d1202"
+   },
+   "rules": "a3daa5837ae85b5e2c1f07f47b83bcefe5c2b9911a2178bf7953a5844f580c1b"
+  },
+  "last_session": "2026-09-30",
+  "local_inputs": {
+   "r2/books.parquet": "cc44a71367ff749553ae6d2d3da9ae456777fa2dfc4cfca19fabaaf219f823e6",
+   "r3/books.parquet": "fe2e3adb38352dfffc546369aca5ff8806f4d8da3d780477074e64e39ef22034"
+  },
+  "panel_sha256": "10aeb147043cd71222b38e754a990492eb48fc99d64c9fcc5f2b1728140f771e",
+  "test_window": {
+   "first": "2020-01-02",
+   "last": "2026-09-30",
+   "sessions": 1695
+  }
+ },
+ "files": {
+  "Makefile": "2020ab31cf5bcc6975f389be167b1d9648baf9ce5c3bda7c8ab7061a4e1847a3",
+  "legacy/__init__.py": "02924d92471d3a4c75fdcbb7ea1660d272d50242a75bea70b0cb56877256c610",
+  "legacy/backtest.py": "db36e072b775af172bd7b7a6f777f24ef643233cc076e7b6b12fb52d4aa4bfa9",
+  "legacy/config.py": "3a0ff07cb24b2258b7bed1cfe0c72e52252ed02b2df4b601cd81310382b77306",
+  "legacy/data.py": "acfa1b547bc6e01b0a98fac46bf49b470b1a206eda206499f06b927c047c72d6",
+  "legacy/run.py": "525034aec758ba085ddbac4eab68b8bafed0afd144fc5d224053f529cf31fa51",
+  "legacy/signals/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "legacy/signals/bollinger.py": "e780f4a0eb746a5125a7d6c43c7594f775ae3edf561fa80a5fd97f977b613c14",
+  "legacy/signals/regime.py": "7c1cee028e85adc455081e4407bbecc28e39df4b3182263cce36557e3ff84996",
+  "legacy/signals/regime_allocation.py": "09c0a475cbc10151f7624309d1c0a1382214fb158f2a8bf082b56bb4950c025a",
+  "legacy/signals/spread.py": "de930eca92de2ac93e1f7e409ac1daeaa55cff67bb4157932cadac3de879c76d",
+  "legacy/utils.py": "16649e16fbeb073ee2e3a476f827dec80f297ca36d54257a5fe363c938eaa751",
+  "pyproject.toml": "85ae934286c8fe02a622faaf545601b7dfb13d2e1be996f5d16bf9c908cb8054",
+  "reports/r1/reconciliation.csv": "804708ad4a395b38ffc0a5ca2b15e530f560ad4203d361a12a70b10c0e1f14cd",
+  "reports/r4/dsr.csv": "1412df9fefb9977707e2e7fce255e4d934ac524597c8043ca9462240d28ba605",
+  "reports/r4/facts.json": "5acf41ef3cb6743ba6902c56bad3c2e4d12d750a311d1b95c0fb38cd67e0576e",
+  "scripts/r5.py": "48cbdfc7bf38a0db5253e366e046082f8dee61993cc5bd4d4f1600c8b2beb6b3",
+  "spec/prereg.yaml": "1d9c7c4f7041dcb58fbeb735ce520b685feafa3e9ff349e340996fb8c03530a2",
+  "spec/quantkit_pin.json": "08d6c455d5b26a558cfbe86c9795a9508c0428273ef2251d3782562a467b0b50",
+  "spec/rules.yaml": "a3daa5837ae85b5e2c1f07f47b83bcefe5c2b9911a2178bf7953a5844f580c1b",
+  "src/rspy/__init__.py": "f7d1e882a59756540561868a8a93054256be2fc86e6b28f9005aecb4ac09194c",
+  "src/rspy/__main__.py": "d379bf5129c71a216c3b1f3e1247de89c898531dd31dc144473d55c04cc8d8d2",
+  "src/rspy/accounting.py": "0e4d197bc97c11451a9ab5c8320bb0e49b82398be346802bea46efb30be521e4",
+  "src/rspy/data/__init__.py": "093e299f66fbeaf6c8a815807c7438b6c71c4194bff4e23819d339a22da31409",
+  "src/rspy/data/build.py": "bbe1e65338ad7794bd1a969ceeb603ec0eb5c25db146949bc84d03fc8cb970bf",
+  "src/rspy/data/fetch.py": "2a6982f712c4625b77204534c694406087a98d3515dbf2bdc40d32611e92e0c8",
+  "src/rspy/data/readers.py": "f8ce7a2762c01fa47824dbf54e6491dbc186c8e0c3ddceac102296c03b5d37b8",
+  "src/rspy/evaluate.py": "fd1f979c0b753cdae0dc1e9b032ba5980fefb864fb077506cdb1f09c7f28f4bd",
+  "src/rspy/freeze.py": "ef060b12d120e5cba53c0517e8430b8aca3df0f7c24a33f31af47077212963eb",
+  "src/rspy/legacy_bridge.py": "03981801a2999d5fbb2e10d7cdb5cc6fc3cd9ae9ddaaaf06b714eac0288a44b7",
+  "src/rspy/paths.py": "93861bd21eeafadc60525c837960e7a0c8d1e40fa3fc07f409098f09831cb658",
+  "src/rspy/pin.py": "2434c7090e2648e74ca315e221d24c0866345312405950eeed5c7f49332258d3",
+  "src/rspy/regime.py": "8fa284e4389220a497e927143d4a72700c3184e30e1258d7f27a7d295be44c59",
+  "src/rspy/robust.py": "434fda7443c325ff91f9331319a2aee324841c62beb58aa3f917c78e32bf4707",
+  "src/rspy/rungs.py": "415aa9db2e375b5472f68dd9988e43bebcf6b88cbf56b59fc3a0798de41795c1",
+  "src/rspy/testwin.py": "ef2aaec6d6a92a4a658f49bd4e7b41fb19f09e7fff3f23f5d2055c6fc38c5d7c",
+  "src/rspy/volzoo.py": "0f279bc18a3e864ab8214dd69ef21421da28c3dbf5e0c130e4dce5344a8836b7",
+  "tests/legacy_support.py": "9821d0ef485a44d63005864de25337fe06da56f4f62390ea33da19b76468f7f5",
+  "uv.lock": "b3759aba337f9d3d7dd6cdf22fee17128848380024aee7c63e0bb77c00339845"
+ },
+ "frozen_at": "2026-10-29T16:02Z",
+ "note": "content hashes decide; rules_commit is a label (sha before the owner's history rewrite; re-point after)",
+ "rules_commit": "5012edb7b2e3282b3f28482f7c06c2910372392e",
+ "version": 1
+}

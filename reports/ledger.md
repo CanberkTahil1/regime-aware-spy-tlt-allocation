@@ -404,3 +404,10 @@ monthly log". It would start at 2026-10, available about 2026-12, behind the R5 
 | ID | Expectation (band) | Source | Status |
 |---|---|---|---|
 | E5.18 | Test placebo (D5.8, descriptive): L6's infl_2022 matched gain vs L5 sits at percentile ≥ 50 of its 100 shuffles (the gate is in cash for much of 2022); L7's ΔSharpe vs L6 percentile in [10, 90] | D5.8; author | open |
+
+### Freeze (2026-10-29, `make freeze`; before the test run)
+- `spec/freeze.lock.json` sha256 **489884cee70d523a9f90dc6ccb5d92b05e832ea9cc61d76c339da9b4177ae0bc**: 39 files (spec, pin,
+  uv.lock, pyproject, Makefile, the engine incl. legacy/ and scripts/r5.py, the run inputs reports/r1/reconciliation.csv,
+  reports/r4/{dsr.csv, facts.json}); data: build key, panel sha256 10aeb147…f771e, test window 2020-01-02 → 2026-09-30
+  (1,695 sessions), local inputs data/r2, data/r3 books. Rules commit (a label: the owner's history rewrite will change
+  shas) 5012edb. Content hashes decide (D5.5). No tag (owner-only).
