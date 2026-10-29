@@ -18,3 +18,4 @@ L5_vol_har,R2,zoo,"L5 with the vol model fixed: HAR (r^2)",1,zoo,yes,yes,"vol zo
 L5_vol_gjr_garch_t,R2,zoo,"L5 with the vol model fixed: GJR-GARCH(1,1)-t",1,zoo,yes,yes,"vol zoo row"
 L5_vol_egarch_t,R2,zoo,"L5 with the vol model fixed: Beta-t-EGARCH",1,zoo,yes,yes,"vol zoo row"
 tranche_offsets,R2,timing,"L3/L4/L5 decided on trading-day offsets 1-20 (offset 0 = record), D2.5",20,descriptive,yes,no,"no selector (quantkit tranche rule); counted if anything ever selects"
+walk_chains_O2.3,R2,walk,"post-hoc second promotion walk on parent chains L0->L2 and L0->L3->L4->L5 (owner O2.3), same rule and books",1,selection,no (post-hoc),yes,"charter amendment 32bf308; a second selection over already-counted rungs, counted as one extra trial; the pre-registered walk L1->L5 stays the record"

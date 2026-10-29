@@ -127,3 +127,22 @@ drift; above 1.5 on 1.5% of development days, data/r2/books.parquet) — "cap 1.
 Vol zoo (pick made at year-end y, used in y+1): EWMA-slow at 1989–2002 and 2004–2006 year-ends, GJR-GARCH-t at 2003 and 2007–2018 (reports/r2/volzoo.json). D2.2 limitation
 diagnostic: EWMA-60 vol of the L4 book / of current weights × past sleeve returns: median 1.00 (5–95%: 0.95–1.08).
 Not in R2: DSR / PBO with the effective number of trials (R4–R5), the 2020+ test window (R5).
+
+### R2 amendment — the parent-chain walk (POST-HOC, owner O2.3, 2026-10-29; expectations before any chain code)
+
+Charter amended first (32bf308): L1 is a comparison row, not a parent; parent chains L0 → L2 and
+L0 → L3 → L4 → L5 (→ L6 → L7 → L8 in R3). Attribution corrected again: the pre-registered order L1 → L2 → … came from the
+owner's plan listing L1 first; D2.4 transcribed it (the review-MATERIAL-1 note above called it the advisor's reading).
+The pre-registered walk above stays the record of R2's pre-registered result. Post-hoc prereg hash:
+`spec/prereg.yaml` sha256 **5f44f7daab556f3f27fe1da8499a0820b457b8d3c1fbda7219882b56eaa565b3** (adds
+`promotion_rule.walk_chains`, `comparison_rows`, L1 `walk_role`; nothing else changed); `spec/rules.yaml` unchanged
+(32fb3806…). Same promotion rule, same books, same development rows. Counted in variants.csv (`walk_chains_O2.3`).
+Disclosed priors: every R2 number above was seen before these expectations, incl. ablation.csv (matched ΔSharpe L2 vs
+L0 +0.053, L3 vs L0 +0.215, L4 vs L3 +0.127, L5 vs L4 +0.011 / CDaR −7%) and crisis.csv.
+
+| ID | Expectation (band) | Source | Status |
+|---|---|---|---|
+| E2.12 | chain vt_spy: L2 not promoted over L0 (seat L0) — effect ≈ +0.05 at best, LW p > 0.05 expected | O2.3 | open |
+| E2.13 | chain core: author's prediction (low confidence): L3 fails quantkit's in-crisis robustness vs L0 in 1994 (bonds fell), so the seat stays L0; if L3 passes, L4 is promoted over L3 and L5 is not (effect +0.01, CDaR −7% < −15%) | O2.3 | open |
+| E2.14 | code: the pre-registered walk's reports/r2/ladder.json and the register rows unchanged byte for byte; the chain walk uses the same `ev.walk`; a synthetic test checks the chain topology (L1 never an incumbent) and that the chain ladders register without a rung-set clash | O2.3 | open |
+| E2.15 | perf: `make ladder` ≤ 5 min, peak RSS ≤ 1.5 GB (rss_peak) with the chain walk added | performance contract | open |

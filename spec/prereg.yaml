@@ -27,7 +27,8 @@ crisis_windows:   # pre-defined (charter "Windows"); drawdowns reported on these
 ladder:   # pre-registered order; each rung adds ONE layer; parameters fixed from the literature, not searched
   - {id: L0, name: "SPY (proxy)"}
   - {id: L0-line, name: "SPY + T-bills at the rung's volatility", role: "benchmark every rung is judged against"}
-  - {id: L1, name: "legacy v1 (frozen code + selected params) on new data and new accounting", role: "baseline to beat"}
+  - {id: L1, name: "legacy v1 (frozen code + selected params) on new data and new accounting", role: "baseline to beat",
+     walk_role: "comparison row, not a parent (post-hoc, owner O2.3)"}
   - {id: L2, name: "vol-targeted SPY", target_vol: 0.15, vol_window_days: 20, gross_cap: 2.0, band: false,
      source: "v1 legacy/backtest.py:57-70 (D2.3)"}
   - {id: L2-u, name: "vol-targeted SPY, 10% ex ante, cap 1.0, zoo vol", role: descriptive, target_vol: 0.10, gross_cap: 1.0}
@@ -56,6 +57,13 @@ promotion_rule:   # quantkit.ladder four-part rule
   beyond_6040: {delta_sharpe_vs_vol_matched_L3: 0.05, role: descriptive}
   # R2 (D2.4, advisor, before any R2 result): values the rule left unstated
   walk: [L1, L2, L3, L4, L5]          # fixed sequence; L0 / L0-line benchmarks; L4b, L5-lev, L2-u, zoo descriptive
+                                      # = R2's pre-registered walk, kept as recorded (stopped: L2 did not beat L1)
+  # POST-HOC (owner O2.3, 2026-10-29, after R2 results; charter amendment 32bf308): parent chains, same promotion rule;
+  # each chain walked from its first rung; rungs not built yet (L6-L8) join their chain in R3; counted in variants.csv
+  walk_chains:
+    vt_spy: [L0, L2]
+    core: [L0, L3, L4, L5, L6, L7, L8]
+  comparison_rows: [L1]              # every rung vs L1 at matched vol, descriptive (ΔSharpe, LW interval, CDaR)
   grid: daily bill-excess returns, 1990-01-01 -> 2019-12-31, each rung rescaled by one constant to 10% ann. vol
   alpha: 0.05
   mean_block: 21
