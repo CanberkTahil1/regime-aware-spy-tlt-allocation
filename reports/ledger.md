@@ -32,7 +32,7 @@ Pre-registration hashes (before any rung result): `spec/prereg.yaml` sha256 **cb
 | ID | Expectation (band) | Source | Status |
 |---|---|---|---|
 | E1.1 | S0 = v1 reproduced: test metrics max abs diff ≤ 1e-12 (as E0.1) | BUILD_PROMPTS pre-registered | open |
-| E1.2 | S1 (t+1) ≤ 0: ΔCAGR ≤ 0 and ΔSharpe ≤ 0 vs S0 in each of train / validation / test | BUILD_PROMPTS pre-registered | open |
+| E1.2 | S1 (t+1) ≤ 0: ΔCAGR ≤ 0 and ΔSharpe ≤ 0 vs S0 in each of train / validation / test | BUILD_PROMPTS pre-registered | **failed** (logged before diagnosis, 2026-10-28): `make reconcile` S1 − S0: train ΔCAGR **+1.64 pp** (7.75% → 9.39%), ΔSharpe(v1 def) **+0.093** (0.543 → 0.637); validation −3.29 pp / −0.204; test −2.27 pp / −0.133. Holds in validation and test, fails in train. Diagnosis below. |
 | E1.3 | S2: financing charge ≥ 0 on every row (= return effect ≤ 0), > 0 on rows held at gross > 1; cash interest ≥ 0 | BUILD_PROMPTS pre-registered | open |
 | E1.4 | S3: sign NOT claimed (more turnover from drift, lower rate 5 → 3/2 bp); traded turnover (annualised, test) ≥ 18.73× (v1's reported turnover, which excludes vol scaling) | D1.4 (author's disagreement logged) | open |
 | E1.5 | S4: net returns identical to S3 (exact); only the metric changes | D1.4 | open |
