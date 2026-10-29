@@ -38,12 +38,14 @@
   "n_eff_without_v1_grid": 1,
   "n_raw_columns": 787,
   "n_registered_series": 139,
+  "n_sessions": 7559,
   "n_unique": 542,
   "n_used_headline": 4,
   "n_v1_grid": 648,
   "participation_ratio": 1.3154116337592208,
   "path": "exact",
-  "raw_n_variants_csv": 748
+  "raw_n_variants_csv": 748,
+  "sr_pp_var_ddof1": 5.379623993123816e-05
  },
  "gbm": {
   "corr_log_sigma_gbm_vs_zoo_dev": 0.5181937940343646,

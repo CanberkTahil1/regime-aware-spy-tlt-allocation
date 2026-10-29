@@ -382,7 +382,8 @@ facts["dsr_pool"] = {"n_raw_columns": int(P.shape[1]), "n_registered_series": n_
                      "k_cut": eff["k_cut"], "k_gap": eff["k_gap"], "k_cut_sens": eff["k_cut_sens"],
                      "participation_ratio": eff["participation_ratio"], "li_ji": eff["li_ji"], "path": eff["path"],
                      "n_used_headline": eff["n_eff"] + sel_only, "n_eff_without_v1_grid": eff_ng["n_eff"],
-                     "raw_n_variants_csv": raw_n, "best_in_pool": best}
+                     "raw_n_variants_csv": raw_n, "best_in_pool": best,
+                     "sr_pp_var_ddof1": float(np.var(sr_pp, ddof=1)), "n_sessions": int(P.shape[0])}  # R5 D5.4: the raw-N companion's trial variance
 lap("dsr")
 
 # ---- PBO (D4.7) ------------------------------------------------------------------------------------------------------------
