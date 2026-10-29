@@ -60,7 +60,7 @@ Apply these in order. The first one that settles the question wins.
 10. **The owner's standing rules:** no outreach to anyone; free data only, and only where the terms permit storage (the
     one disclosed relaxation is Ken French daily, gitignored); Yahoo and Cboe VIX are excluded; secrets only from the
     macOS Keychain or environment, never printed; tags are never moved; sibling repos are read-only; quantkit is pinned
-    at v0.19.1 (re-pin only with the owner's yes); **the repo has a public remote: never push, force-push or rewrite
+    at v0.19.2 (re-pin only with the owner's yes); **the repo has a public remote: never push, force-push or rewrite
     history**.
 11. **Hedge-fund view.** Ask what a skeptical multi-asset PM moving real money would ask. Would this choice survive a
     risk committee? Is the simpler option good enough? Does it make the result look better than it is?

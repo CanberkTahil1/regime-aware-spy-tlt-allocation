@@ -163,11 +163,11 @@ def test_install_problems_bite():
         {"vcs_info": {"commit_id": "def", "requested_revision": "v0.18"}}, "abc", "v0.18"))
 
 
-def test_real_pin_is_v0191_and_clean():
-    """Charter: quantkit pinned non-editable at v0.19.1."""
+def test_real_pin_is_v0192_and_clean():
+    """Charter: quantkit pinned non-editable at v0.19.2 (owner O2.1, re-pinned at R2 start)."""
     meta = json.loads(pin.paths.PIN.read_text())
-    assert meta["quantkit_tag_at_pin"] == "v0.19.1"
-    assert meta["quantkit_head_at_pin"] == "d68e3745d724ab31c5ce168b92a1336a369cdfa0"
+    assert meta["quantkit_tag_at_pin"] == "v0.19.2"
+    assert meta["quantkit_head_at_pin"] == "2120ae93ccbfc85ad6a6e7a4b5581d768f502115"
     assert pin.verify_pin() == []
 
 

@@ -1,6 +1,6 @@
 {
  "files": {
-  "quantkit/__init__.py": "7804f9d7ed971d0867861ab55d6adb652a2fb132c9de7e70ca55488c15de4cd7",
+  "quantkit/__init__.py": "7e4e6e48834929b612ab4f35556038a5d77f4e6adb5a64322d83a38661b0b2e4",
   "quantkit/alloc/__init__.py": "66de349abbad03f4786883bd52911c5dd2d9e10e92f5ef7b89bca3ae264f69ea",
   "quantkit/alloc/_qp.py": "f5d04dbe289e3a3dd4e13c443391d55ab59db6c56ed2401451035eab4abdbdac",
   "quantkit/alloc/backtest.py": "87f4b98ccc371898c40efab434ebb015748bbb2e53d327e0b766c01c05333c10",
@@ -101,8 +101,9 @@
   "quantkit/signals/trend.py": "a49707944b7bdcfe21df7356793cf369062b7504c953f88f144b3b16657719c5",
   "quantkit/sizing/__init__.py": "9924769651f7fad8f287fa5f3950ed66f2e286c43e7f2c24743d4bc7b6ea4f68",
   "quantkit/state/__init__.py": "fd1ad786b2a1abb8374569fb1a24820624e6704d5a66f04f5a42c1c73ad9de35",
-  "quantkit/stats/__init__.py": "bfb3c6c9f03d6300080b0b2007a9d96da8c3ee2de18eb25449d4dcca54ae64cb",
+  "quantkit/stats/__init__.py": "cfe83c75dccbd0ef66f26097daafab0e628e7830f8a443be5dfe87914eb713be",
   "quantkit/stats/_checks.py": "623d4922bece028e5715c808594418ac1fe7978fdb7e1a2f9688e086c8def9e7",
+  "quantkit/stats/annual.py": "6b81635d5d1829bca4eaf275d469d1f2f9645f7753047955b1c04bedf76d086e",
   "quantkit/stats/bootstrap.py": "44158a1f1f2c8c0bc705290fad5d33711e522f3c1a891487998d7304a010967c",
   "quantkit/stats/datasnoop.py": "916d0f34171715210148be6fee3c55c3869969af5a63689d28d1b86d7af0ae79",
   "quantkit/stats/dm.py": "985d5ab010f776629ab32fbbe6fb129e0ddb1086853e93babf590851903f9072",
@@ -130,8 +131,9 @@
   "quantkit/trade/tranche.py": "09567901164bdac2fd9dd2e04561d19df065e6401e850129143dc32b5a6facdd",
   "quantkit/universe/__init__.py": "4e5f5d441923997ce751d47d9781236d17f757baaac7276bc99d115a58297e88",
   "quantkit/value/__init__.py": "5ba76584addbfdf7a03c41f0dd0dffa4f315115f0dcca9470115ab246cd7b7b5",
-  "quantkit/viz/__init__.py": "221f3188172170341770793f0dbc9273214d26e9c4240e28e45b1509ee057952",
+  "quantkit/viz/__init__.py": "38b875f153b714f73102a2845326beffd2900cb3e8fd2cd9b0248f90f8798ad3",
   "quantkit/viz/charts.py": "9b7aea058cbddad895155bbcfd65d846fbf5e2c860668be36b8ac195ee4307a2",
+  "quantkit/viz/headline.py": "befb64cd0859930027f36f0597925b95342aa2994803eedba3411c3268257d2f",
   "quantkit/viz/theme.py": "706f66774b0f36227b334a2d405ab322915d5a8d4c06b03f2cd9cc68690b3f52",
   "quantkit/vol/__init__.py": "9929130c5e56aec139008f8be18606f09b2d083cae2cace70543b037982923b7",
   "quantkit/vol/combine.py": "68d516a3a035d07427b19f9b40fa5f0f269ea49c914800aff28a9e9ef2b05d16",
@@ -146,6 +148,6 @@
   "quantkit/vol/tsfm.py": "190d58333439142692f58e21393e59ace86ad21954d2366c63fbb1b050afaedc",
   "quantkit/xbrl/__init__.py": "fbfcff3470d8cd5ab84a9c98c270bc2803eeb875dc3375cedf5b38cd8176f40c"
  },
- "quantkit_head_at_pin": "d68e3745d724ab31c5ce168b92a1336a369cdfa0",
- "quantkit_tag_at_pin": "v0.19.1"
+ "quantkit_head_at_pin": "2120ae93ccbfc85ad6a6e7a4b5581d768f502115",
+ "quantkit_tag_at_pin": "v0.19.2"
 }

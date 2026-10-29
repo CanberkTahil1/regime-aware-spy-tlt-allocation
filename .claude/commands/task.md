@@ -15,7 +15,7 @@ You are running build phase **$ARGUMENTS**. Run one phase end to end, then stop.
 2. Read `spec/rules.yaml`, `spec/prereg.yaml` and the tail of `reports/ledger.md`.
 3. In `.claude/BUILD_PROMPTS.md`, find `## $ARGUMENTS:` and read it through the next `## R`: *Do*, *Decisions* /
    *Escalate*, *Pre-registered*, *Exit*. If it's missing, stop and say so.
-4. **quantkit gate:** check the pin (`make verify-pin`; tag v0.19.1 in `spec/quantkit_pin.json`). If the phase needs a
+4. **quantkit gate:** check the pin (`make verify-pin`; tag v0.19.2 in `spec/quantkit_pin.json`). If the phase needs a
    different tag, stop and ask the owner: re-pins are the owner's alone.
 5. Run `git status` and `git log --oneline -5`. **If the tree is dirty, stop.** Record HEAD as `SESSION_START`.
 

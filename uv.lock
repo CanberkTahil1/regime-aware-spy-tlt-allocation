@@ -635,8 +635,8 @@ wheels = [
 
 [[package]]
 name = "quantkit"
-version = "0.19.1"
-source = { git = "file:///Users/a90537/github/quantkit?rev=v0.19.1#d68e3745d724ab31c5ce168b92a1336a369cdfa0" }
+version = "0.19.2"
+source = { git = "file:///Users/a90537/github/quantkit?rev=v0.19.2#2120ae93ccbfc85ad6a6e7a4b5581d768f502115" }
 dependencies = [
     { name = "clarabel" },
     { name = "numba" },
@@ -654,6 +654,7 @@ risk = [
 ]
 viz = [
     { name = "altair" },
+    { name = "matplotlib" },
     { name = "vl-convert-python" },
 ]
 
@@ -737,7 +738,7 @@ requires-dist = [
     { name = "pandas", specifier = ">=2.2" },
     { name = "pyarrow", specifier = ">=17" },
     { name = "pyyaml", specifier = ">=6.0" },
-    { name = "quantkit", extras = ["risk", "viz"], git = "file:///Users/a90537/github/quantkit?rev=v0.19.1" },
+    { name = "quantkit", extras = ["risk", "viz"], git = "file:///Users/a90537/github/quantkit?rev=v0.19.2" },
     { name = "scipy", specifier = ">=1.14" },
 ]
 

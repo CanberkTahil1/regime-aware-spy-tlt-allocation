@@ -50,7 +50,7 @@ not exist yet in this phase are answered "not yet built (phase Rn)" with what yo
 10. **Statistics and drawdowns.** ΔSharpe with `sharpe_diff_lw` intervals; MCS on vol-matched returns; crisis drawdowns on
     the pre-defined windows; claims within their power? Sharpe/Sortino on excess returns with standard downside
     deviation? Max-DD and Calmar descriptive only?
-11. **quantkit pin, re-implementation and fast paths.** Is quantkit the pinned non-editable v0.19.1, and does the
+11. **quantkit pin, re-implementation and fast paths.** Is quantkit the pinned non-editable v0.19.2, and does the
     loaded-module check run in every target? Does the diff re-implement something quantkit provides? Is every fast path
     backed by a `tests/reference/` plain version and an equivalence test? Is v1 (`legacy/`) reproduced exactly on its
     own data, and is `legacy/` unchanged except imports (`git diff -M` against the v1 commit)?

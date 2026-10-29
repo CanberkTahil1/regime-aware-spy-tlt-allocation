@@ -34,3 +34,7 @@
   the proxy checks) remain in git. Any chart that traces a return or wealth path built from Yahoo, Cboe or Ken French
   data is no longer tracked; `make report-site-local` draws those charts into ignored folders, and a test fails if the
   folders ever stop being ignored. You will scrub the old copies from history with the price file before pushing.
+
+## R2
+- **O2.1 (owner): quantkit moves to v0.19.2** for its new headline-chart function; R1's headline chart is redrawn with it.
+  Nothing else in quantkit changed for this repo. Curve charts still live only on your machine.

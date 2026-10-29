@@ -34,7 +34,7 @@ def data_dir() -> pathlib.Path:
 
 def quantkit_root() -> pathlib.Path:
     """Directory that holds the INSTALLED quantkit package (site-packages): the code every run imports. quantkit is a
-    non-editable install of git tag v0.19.1, so edits in ../quantkit never reach here."""
+    non-editable install of git tag v0.19.2, so edits in ../quantkit never reach here."""
     env = _test_env("RSPY_QUANTKIT_ROOT")
     if env:
         return pathlib.Path(env).resolve()

@@ -35,7 +35,7 @@ Long-history proxies make 1990–2019 possible (1994 bonds, 2000–02, 2008, 201
 - **SPY sleeve:** Ken French daily "Hi 20" (large-cap, value-weighted) total return — the owner's standing disclosed
   relaxation, gitignored, never redistributed. Labelled "SPY proxy".
 - **TLT sleeve:** constructed 25-year constant-maturity Treasury total return from the Fed's GSW curve (public domain),
-  via `quantkit.bonds` (v0.19.1). The owner's naive-vs-optimal P1 validated this construction vs TLT (corr 0.990,
+  via `quantkit.bonds` (v0.19.2; bonds unchanged since v0.19.1). The owner's naive-vs-optimal P1 validated this construction vs TLT (corr 0.990,
   TE 2.06%/yr, construction exact to ≤ 0.04 pp): label "TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr" everywhere.
 - **Cash:** Fed H.15 bills (public domain). Earned on uninvested capital; financing = bill rate + spread on borrowed
   notional.
@@ -76,7 +76,7 @@ Sortino on excess returns (standard downside deviation vs 0); turnover reported 
 - `spec/rules.yaml` single parameter source; `spec/prereg.yaml` (ladder order, windows, crisis list, promotion rule,
   costs) hashed into `reports/ledger.md` before any rung result. `reports/` (ledger, decisions, variants.csv, perf.md,
   research/Rn.md, reviews/Rn.md), `learn/` (Rn.md, decisions.md, INTERVIEW.md), `LICENSES.md`, `COPIED.md`.
-- **quantkit** pinned non-editable at **v0.19.1** (`quantkit @ git+file:///Users/a90537/github/quantkit@v0.19.1`) with
+- **quantkit** pinned non-editable at **v0.19.2** (`quantkit @ git+file:///Users/a90537/github/quantkit@v0.19.2`) with
   the loaded-module hash check: bench (vol-matched line, financing), bonds (GSW), signals.trend (faber), trade (bands,
   tranche/timing luck), sizing (vol target, judge), state (HMM, jump model), vol (model zoo), stats (sharpe_diff_lw, MCS,
   DSR, PBO, drawdown, power), ladder, stress, results + viz. Never re-implement what quantkit provides.

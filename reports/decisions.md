@@ -166,3 +166,16 @@ Research for R0: `reports/research/R0.md`.
   growth_and_drawdown, rolling_5y_excess_sharpe, crisis_small_multiples, exposure_l1 (.png/.svg). Kept committed
   (statistics only): reconciliation_by_step, cagr_waterfall_test, data_qa (.png/.svg), reports/r1/*, reports/site/
   (summary/loss/windows tables, no series).
+
+## R2
+
+### O2.1 — Re-pin quantkit v0.19.1 → v0.19.2 and use `viz.headline` for headline figures · OWNER · 2026-10-28
+- **Why owner:** re-pins are owner-only (charter "How to work"; instruction recorded at R1 start).
+- **Owner decision:** "yes". Re-pin to v0.19.2 (commit 2120ae9; adds `quantkit.viz.headline` and `quantkit.stats.annual`,
+  no change to any module this repo loaded at v0.19.1 other than the `viz` and `stats` package `__init__`s); verify the
+  pin check; use `viz.headline` for headline figures with readable names (SPY, v1 legacy, Vol-targeted SPY, 60/40,
+  Inverse-vol SPY/TLT, Inverse-vol + vol target, SPY+T-bills at matched vol); regenerate R1's headline figure with it.
+  Curve figures go to the gitignored `reports/figures_local/R2/` (and R1/); committed figures stay statistics-only (O1.1).
+- **Applied as:** pyproject tag, `uv lock`, `make pin`, `tests/test_pin.py` real-pin test re-targeted, the version string
+  in CLAUDE.md / agents / commands / `rspy.paths` / `rspy.pin` / `rspy.site` docstrings updated (the owner's yes covers
+  the charter's version number; no other charter text changes).

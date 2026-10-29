@@ -8,7 +8,7 @@ not failures. Re-pinning needs the owner's yes.
 
 Copied from naive-vs-optimal (`src/nvo/pin.py` @ b5f6278, itself from resid-book @ 9a1e939 ← netiss-events @ 2e21799 ←
 slowcomp @ 5760057 ← resid-arb @ c9c93b5; COPIED.md), renamed. quantkit is a NON-editable install of a git tag
-(`quantkit @ git+file:///Users/a90537/github/quantkit@v0.19.1`), so the pinned tree is the installed package in
+(`quantkit @ git+file:///Users/a90537/github/quantkit@v0.19.2`), so the pinned tree is the installed package in
 site-packages (`paths.quantkit_root()`), and the pin also records the tag and commit. `install_problems` fails an
 editable or path install, a different commit, or a missing install record. Re-pin = change the tag, owner yes.
 
