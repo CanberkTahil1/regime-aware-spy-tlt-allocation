@@ -211,3 +211,16 @@ def test_crisis_matched_parent_is_the_legs_rescale():
     for r, p in zip(out, pos.values(), strict=True):
         assert r["parent_matched_return"] == float(np.prod(1 + ym[p]) - 1)
         assert r["child_return"] == float(np.prod(1 + x[p]) - 1) and r["loses_matched"] == (r["diff_matched"] < 0)
+
+
+def test_committed_chain_walk_judges_every_step_against_its_parent():
+    """Review (R2 amendment, MINOR): the script's wiring, on the committed result — every step's incumbent is its chain
+    predecessor, no step involves L1, and the chain is the prereg chain cut at the first unbuilt rung."""
+    import json
+
+    j = json.loads((paths.REPORTS / "r2" / "ladder_chains.json").read_text())["chains"]
+    assert {k: v["chain"] for k, v in j.items()} == ev.chains({"L0", "L2", "L3", "L4", "L5"})
+    for v in j.values():
+        ch = v["chain"]
+        for s in v["steps"]:
+            assert s["incumbent"] == ch[ch.index(s["rung"]) - 1] and "L1" not in (s["rung"], s["incumbent"])

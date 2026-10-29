@@ -311,3 +311,6 @@ any R2 code or result. Research: reports/research/R2.md (16791b4).
   still fails 1994 under it.
 - **Owner, for R3:** the walk verdict stands (nothing promoted past SPY). R3 tests L6–L8 through the charter's ablation
   table (each layer vs its own parent, plus vs 60/40 and vs v1, with 95% intervals, descriptive), not through the walk.
+- **Finding (author + R2-amendment review MATERIAL, 2026-10-29):** the owner's example does not survive matching: at
+  matched vol 60/40 loses Q4 2018 too (−7.69% vs −7.43%) and 1994 (−6.9% vs −0.3%). The limitation itself is real
+  (L2 vs L0, GFC: −27.4% vs matched SPY −41.4%, yet a lower in-window Sharpe); no verdict changes.
