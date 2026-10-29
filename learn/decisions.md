@@ -38,3 +38,20 @@
 ## R2
 - **O2.1 (owner): quantkit moves to v0.19.2** for its new headline-chart function; R1's headline chart is redrawn with it.
   Nothing else in quantkit changed for this repo. Curve charts still live only on your machine.
+- **D2.1 (advisor): one 5-point no-trade band, checked against where the weights have actually drifted**, trading only
+  to the edge of the band. 60/40, inverse-vol and the vol-targeted mixes use it; the v1-style vol-targeted SPY does not
+  (v1 never had one).
+- **D2.2 (advisor): the vol target's forecasting model is picked once a year** from five candidates by how well each
+  forecast tomorrow's variance so far; among the ones statistically tied with the best, the simplest wins.
+- **D2.3 (advisor): L2 is exactly v1's own volatility scaling on SPY alone** (15% target, 20 days, up to 2×), now paying
+  for leverage and trades — the thing that was really driving v1.
+- **D2.4 (advisor): a rung moves up only if it clears all four parts of the charter's rule**: +0.05 Sharpe or 15% less
+  deep drawdown at equal risk, a one-sided significance test, no loss with doubled costs, dearer financing or any one
+  crisis removed, and a place in the 90% best-model set. No tolerances beyond what the charter says.
+- **D2.5 (advisor): the official book rebalances on the first trading day of each month**; all 21 possible rebalance
+  days are shown beside it to measure calendar luck, and none is ever picked.
+- **D2.6 (advisor): with two assets, equal risk contribution is the same as inverse volatility** — proved by a test and
+  reported, not run twice.
+- **D2.7 (advisor): inverse-vol weights use plain 63-day volatility**, as pre-registered.
+- **D2.8 (advisor): each rung's benchmark is SPY + T-bills scaled to the rung's trailing 63-day risk**, using only
+  yesterday's data; the exact full-sample match is shown for reference.

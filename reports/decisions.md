@@ -179,3 +179,91 @@ Research for R0: `reports/research/R0.md`.
 - **Applied as:** pyproject tag, `uv lock`, `make pin`, `tests/test_pin.py` real-pin test re-targeted, the version string
   in CLAUDE.md / agents / commands / `rspy.paths` / `rspy.pin` / `rspy.site` docstrings updated (the owner's yes covers
   the charter's version number; no other charter text changes).
+
+All R2 D-items below: **decider = advisor** (decision-advisor subagent, one call per item, 2026-10-28), logged before
+any R2 code or result. Research: reports/research/R2.md (16791b4).
+
+### D2.1 — Vol-target mechanics and the no-trade band · confidence medium-high
+- **Options:** (a) [rec] daily vol decisions, monthly weight decisions, one drift-aware 5 pp per-sleeve band in
+  rspy.accounting, traded to the edge; (b) as (a) but to target; (c) monthly scaling only; (d) daily, no band.
+- **Choice:** (a), amended: banded rungs named in spec/rules.yaml (L3, L4, L4b, L5, L5-lev); **L2 has no band** (v1 had
+  none; full turnover charged); L3/L4/L4b check the band at month-end decisions only, L5/L5-lev daily (the extra daily
+  checks are part of L5's layer, stated in the ablation); 5 pp absolute per sleeve on NAV weights, cash residual never
+  banded; the edge rule cited "[quantkit docstring]" (not checked against the paper).
+- **Why the others lost:** (b) a second band convention beside quantkit's edge rule, more trading; (c) contradicts the
+  charter's "close t (daily vol target)"; (d) brings back v1's turnover and breaks L5-inherits-L4.
+
+### D2.2 — Vol-model zoo: series and selection · confidence high
+- **Options:** (a) [rec] univariate h = 1 forecasts of the unscaled parent book's daily return, yearly QLIKE + 90% MCS,
+  simplest model inside; (b) lowest QLIKE; (c) per-sleeve + correlation; (d) fixed EWMA hl 10.
+- **Choice:** (a), amended: every model config pinned in spec/rules.yaml with its quantkit `spec_hash` in the ledger
+  (EWMA hl 10 / 60; GJR-GARCH-t and Beta-t-EGARCH window 1000, every 21, anchor 500; HAR same, daily variance = r²
+  only, no overnight term (no OHLC)); MCS size 0.10, reps 1000, block 21, seed 0, method R; rows with a zero proxy
+  (rounded KF returns) dropped for all models together, counted per year; fixed order EWMA-slow, EWMA-fast, HAR,
+  GJR-GARCH-t, Beta-t-EGARCH; every year-end MCS set and pick logged in reports/r2/; "rolling QLIKE" is met by the
+  charter's expanding walk-forward (the 1989-12 pick uses warm-up losses only: estimation, not scoring); limitation
+  logged: the L4 book mixes past weights — descriptive gap vs EWMA on current weights × past sleeve returns.
+- **Why the others lost:** (b) chases noise among indistinguishable models; (c) ad hoc covariance step; (d) breaks
+  BUILD_PROMPTS "chosen by rolling QLIKE / MCS".
+
+### D2.3 — What L2 is · confidence high
+- **Options:** (a) [rec] SPY with v1's own scaling (15%, 20-day, cap 2, daily, financed, costed) + descriptive L2-u
+  (10% ex ante, cap 1, D2.2 machinery); (b) L2-u only; (c) v1 scaling, cap 1.
+- **Choice:** (a), amended: parameters pre-registered in spec/prereg.yaml (target 0.15, 20-day sample std of the book's
+  own returns ≤ t ×√252, cap 2.0, source legacy/backtest.py:57-70); L2-u registered (descriptive); both in
+  variants.csv; L2 built from the `legacy_bridge.v1_scaled` mirror with SPY_pos = 1, TLT_pos = 0 (test: equals v1's
+  compute_strategy_returns ≤ 1e-12 on that signal); financing paid and average gross shown in every L2 row.
+  Disclosed prior: the owner's "Why v2" audit (legacy, 2005–19, free leverage) found vol-targeted SPY beat v1; the
+  choice rests on the charter wording, not that number. (Amendment 3 "report L2 with and without the band" is moot:
+  D2.1 gives L2 no band.)
+- **Why the others lost:** (b) drops the charter's isolation of v1's driver; (c) a hybrid matching neither.
+
+### D2.4 — Promotion rule implementation · confidence high
+- **Options:** (a) [rec] quantkit `Ladder.promote` on daily vol-rescaled bill-excess returns AND rspy legs (CDaR route,
+  +75 bp, LOCO), sibling pattern; (b) quantkit only; (c) monthly grid.
+- **Choice:** (a), amended: (1) pre-register alpha 0.05, mean_block 21, reps 1000, seed 0, knowledge date 2019-12-31,
+  the CDaR route and per-route legs in spec/prereg.yaml; (2) the sibling's `no_worse` and `crisis_return` gates dropped
+  (crisis returns descriptive); (3) **no −0.03 floor**: every leg is "no loss" (ΔSharpe ≥ 0 at 2× costs, +75 bp, each
+  of the six LOCO samples, both routes; CDaR route also needs CDaR below the matched parent's in each leg);
+  (4) a step passing by the CDaR route only (quantkit's effect part fails, its walk stops) counts as promoted if
+  quantkit's test, robust and MCS parts pass and the CDaR route + legs pass; the walk then continues with a fresh
+  registered `Ladder.promote` on [that rung, the remaining rungs], logged; (5) 2× and +75 bp books rescaled by the same
+  per-rung constant as the 1× book (constant rescaling of excess returns = financing at the bill; the financed rescale
+  at bill + 25 bp only inside the CDaR and LOCO legs); (6) quantkit stress windows set explicitly to the six
+  development crises (its default 2020/2022 would leak the test window); (7) COPIED.md entry listing 2–4 as departures.
+  Walk L1 → L2 → L3 → L4 → L5; L0/L0-line benchmarks; L4b, L5-lev, L2-u and zoo rows descriptive.
+- **Why the others lost:** (b) breaches the charter's CDaR route, +75 bp and LOCO; (c) 360 rows instead of ~7,500 for a
+  daily vol target.
+
+### D2.5 — Tranche offsets and the rung of record · confidence high
+- **Options:** (a) [rec] record = month-end decision; all 21 offsets reported; (b) 4 weekly offsets; (c) tranched book
+  as record.
+- **Choice:** (a), amended: the record book = quantkit **offset 0** (decided at the last close of month m, traded on the
+  first session of m+1), test: standalone rung = `tranche(...)["books"][0]` bit-identically; every offset decides one
+  session before its trade row and checks the band only on its own decision rows; short-month collisions counted per
+  offset, all 21 books kept; L2 excluded (no monthly decision); promotion uses offset 0 on 1990–2019 only; RTL,
+  tranched book and per-offset range descriptive; test-window timing luck first computed at R5; nothing selects an
+  offset (if anything ever does, all 21 go to variants.csv).
+- **Why the others lost:** (b) coarser, no saving that matters (budget covers K = 21); (c) not the charter's execution
+  rule, and netting flatters costs.
+
+### D2.6 — L4b (ERC) · confidence high
+- **Choice:** (a) `quantkit.alloc.risk.erc` on the 63-day sample covariance (same window and ddof 1 as L4's σ), the
+  two-asset identity tested (property test on random SPD 2×2 incl. ρ near ±1; series equality ≤ 1e-10 at every
+  1990–2019 month-end); no separate evaluation, reported "L4b ≡ L4 (two-asset identity)"; variants.csv row now
+  (zoo, n 1, counted in DSR, duplicates L4).
+- **Why the others lost:** (b) erc_lw adds an unregistered estimator just to differ; (c) dropping a prereg row.
+
+### D2.7 — L4 inverse-vol estimator · confidence high
+- **Choice:** (a) sample std (ddof 1) of the 63 daily returns ending at the decision close, w ∝ 1/σ; reference in
+  tests/reference/ from `quantkit.alloc.cov.sample_cov(R[t−62:t+1], ddof=1)`, fast path ≤ 1e-10; all 63 returns
+  required (warm-up covers it, no min_periods fallback); σ unannualised (ratio only); no EWMA variant.
+- **Why the others lost:** (b) EWMA hl 12 silently changes the pre-registered 63-day window.
+
+### D2.8 — The L0-line · confidence high
+- **Choice:** (a) `quantkit.bench.vol_matched(rung, hi20, bill, mode="ex_ante", window=63, lag=1)` financed above w = 1
+  at the same lagged H.15 money-market yield + 25 bp with dt = calendar days / 360 (one bill series, spec/rules.yaml);
+  in cost/financing stress rows the stress hits the rung only, the line keeps base financing; line scored from
+  1990-01 (weights from warm-up rows); realised vol of line and rung reported side by side; ex-post line descriptive;
+  window/lag/mode written into spec/rules.yaml before any rung number. Closes E1.12.
+- **Why the others lost:** (b) full-sample σ = look-ahead in the judge; (c) no source for 60 over 63.

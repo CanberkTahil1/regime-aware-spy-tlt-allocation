@@ -28,7 +28,9 @@ ladder:   # pre-registered order; each rung adds ONE layer; parameters fixed fro
   - {id: L0, name: "SPY (proxy)"}
   - {id: L0-line, name: "SPY + T-bills at the rung's volatility", role: "benchmark every rung is judged against"}
   - {id: L1, name: "legacy v1 (frozen code + selected params) on new data and new accounting", role: "baseline to beat"}
-  - {id: L2, name: "vol-targeted SPY"}
+  - {id: L2, name: "vol-targeted SPY", target_vol: 0.15, vol_window_days: 20, gross_cap: 2.0, band: false,
+     source: "v1 legacy/backtest.py:57-70 (D2.3)"}
+  - {id: L2-u, name: "vol-targeted SPY, 10% ex ante, cap 1.0, zoo vol", role: descriptive, target_vol: 0.10, gross_cap: 1.0}
   - {id: L3, name: "static 60/40 SPY/TLT", rebalance: monthly, band_pp: 5}
   - {id: L4, name: "inverse-vol SPY/TLT", vol_window_days: 63, rebalance: monthly, band: true}
   - {id: L4b, name: "ERC on the 2x2 covariance", role: zoo}
@@ -52,6 +54,18 @@ promotion_rule:   # quantkit.ladder four-part rule
   mcs: {level: 0.90, on: "vol-matched returns"}
   ties: simpler rung
   beyond_6040: {delta_sharpe_vs_vol_matched_L3: 0.05, role: descriptive}
+  # R2 (D2.4, advisor, before any R2 result): values the rule left unstated
+  walk: [L1, L2, L3, L4, L5]          # fixed sequence; L0 / L0-line benchmarks; L4b, L5-lev, L2-u, zoo descriptive
+  grid: daily bill-excess returns, 1990-01-01 -> 2019-12-31, each rung rescaled by one constant to 10% ann. vol
+  alpha: 0.05
+  mean_block: 21
+  reps: 1000
+  seed: 0
+  knowledge_date: 2019-12-31
+  stress_windows: development crisis windows (six, above)   # quantkit in-window check; its 2020/2022 default never used
+  cdar_route: "compounded CDaR-95 of the candidate <= 0.85 x the incumbent rescaled ex post to the candidate vol (financed above 1x at bill + 25 bp)"
+  legs: "no loss: dSharpe >= 0 at 2x costs, at +75 bp financing, and in each of the six leave-one-crisis-out samples (both routes); CDaR route also CDaR below the matched incumbent in each leg"
+  cdar_only_step: "quantkit test, robust and MCS parts pass AND CDaR route + legs pass -> promoted; walk continues with a fresh registered Ladder on [that rung, remaining rungs]"
 
 costs:   # per side, on TRUE traded turnover including vol-scaling trades
   spy_bp_per_side: 3

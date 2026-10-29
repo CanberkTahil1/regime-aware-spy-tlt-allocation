@@ -69,3 +69,31 @@ reports/site_local/ (one page per evidence tier). `tests/test_site_local.py` fai
 (checked: removing the rule fails it) or if any curve figure is tracked; the pre-commit hook refuses both paths. The
 untracked files remain in history (b46f998, ae4028b) until the owner's rewrite with data/prices.csv before the next push.
 E1.12 (vol-matched line) now belongs on the local curve charts.
+
+## R2 — the core mix L2–L5 (expectations committed before any R2 code or number)
+
+Pre-registration hashes (after the D2.x additions, before any rung result): `spec/prereg.yaml` sha256
+**85aa8714587428dbad0be1d275283a19a2ecfd4f9d0f4270e5ccc222b82c2340**; `spec/rules.yaml` sha256
+32fb3806b0a0876f3077f0144afab8bbbf6ace46063a1cd55e6281cbe8323409. quantkit v0.19.2 (owner O2.1).
+Scored window: development 1990-01-02 → 2019-12-31, daily; test 2020+ is not run in R2.
+
+| ID | Expectation (band) | Source | Status |
+|---|---|---|---|
+| E2.1 | L4 excess Sharpe > L1's and > L2's (ΔSharpe > 0, point estimates, development) | BUILD_PROMPTS R2 | open |
+| E2.2 | L5 excess Sharpe > L1's and > L2's (ΔSharpe > 0, development) | BUILD_PROMPTS R2 | open |
+| E2.3 | L4 and L5 max drawdown shallower than both L1's and L2's (|max DD| smaller, development) | BUILD_PROMPTS R2 | open |
+| E2.4 | L5 traded turnover (one-way Σ\|Δw\| incl. drift and vol-scaling trades) < 2.0×/yr, development | BUILD_PROMPTS R2 | open |
+| E2.5 | `rspy.accounting` with the drift-aware band = plain reference loop ≤ 1e-10; band 0 = the unbanded book bit-identically; planted "band vs last target" (quantkit convention, no drift) fails the test | D2.1 | open |
+| E2.6 | L2 decision = v1's mirror on an all-SPY signal: v1 `compute_strategy_returns` (own data, own accounting) ≤ 1e-12 | D2.3 | open |
+| E2.7 | L4 fast σ = `quantkit.alloc.cov.sample_cov` reference ≤ 1e-10; L4b (quantkit erc) weights = L4 weights ≤ 1e-10 at every 1990–2019 month-end; property test on random SPD 2×2 | D2.6, D2.7 | open |
+| E2.8 | Record book = `quantkit.trade.tranche(...)["books"][0]` bit-identically; all 21 offset books built; short-month collisions counted | D2.5 | open |
+| E2.9 | L0-line: every weight input dated < t (planted future value cannot change w_t); line finite from 1990-01-02 | D2.8 | open |
+| E2.10 | Vol zoo: quantkit `vol_forecast` audit passes for all five models; the year-end pick uses rows ≤ that year-end only (planted post-year-end loss cannot change it) | D2.2 | open |
+| E2.11 | perf: one rung full evaluation ≤ 10 s; whole R2 ladder + zoo ≤ 5 min; peak RSS ≤ 1.5 GB (rss_peak); worker count 1 vs N bit-identical where a pool is used | performance contract | open |
+
+Notes before code: (1) the dev feasibility check (research R2 header) has L4's ex-ante vol below 10% at 85% of
+month-ends, so the author expects L5 to equal L4 most days and the L5 − L4 effect to be small; E2.2 is kept as
+pre-registered. (2) D2.4: rescaling a rung's excess returns by one constant implies financing at the bill rate; the
+financed rescale (bill + 25 bp) is used only inside the CDaR and LOCO legs. (3) D2.2 limitation: the L4 book's
+returns mix past weights; the gap vs EWMA on current weights × past sleeve returns is reported, never used.
+(4) D2.3 disclosed prior: the owner's v1 audit (legacy, 2005–19, free leverage) found vol-targeted SPY beat v1.

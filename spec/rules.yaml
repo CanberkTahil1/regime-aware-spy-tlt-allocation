@@ -70,3 +70,39 @@ qa:   # D1.6 (bands also in spec/prereg.yaml)
   bands:
     hi20_vs_spy: {corr_min: 0.98, te_max: 0.015}
     gsw25_vs_tlt: {corr_min: 0.98, te_max: 0.030}
+
+r2:   # R2 core mix (D2.1-D2.8, advisor; reports/decisions.md), fixed before any R2 result
+  scored: [1990-01-01, 2019-12-31]          # development; warm-up 1986-1989 estimation only
+  band:                                     # D2.1: drift-aware, per sleeve, absolute NAV weight, trade to the edge
+    width: 0.05
+    rungs: [L3, L4, L4b, L5, L5-lev]        # L2 unbanded (v1 had no band)
+    decision_rows: {L3: month_end, L4: month_end, L4b: month_end, L5: daily, L5-lev: daily}
+  monthly_decision: "last session of month m (close), traded on the first session of m+1 = quantkit tranche offset 0"
+  L2: {target_vol: 0.15, window: 20, estimator: "sample std (ddof 1) of the book's own daily returns, rows <= t-1 at decision t (v1 backtest.py:57-70 mirror)", cap: 2.0, ann: 252}
+  L2u: {target_vol: 0.10, cap: 1.0, vol: zoo}
+  L3: {weights: {spy: 0.60, tlt: 0.40}}
+  L4: {window: 63, estimator: "sample std ddof 1 of the 63 daily simple returns ending at the decision close; w ~ 1/sigma"}
+  L4b: {cov: "63-day sample covariance, ddof 1", impl: quantkit.alloc.risk.erc}
+  L5: {target_vol: 0.10, cap: 1.0, vol: zoo, series: "unscaled L4 book daily net return"}
+  L5-lev: {target_vol: 0.10, cap: 1.5, vol: zoo}
+  vol_zoo:     # D2.2; quantkit.vol defaults written out; h = 1, log returns
+    models:
+      ewma_slow: {cls: EWMAVar, halflife: 60}
+      ewma_fast: {cls: EWMAVar, halflife: 10}
+      har: {cls: HAR, window: 1000, every: 21, anchor: 500, daily_variance: "r^2 (close source, no overnight term)"}
+      gjr_garch_t: {cls: GarchVar, gjr: true, window: 1000, every: 21, anchor: 500}
+      egarch_t: {cls: BetaTEgarch, window: 1000, every: 21, anchor: 500, label: "Beta-t-EGARCH (quantkit's EGARCH-t)"}
+    selection_order: [ewma_slow, ewma_fast, har, gjr_garch_t, egarch_t]   # simplest first
+    selection: "at each year-end y (1989..2018) for year y+1: QLIKE(r^2_{t+1}, f_t) on rows <= y-end where every model is defined and the proxy > 0 (expanding); MCS; simplest member"
+    mcs: {size: 0.10, reps: 1000, block_size: 21, seed: 0, method: R}
+  line:        # D2.8
+    impl: quantkit.bench.vol_matched
+    mode: ex_ante
+    window: 63
+    lag: 1
+    financing: "lagged H.15 money-market yield + 25 bp above w = 1, dt = calendar days / 360; stress rows stress the rung only"
+    descriptive: ex_post
+  tranche:     # D2.5
+    offsets: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    record: 0
+    rungs: [L3, L4, L5]
