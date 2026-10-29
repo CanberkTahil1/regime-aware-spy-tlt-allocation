@@ -18,7 +18,7 @@ L5_vol_har,R2,zoo,"L5 with the vol model fixed: HAR (r^2)",1,zoo,yes,yes,"vol zo
 L5_vol_gjr_garch_t,R2,zoo,"L5 with the vol model fixed: GJR-GARCH(1,1)-t",1,zoo,yes,yes,"vol zoo row"
 L5_vol_egarch_t,R2,zoo,"L5 with the vol model fixed: Beta-t-EGARCH",1,zoo,yes,yes,"vol zoo row"
 tranche_offsets,R2,timing,"L3/L4/L5 decided on trading-day offsets 1-20 (offset 0 = record), D2.5",20,descriptive,yes,yes,"no selector (quantkit tranche rule); D4.6: counted_in_dsr set yes before any DSR result (60 series: L3/L4/L5 x offsets 1-20; clustered)"
-walk_chains_O2.3,R2,walk,"post-hoc second promotion walk on parent chains L0->L2 and L0->L3->L4->L5 (owner O2.3), same rule and books",1,selection,no (post-hoc),yes,"charter amendment 32bf308; a second selection over already-counted rungs, counted as one extra trial; the pre-registered walk L1->L5 stays the record"
+walk_chains_O2.3,R2,walk,"post-hoc second promotion walk on parent chains L0->L2 and L0->L3->L4->L5 (owner O2.3), same rule and books",1,selection,no (post-hoc),yes,"charter amendment 5822b28; a second selection over already-counted rungs, counted as one extra trial; the pre-registered walk L1->L5 stays the record"
 L6,R3,regime,"L5 + corr126 > 0 => TLT to cash, month-end decision (D3.1)",1,rung (descriptive: no walk; owner O2.4),yes,yes,"ablation vs L5"
 L6-63,R3,regime,"L6 with the 63-day correlation",1,descriptive,yes,yes,"pre-registered window, reported"
 L6-th-0.2,R3,regime,"L6-126 with threshold -0.2",1,descriptive,yes,yes,"sensitivity"

@@ -37,7 +37,7 @@ Research for R0: `reports/research/R0.md`.
 - **Choice:** (a), amended: (1) `legacy` pytest marker; `make test` runs them; a missing file FAILS naming the path and
   blob; deselecting needs an explicit `-m "not legacy"` (`make test-nolegacy`), no env-var escape; (2) blob checked by
   hashing the file's bytes (git blob SHA-1), not `HEAD:data/prices.csv`, so it survives an untrack; constant
-  900f1dbf0cab27f32da7926aa6bca5ef3a5dee03 from 5ccc12c; (3) summary: v1's own rounding then exact equality, plus
+  900f1dbf0cab27f32da7926aa6bca5ef3a5dee03 from 7b02cee; (3) summary: v1's own rounding then exact equality, plus
   exact parameters and strategy string; the grid test asserts v1's selection rule picks the summary row; parameter
   columns exact, floats ≤ 1e-12; (4) bands in the ledger before running; a miss is a failed expectation, never a wider
   tolerance; (5) `slow` mark only after the runtime is recorded in `reports/perf.md`, and it stays in `make test`.
@@ -68,7 +68,7 @@ Research for R0: `reports/research/R0.md`.
   all gitignored). History rewriting: later, by the owner, before the next push. The session does not push. Owner also
   said "tag it": `r0-done`.
 
-## R1 (research: reports/research/R1.md, f7de1ab; all decider = advisor, before results)
+## R1 (research: reports/research/R1.md, 67b4e98; all decider = advisor, before results)
 
 ### D1.1 — Cash / bill series · confidence high
 - **Options:** (a) [rec] H.15 3-month secondary discount `RIFSGFSM03_N.B`, r_s = P^(−Δ/91) − 1, P = 1 − d·91/360, d = last
@@ -146,7 +146,7 @@ Research for R0: `reports/research/R0.md`.
 - **Why escalated:** licence question (charter escalation list) and advisor vs reviewer disagreement: D1.4's advisor
   passed it on as an optional flag; the R1 quant-reviewer (MATERIAL 2) says it had to be escalated. Logged before any
   action; nothing is pushed.
-- **What is committed now (b46f998 + review fixes):** statistics derived from v1's local Yahoo/Cboe file (rows S0–S6 of
+- **What is committed now (c086a39 + review fixes):** statistics derived from v1's local Yahoo/Cboe file (rows S0–S6 of
   `reports/r1/reconciliation.*`, `qa.csv`, `qa_worst_months.csv`, `e12_diagnosis.json`); figures in
   `reports/figures/R1/` whose SVGs carry the S0 and SPY-proxy / L1 wealth curves at near-daily resolution (3.5–3.6k
   vertices per path); the site holds statistics only (no series).
@@ -181,7 +181,7 @@ Research for R0: `reports/research/R0.md`.
   the charter's version number; no other charter text changes).
 
 All R2 D-items below: **decider = advisor** (decision-advisor subagent, one call per item, 2026-10-28), logged before
-any R2 code or result. Research: reports/research/R2.md (16791b4).
+any R2 code or result. Research: reports/research/R2.md (306b934).
 
 ### D2.1 — Vol-target mechanics and the no-trade band · confidence medium-high
 - **Options:** (a) [rec] daily vol decisions, monthly weight decisions, one drift-aware 5 pp per-sleeve band in
@@ -315,7 +315,7 @@ any R2 code or result. Research: reports/research/R2.md (16791b4).
   matched vol 60/40 loses Q4 2018 too (−7.69% vs −7.43%) and 1994 (−6.9% vs −0.3%). The limitation itself is real
   (L2 vs L0, GFC: −27.4% vs matched SPY −41.4%, yet a lower in-window Sharpe); no verdict changes.
 
-## R3 (research: reports/research/R3.md, f86e90e; all decider = advisor, before any R3 result; owner O2.4 scope: no walk, ablation table)
+## R3 (research: reports/research/R3.md, e87bcd9; all decider = advisor, before any R3 result; owner O2.4 scope: no walk, ablation table)
 
 ### D3.1 — L6 mechanics (correlation regime → TLT to cash) · confidence high
 - **Options:** (a) [rec] Pearson 126 (63) daily-return correlation at the month-end decision close, L6 = L5's daily
@@ -412,7 +412,7 @@ any R2 code or result. Research: reports/research/R2.md (16791b4).
   the 50% haircut) are written and registered in spec/prereg.yaml, and its hash goes into the ledger. They are zoo rows:
   they cannot change any verdict and are counted in DSR N. **Resolved.**
 
-## R4 (research: reports/research/R4.md, d2fa0c5; all decider = advisor, before any R4 computation; owner O3.1: the three deferred zoo rows are defined in spec/prereg.yaml `r4` and hashed before any R4 number)
+## R4 (research: reports/research/R4.md, d8fc4f4; all decider = advisor, before any R4 computation; owner O3.1: the three deferred zoo rows are defined in spec/prereg.yaml `r4` and hashed before any R4 number)
 
 ### D4.1 — v1 spread / Bollinger overlays on L5 · confidence high
 - **Options:**
@@ -574,7 +574,7 @@ any R2 code or result. Research: reports/research/R2.md (16791b4).
 - **Why the others lost:** (b) needs a quantkit change or re-pin and is fragile on import order. (c) is a charter-level
   change for an environment problem with a documented, reversible fix.
 
-## R5 (research: reports/research/R5.md, 2ed4aa3; all decider = advisor, before any v2 test-window number; none escalated)
+## R5 (research: reports/research/R5.md, 7e59241; all decider = advisor, before any v2 test-window number; none escalated)
 
 Owner instructions (2026-10-29, not D-items): register the post-hoc 10-year sensitivity row (L5–L7 on GSW 10y, test
 window, labelled, cannot change a verdict, counted in DSR N; the 25-year books stay official) in spec/prereg.yaml with
@@ -639,7 +639,7 @@ owner's approval; never push.
 - **Choice:** (a), amended:
   1. The raw-N companion's trial-Sharpe variance is V = max(V_dev, 1/(T_test − 1)), both printed. V_dev is the
      ddof-1 variance of the development pool's per-period Sharpe ratios, recomputed from development data only
-     (b422016: reports/r4/facts.json dsr_pool.sr_pp_var_ddof1 = 5.379623993123816e-05) and written into prereg
+     (fceef9b: reports/r4/facts.json dsr_pool.sr_pp_var_ddof1 = 5.379623993123816e-05) and written into prereg
      before the freeze. 1/(T_test − 1) is quantkit's null variance and needs only the session count. Not the variance
      across the test rungs: they are not trials of one selection, and it would use test numbers.
   2. The headline row (dsr_effective, one development cluster) already falls back to 1/(T − 1); stated beside the table.
@@ -695,8 +695,8 @@ owner's approval; never push.
 - **Why the other lost:** no forward month exists at R5; an untested harness in the run-once phase goes beyond scope.
 
 ### D5.4 order note (review R5 MINOR, acknowledged)
-- V_dev was computed and committed (b422016) before D5.4 was logged here (6e877ae). It used development data only and
-  the research note (2ed4aa3) recommended it first, but "log before acting" was not followed. No number moved.
+- V_dev was computed and committed (fceef9b) before D5.4 was logged here (99827a9). It used development data only and
+  the research note (7e59241) recommended it first, but "log before acting" was not followed. No number moved.
 
 ### D5.8 — Placebo for the regime layers on the test window (raised by review R5 M4, before the freeze) · confidence medium · decider = advisor
 - **Options:**

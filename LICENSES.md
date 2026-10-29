@@ -45,9 +45,10 @@ Cboe's bar storing and distributing its materials. v2 replaces them with storage
 French Hi 20 (SPY proxy, gitignored), a GSW-constructed 25-year Treasury (TLT proxy, public domain), H.15 bills (public
 domain), and realised vol / vol-model forecasts instead of VIX.
 
-**v1's committed `data/prices.csv`.** Untracked on 2026-10-28 by owner decision O0.1(a) (`reports/decisions.md`); it
-remains in git history (commits 7d75046, 5ccc12c) and on the public remote until the owner rewrites history before the
-next push. The session never pushes or rewrites history. The R0 legacy characterization tests read the local copy only, to reproduce v1 exactly; no
+**v1's committed `data/prices.csv`.** Untracked on 2026-10-28 by owner decision O0.1(a) (`reports/decisions.md`).
+On 2026-10-29 the owner removed it from all history with `git filter-repo` (with the tracked .DS_Store files and the R1
+curve figures); commit shas changed then (old → new map in `reports/ledger.md`). The public remote keeps the old history
+until the owner pushes the rewritten one. The session never pushes or rewrites history. The R0 legacy characterization tests read the local copy only, to reproduce v1 exactly; no
 v2 result uses it.
 
 Gaps: the Ken French page has no data licence (hence the disclosed relaxation). Re-read every permitted source's terms

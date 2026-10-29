@@ -65,9 +65,9 @@ remotes = git(paths.ROOT, "remote", "-v")
 rows.append(("public remote present: session never pushes", WARN if remotes else OK, "origin (owner-only push)" if remotes else "none"))
 if V1_DATA.is_file():
     blob = git_blob_sha1(V1_DATA.read_bytes())
-    rows.append(("v1 data/prices.csv local copy = 5ccc12c blob", OK if blob == V1_BLOB else FAIL, blob[:12]))
+    rows.append(("v1 data/prices.csv local copy = 7b02cee blob", OK if blob == V1_BLOB else FAIL, blob[:12]))
 else:
-    rows.append(("v1 data/prices.csv local copy = 5ccc12c blob", FAIL, "missing (legacy tests will fail; make test-nolegacy)"))
+    rows.append(("v1 data/prices.csv local copy = 7b02cee blob", FAIL, "missing (legacy tests will fail; make test-nolegacy)"))
 tracked = bool(git(paths.ROOT, "ls-files", "data/prices.csv"))
 rows.append(("data/prices.csv (Yahoo+Cboe) untracked (O0.1)", WARN if tracked else OK, "still tracked: owner decision pending" if tracked else "untracked"))
 dirty = git(paths.ROOT, "status", "--porcelain")

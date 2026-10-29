@@ -130,7 +130,7 @@ def test_data_guard_fails_on_missing_or_changed_file(tmp_path):
     f.write_bytes(b"Date,SPY\n")
     with pytest.raises(ValueError, match="changed"):
         check_v1_data(f)
-    assert check_v1_data().name == "prices.csv"  # the real local copy matches 5ccc12c
+    assert check_v1_data().name == "prices.csv"  # the real local copy matches 7b02cee
 
 
 def test_csv_parser_is_round_trip():

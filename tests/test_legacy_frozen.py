@@ -1,4 +1,4 @@
-"""D0.1: every v1 module in legacy/ equals its v1 original (5ccc12c) once the `legacy.` import prefix is undone, and the
+"""D0.1: every v1 module in legacy/ equals its v1 original (7b02cee) once the `legacy.` import prefix is undone, and the
 committed v1 tables are the v1 bytes. Any other edit to v1 fails here. Needs no data (not marked legacy)."""
 
 import re
@@ -8,7 +8,7 @@ import pytest
 
 from tests.legacy_support import ROOT
 
-V1 = "5ccc12c"
+V1 = "7b02cee"
 MODULES = ["config.py", "data.py", "utils.py", "backtest.py", "run.py", "signals/__init__.py", "signals/bollinger.py",
            "signals/regime.py", "signals/spread.py", "signals/regime_allocation.py"]
 TABLES = ["results/tables/test_metrics.csv", "results/tables/summary_metrics.csv", "results/tables/grid_search_results.csv"]

@@ -241,7 +241,7 @@ facts["timing_s"] = {"targets_and_zoo": round(t_targets, 2), "books": round(t_bo
                      "total": round(time.perf_counter() - t0, 2)}
 js = lambda o: o.tolist() if hasattr(o, "tolist") else float(o)  # noqa: E731
 (OUT / "ladder.json").write_text(json.dumps(res, indent=1, default=js))
-(OUT / "ladder_chains.json").write_text(json.dumps({"label": "POST-HOC (owner O2.3, charter amendment 32bf308)",
+(OUT / "ladder_chains.json").write_text(json.dumps({"label": "POST-HOC (owner O2.3, charter amendment 5822b28)",
                                                     "chains": res_chains}, indent=1, default=js))
 (OUT / "facts.json").write_text(json.dumps(facts, indent=1, sort_keys=True, default=float))
 

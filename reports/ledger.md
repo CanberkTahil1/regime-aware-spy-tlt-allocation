@@ -7,7 +7,7 @@ Status: `open` → `held` / `failed` / `not tested`, each closed with the comman
 
 | ID | Expectation (band) | Source | Status |
 |---|---|---|---|
-| E0.1 | v1 characterization reproduces `results/tables/test_metrics.csv` (8 metrics × strategy/SPY = 16 numbers) on the cached `data/prices.csv` (blob 900f1dbf0cab27f32da7926aa6bca5ef3a5dee03, from 5ccc12c): max abs diff ≤ 1e-12 | BUILD_PROMPTS R0 pre-registered | **held** — `make legacy`: max abs diff 1.22e-15 (16 numbers) ≤ 1e-12; also from v1's own main() |
+| E0.1 | v1 characterization reproduces `results/tables/test_metrics.csv` (8 metrics × strategy/SPY = 16 numbers) on the cached `data/prices.csv` (blob 900f1dbf0cab27f32da7926aa6bca5ef3a5dee03, from 7b02cee): max abs diff ≤ 1e-12 | BUILD_PROMPTS R0 pre-registered | **held** — `make legacy`: max abs diff 1.22e-15 (16 numbers) ≤ 1e-12; also from v1's own main() |
 | E0.2 | `summary_metrics.csv` reproduces: selected parameters and strategy string exactly; every float equal after v1's own rounding (4 dp, turnover 2 dp) | D0.3 | **held** — v1 main() → summary_metrics.csv equal (byte-identical file); selection rule on the committed grid picks the summary params |
 | E0.3 | `grid_search_results.csv` reproduces: 648 rows; parameter columns exact; float columns ≤ 1e-12 abs; argmax of selection_score's train-shortlist rule picks the summary row | D0.3 | **held** — 648 rows, params exact, float max abs diff 1.05e-14 ≤ 1e-12 (pandas 3.1.0 / numpy 2.5.4 vs v1's unrecorded versions) |
 | E0.4 | `make test lint` green; v2 code imports no Yahoo/Cboe client (a `force_download=True` call fails with the exclusion message) | BUILD_PROMPTS R0 exit; D0.2 | **held** — `make test` 52 passed, `make lint` pass; `test_download_path_fails_loudly`; doctor: yfinance absent |
@@ -44,7 +44,7 @@ Pre-registration hashes (before any rung result): `spec/prereg.yaml` sha256 **cb
 | E1.11 | perf: `make data` ≤ 30 s; reconciliation (8 steps × 3 windows) ≤ 10 s; peak RSS ≤ 1.5 GB (rss_peak) | performance contract | **held** — `make fetch`+build 2.4 s (build alone 1.9 s); `make reconcile` 1.4 s, 617 MB summed RSS; `make test` 9.4 s, 1,140 MB summed (rss_peak upper bound) |
 | E1.0 | (from R0) loaded-module pin check covers > 0 quantkit files | reviewer R0 MINOR 2 | **held** — the conftest's loaded-module check now covers 20 quantkit files in R1 test runs (was 0 at R0) |
 
-**E1.2 diagnosis (after the failure was logged in c0b9b2b):** no bug — S1 rebuilt by hand equals the bridge (max diff 0.0)
+**E1.2 diagnosis (after the failure was logged in a92031c):** no bug — S1 rebuilt by hand equals the bridge (max diff 0.0)
 and `test_t_plus_one_and_accounting_timing_agree` ties the two timing frameworks. Not a 2008 artefact (train ex
 2008–09H1: Sharpe 0.81 → 0.90). Execution lag 0/1/2/3 Sharpe (v1 def): train 0.54 / 0.64 / 0.58 / 0.57 (same-close
 worst), validation 0.77 / 0.56 / 0.74 / 0.76 (t+1 worst): one-day timing of this contrarian daily signal has no stable
@@ -67,7 +67,7 @@ statistics-only page); the four curve figures (growth + drawdown, exposure, roll
 SVG) are untracked and rebuilt locally by `make report-site-local` into the gitignored reports/figures_local/R1/ and
 reports/site_local/ (one page per evidence tier). `tests/test_site_local.py` fails if those paths stop being ignored
 (checked: removing the rule fails it) or if any curve figure is tracked; the pre-commit hook refuses both paths. The
-untracked files remain in history (b46f998, ae4028b) until the owner's rewrite with data/prices.csv before the next push.
+untracked files remain in history (c086a39, 4adf551) until the owner's rewrite with data/prices.csv before the next push.
 E1.12 (vol-matched line) now belongs on the local curve charts.
 
 ## R2 — the core mix L2–L5 (expectations committed before any R2 code or number)
@@ -130,7 +130,7 @@ Not in R2: DSR / PBO with the effective number of trials (R4–R5), the 2020+ te
 
 ### R2 amendment — the parent-chain walk (POST-HOC, owner O2.3, 2026-10-29; expectations before any chain result — first chain registration in ladder_prereg.jsonl 11:22:24Z, 34 s after the expectation commit; the chain code may already have existed)
 
-Charter amended first (32bf308): L1 is a comparison row, not a parent; parent chains L0 → L2 and
+Charter amended first (5822b28): L1 is a comparison row, not a parent; parent chains L0 → L2 and
 L0 → L3 → L4 → L5 (→ L6 → L7 → L8 in R3). Attribution corrected again: the pre-registered order L1 → L2 → … came from the
 owner's plan listing L1 first; D2.4 transcribed it (the review-MATERIAL-1 note above called it the advisor's reading).
 The pre-registered walk above stays the record of R2's pre-registered result. Post-hoc prereg hash:
@@ -372,7 +372,7 @@ D5.2 (test-window ex post, one scalar).
 | ID | Expectation (band) | Source | Status |
 |---|---|---|---|
 | E5.1 | code (D5.1): every extended book (L0–L8, L5-lev, L2-u at 1×) equals data/r2, data/r3 bit for bit on rows ≤ 2019-12-31; vol-zoo picks 1989..2018 equal reports/r2/volzoo.json; a pick exists for every year 2019..2025 | D5.1 | **held** — reports/r5/facts.json dev_identity: 35/35 True (every extended 1× book's net and held weights ≤ 2019-12-31 equal the development-only rebuild and data/r2, data/r3 bit for bit; picks 1989..2018 equal); `require_picks` passed for 2020..2026 (picks: gjr_garch_t every year, = the 2019 pick) |
-| E5.2 | code (D5.5): `python -m rspy freeze verify` OK after the lock commit; the runner refuses (non-zero exit, nothing written) without `RSPY_TEST_RUN=run-once`, with reports/r5/test_run.json present, with a changed or uncommitted locked file, with a changed panel; the synthetic dry run completes, writes nothing under reports/r5, and refuses `RSPY_TEST_RUN` or the repo's data/ | D5.5 | **held** — real repo, after the lock commit ff40927: `make freeze-verify` → freeze OK; `make test-run` without the env → "refused: env RSPY_TEST_RUN=run-once not set", nothing written; a planted line in src/rspy/rungs.py → "locked file changed … uncommitted change", nothing written (restored, freeze OK); tests/test_r5.py (16) incl. a completed dry run writing only its temporary directory and the crash record; 9 broken-input checks; synthetic dry run identity 24/24 True |
+| E5.2 | code (D5.5): `python -m rspy freeze verify` OK after the lock commit; the runner refuses (non-zero exit, nothing written) without `RSPY_TEST_RUN=run-once`, with reports/r5/test_run.json present, with a changed or uncommitted locked file, with a changed panel; the synthetic dry run completes, writes nothing under reports/r5, and refuses `RSPY_TEST_RUN` or the repo's data/ | D5.5 | **held** — real repo, after the lock commit 77b061d: `make freeze-verify` → freeze OK; `make test-run` without the env → "refused: env RSPY_TEST_RUN=run-once not set", nothing written; a planted line in src/rspy/rungs.py → "locked file changed … uncommitted change", nothing written (restored, freeze OK); tests/test_r5.py (16) incl. a completed dry run writing only its temporary directory and the crash record; 9 broken-input checks; synthetic dry run identity 24/24 True |
 | E5.3 | code (D5.2): the matched reference's test-window excess vol equals the child's ≤ 1e-10 for every family row; every scored series has exactly 1,695 rows | D5.2 | **held** — facts.json: max matched-vol error on k ≤ 1 rows 2.8e-17 (every family row has k ≤ 1 on the test: no k > 1 row occurred); every scored series 1,695 rows |
 | E5.4 | L0 (SPY proxy), test: CAGR in [11%, 17%]; excess Sharpe in [0.45, 0.95]; max DD in [−37%, −28%] | author | **held** — metrics.csv L0: CAGR 15.93%, excess Sharpe 0.682, max DD −33.0% |
 | E5.5 | Bonds hurt on the test: L3 vs matched L0 ΔSharpe in [−0.45, +0.05] (development +0.215, sign likely disagrees); L3 Sharpe < L0 Sharpe | author | **held** — family.csv L3 vs L0 −0.205 [−0.535, +0.125] (development +0.215: sign reversed); L3 Sharpe 0.477 < L0 0.682 |
@@ -410,7 +410,7 @@ monthly log". It would start at 2026-10, available about 2026-12, behind the R5 
   uv.lock, pyproject, Makefile, the engine incl. legacy/ and scripts/r5.py, the run inputs reports/r1/reconciliation.csv,
   reports/r4/{dsr.csv, facts.json}); data: build key, panel sha256 10aeb147…f771e, test window 2020-01-02 → 2026-09-30
   (1,695 sessions), local inputs data/r2, data/r3 books. Rules commit (a label: the owner's history rewrite will change
-  shas) 5012edb. Content hashes decide (D5.5). No tag (owner-only).
+  shas) 7c85c4e. Content hashes decide (D5.5). No tag (owner-only).
 
 **R5 test run (2026-10-29 16:02–16:03 UTC, `RSPY_TEST_RUN=run-once make test-run`, once; logged before diagnosis).**
 reports/r5/test_run.json status completed, lock 489884ce…, panel 10aeb147…, 1,695 sessions. Contradicting the
@@ -455,3 +455,64 @@ expectations:
   unchanged (cc44a713…, fe2e3adb…); `make freeze-verify` OK.
 - Figures and the page (scripts/r5_figures*.py, src/rspy/site.py; not engine) were drawn after the run, from the
   committed tables only. D5.8's placebo binding is in the figure notes and the page verdicts.
+
+## Post-rewrite (2026-10-29): commit references
+
+The owner rewrote history with `git filter-repo`. It removed data/prices.csv, the tracked .DS_Store files and the R1
+curve figures from every commit and re-pointed the tags; the old history is backed up outside the repo. Every one of the
+50 commits changed sha.
+
+**References updated** (tracked text: this ledger, decisions, reviews, research, learn notes, LICENSES, variants.csv,
+scripts, tests), old → new at the same prefix length. One reference is functional: `tests/test_legacy_frozen.py`
+`V1 = "7b02cee"` (was 5ccc12c), used by `git show` to compare legacy/ with v1.
+
+**Not edited, by rule.** These shas are labels; content hashes decide (D5.5 amendment 1). Read them through the map
+below.
+- `spec/prereg.yaml` (comments: 32bf308 → 5822b28, b422016 → fceef9b) and `tests/legacy_support.py` (comments and an
+  error message: 5ccc12c → 7b02cee). Both are content-locked by `spec/freeze.lock.json` (and prereg is hashed above),
+  so editing a comment would break the freeze and `make r5-replay`. v1's data guard uses the blob hash 900f1dbf…,
+  which is content-based and survives the rewrite.
+- `spec/freeze.lock.json` `rules_commit` 5012edb… → 7c85c4e3babf7b86fe2270d1142b0ec06797fb21, and
+  `reports/r5/test_run.json` `head` ff40927… → 77b061dab3a6a084199d7710692786ab009ffe4e (`lock_rules_commit` as
+  rules_commit). These are the frozen run's records; the lock's sha256 489884ce… is unchanged.
+- Tag messages carry no commit sha (r5-done carries the lock content hash).
+
+| old | new |
+|---|---|
+| 0337fe4 | 58ec69f |
+| 16791b4 | 306b934 |
+| 1cc25e4 | b8c80f6 |
+| 2ed4aa3 | 7e59241 |
+| 32bf308 | 5822b28 |
+| 3c2db58 | f136e01 |
+| 402e9d9 | 708519f |
+| 4e9a2b3 | 59f7e56 |
+| 5012edb | 7c85c4e |
+| 59b85f8 | bc36ccf |
+| 5aaf585 | abb15a7 |
+| 5ccc12c | 7b02cee |
+| 6e877ae | 99827a9 |
+| 7d75046 | d9287b7 |
+| 83d635d | 2ce0a90 |
+| 84c3a9a | 5bcf598 |
+| 9481ade | 70858ec |
+| 991fdce | 1306125 |
+| 9bd7e1a | baa64d4 |
+| ae4028b | 4adf551 |
+| b422016 | fceef9b |
+| b46f998 | c086a39 |
+| b8b48a6 | 4f6fdb8 |
+| baa96e9 | 210389a |
+| bd94178 | 3506f92 |
+| c0b9b2b | a92031c |
+| c6e413e | 88fa381 |
+| cb14660 | b99e537 |
+| cc30642 | ef34878 |
+| d2fa0c5 | d8fc4f4 |
+| e4c36aa | 83b4f8f |
+| efd7645 | 95a9f8b |
+| f2a9b3c | 9500d51 |
+| f7de1ab | 67b4e98 |
+| f86e90e | e87bcd9 |
+| f9f418e | 4e98322 |
+| ff40927 | 77b061d |
