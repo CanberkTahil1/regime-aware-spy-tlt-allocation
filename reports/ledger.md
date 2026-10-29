@@ -257,3 +257,8 @@ L7 helps in equity bear markets (dot-com, GFC) and hurts in choppy or hedge-work
 for a net Sharpe loss; L8 does nothing measurable (the brake is nearly inert at its pre-registered thresholds on a book
 whose worst drawdown is ~13%, so its `judge` failure says little about crash rules in general — review R3 MINOR).
 **Not tested in R3 (escalated O3.1):** v1 spread and Bollinger overlays on L5, GBM risk-side row. None beats its parent; L6 sits between 60/40 and v1 / the line.
+
+**Owner O3.1 (2026-10-29, after the R3 review): (a) with a condition.** The v1 spread overlay on L5, the v1 Bollinger
+overlay on L5 and the GBM risk-side sizing row (purged CV, 50% haircut) move to R4. **R4's first step, before any
+computation:** write their definitions into spec/prereg.yaml and record its sha256 here. Zoo rows: they cannot change
+any verdict and are counted in DSR N. R3 is closed on that basis (tag r3-done, owner "tag it").

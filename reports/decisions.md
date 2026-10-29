@@ -407,3 +407,7 @@ any R2 code or result. Research: reports/research/R2.md (16791b4).
   in an R3 amendment before the tag (advisor decides the definitions first, expectations before code); (c) drop them
   from the zoo (charter change: the zoo list is in CLAUDE.md).
 - **Status:** not acted on; nothing about these rows is built. The ledger lists them as "not tested in R3".
+- **Owner (2026-10-29): (a), with a condition.** The three rows move to R4. At R4 start, before anything is computed,
+  their definitions (v1 spread overlay on L5; v1 Bollinger overlay on L5; GBM risk-side sizing row with purged CV and
+  the 50% haircut) are written and registered in spec/prereg.yaml, and its hash goes into the ledger. They are zoo rows:
+  they cannot change any verdict and are counted in DSR N. **Resolved.**

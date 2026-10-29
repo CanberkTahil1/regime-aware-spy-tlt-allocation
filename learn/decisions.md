@@ -84,7 +84,9 @@
 - **D3.6 (advisor): the "zoo" rows quantkit already defines are built now** (two market-state switches, a
   minimum-drawdown mix, and max-diversification, which equals inverse-vol for two assets); v1's spread/Bollinger
   overlays and the machine-learning row need definitions of their own and move to R4.
-- **O3.1 (yours, pending): three "zoo" rows were not built in R3** — v1's spread and Bollinger signals as overlays on
+- **O3.1 (yours, resolved: move to R4 with a condition): three "zoo" rows were not built in R3** — v1's spread and Bollinger signals as overlays on
   the core mix, and the machine-learning risk row. The advisor moved them to R4 because each needs a definition nobody
   has written yet; the reviewer says cutting your phase list is your call. Options: accept R4, build them in an R3
   amendment before the tag, or drop them from the charter.
+  **Your answer:** move them to R4. Their definitions are written into the pre-registration and hashed at R4 start,
+  before any number. They are exploratory, cannot change any verdict, and count toward the multiple-testing total.
