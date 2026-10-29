@@ -106,3 +106,5 @@ Note: the grid test is marked `slow` (runtime recorded above, D0.3 amendment 5) 
 | `make dry-run`, warm | — | — | 9.2 s (build 2.2, identity 0.5, evaluate 6.6) | yes |
 | `make test-run` (cold: 3 extended vol-zoo series; development-only rebuild cached from R4) | ≤ 120 s, ≤ 1.5 GB | as above | (after the run) | — |
 | `make test` (147 tests) | ≤ 60 s | — | 10.6 s | yes |
+| D5.8 test placebos (3 gates × 100 books over 1986–2026) | ≤ 20 s inside the run | 300 numba walks O(T·N) | dry run: evaluate 21 s incl. placebos (warm build) | yes |
+| `make dry-run` after review M1 / D5.8 (new synthetic series: cold) | ≤ 120 s | — | 70.3 s | yes |

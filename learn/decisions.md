@@ -136,3 +136,9 @@
   The exploratory rows stay in development, so there is nothing to cherry-pick.
 - **D5.7 (advisor): the monthly forward log waits.** No forward month exists yet; it can start once Ken French publishes
   October 2026.
+- **D5.8 (advisor, after the reviewer asked): the 2022 result gets a placebo.** Holding fewer bonds in 2022 helps
+  whether or not the timing is smart. So the correlation and trend switches are also shuffled at random within
+  2020–2026, 100 times. Every 2022 number sits next to that, and next to development's verdict that neither switch beat
+  its shuffled version. The placebo can only weaken a claim, never strengthen it.
+- **D5.9 (advisor): the Makefile is checked before the run but not on replays,** because it computes nothing; a replay
+  still requires every test table to come out byte for byte the same.

@@ -35,6 +35,11 @@ ENV, ENV_VALUE = "RSPY_TEST_RUN", "run-once"
 SPEC = ("spec/prereg.yaml", "spec/rules.yaml", "spec/quantkit_pin.json", "uv.lock", "pyproject.toml", "Makefile")
 NOT_ENGINE = ("src/rspy/figures.py", "src/rspy/site.py", "src/rspy/site_local.py")
 EXTRA_ENGINE = ("tests/legacy_support.py", "scripts/r5.py")
+# Committed / local inputs the run reads besides the engine (review R5 MINOR): the v1 rows, the development DSR column,
+# R4's k_gap label, and the stored development books of the identity check.
+INPUTS = ("reports/r1/reconciliation.csv", "reports/r4/dsr.csv", "reports/r4/facts.json")
+LOCAL_INPUTS = ("r2/books.parquet", "r3/books.parquet")
+NOT_REPLAYED = ("Makefile",)   # orchestration only; set by D5.9 (advisor), see reports/decisions.md
 VERSION = 1
 
 
@@ -64,8 +69,11 @@ def data_payload(data_dir: pathlib.Path) -> dict:
 
 def payload(root: pathlib.Path | None = None, data_dir: pathlib.Path | None = None) -> dict:
     root = root or paths.ROOT
-    files = {f: paths.sha256(root / f) for f in (*SPEC, *engine_files(root))}
-    return {"version": VERSION, "files": files, "data": data_payload(data_dir or paths.data_dir()),
+    files = {f: paths.sha256(root / f) for f in (*SPEC, *engine_files(root), *(i for i in INPUTS if (root / i).exists()))}
+    dd = data_dir or paths.data_dir()
+    data = data_payload(dd)
+    data["local_inputs"] = {f: paths.sha256(dd / f) if (dd / f).exists() else None for f in LOCAL_INPUTS}
+    return {"version": VERSION, "files": files, "data": data,
             "note": "content hashes decide; rules_commit is a label (sha before the owner's history rewrite; re-point after)"}
 
 
@@ -102,7 +110,9 @@ def loaded_unlocked(lock: dict, root: pathlib.Path | None = None) -> list[str]:
     return sorted(out)
 
 
-def verify(root: pathlib.Path | None = None, data_dir: pathlib.Path | None = None, *, git: bool = True) -> list[str]:
+def verify(root: pathlib.Path | None = None, data_dir: pathlib.Path | None = None, *, git: bool = True,
+           replay: bool = False) -> list[str]:
+    """Every mismatch against the lock. `replay` (make r5-replay) skips `NOT_REPLAYED` (D5.9)."""
     root = root or paths.ROOT
     if not (root / LOCK).exists():
         return [f"{LOCK} missing (run `make freeze`)"]
@@ -110,13 +120,15 @@ def verify(root: pathlib.Path | None = None, data_dir: pathlib.Path | None = Non
     now = payload(root, data_dir)
     probs = []
     for f, h in lock["files"].items():
+        if replay and f in NOT_REPLAYED:
+            continue
         cur = now["files"].get(f)
         if cur is None:
             probs.append(f"locked file missing: {f}")
         elif cur != h:
             probs.append(f"locked file changed: {f}")
     probs += [f"engine file not in the lock: {f}" for f in sorted(set(now["files"]) - set(lock["files"]))]
-    for k in ("build_key", "panel_sha256", "last_session", "test_window"):
+    for k in ("build_key", "panel_sha256", "last_session", "test_window", "local_inputs"):
         if now["data"][k] != lock["data"][k]:
             probs.append(f"data changed since the freeze: {k}")
     if git:
@@ -129,6 +141,10 @@ def guard(root: pathlib.Path | None = None, data_dir: pathlib.Path | None = None
     """Refuse the test run unless every run-once condition holds (D5.5). Raises GuardError listing every problem."""
     root = root or paths.ROOT
     probs = verify(root, data_dir)
+    if root == paths.ROOT:  # the installed quantkit tree, in full, before any statistic (review R5 M3)
+        from rspy import pin
+
+        probs += [f"quantkit pin: {p}" for p in pin.verify_pin()]
     if os.environ.get(ENV) != ENV_VALUE:
         probs.append(f"env {ENV}={ENV_VALUE} not set")
     if (root / RECORD).exists():

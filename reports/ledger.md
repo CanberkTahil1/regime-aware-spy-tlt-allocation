@@ -391,3 +391,16 @@ D5.2 (test-window ex post, one scalar).
 
 **Forward (optional, not built in R5; D5.7):** the prereg `windows.forward` entry stands as "after R5, optional
 monthly log". It would start at 2026-10, available about 2026-12, behind the R5 freeze lock.
+
+**Before the freeze (after the pre-run review R5; no test-window number exists):**
+- `spec/prereg.yaml` amended with D5.8 (`r5_test.placebo_descriptive`; the exclusion list narrowed) and D5.9 /
+  review MINOR (`r5_test.freeze.replay_exempt`, `locked_inputs`). New sha256 **1d9c7c4f7041dcb58fbeb735ce520b685feafa3e9ff349e340996fb8c03530a2**; rules.yaml unchanged
+  (a3daa583…). variants.csv adds `test_placebo_regime` (counted no).
+- **E5.3 restated before any result** (review R5 MINOR: the financing above 1× uses a varying rate, so ex-post matching
+  is exact only without financing). The band is ≤ 1e-10 for rows with k ≤ 1 and ≤ 1e-6 (annualised vol) for rows with
+  k > 1. The synthetic dry run, which now has bills and financing after review M1, gives 9.0e-8 on its one k > 1 row.
+- New expectation, added before any result:
+
+| ID | Expectation (band) | Source | Status |
+|---|---|---|---|
+| E5.18 | Test placebo (D5.8, descriptive): L6's infl_2022 matched gain vs L5 sits at percentile ≥ 50 of its 100 shuffles (the gate is in cash for much of 2022); L7's ΔSharpe vs L6 percentile in [10, 90] | D5.8; author | open |

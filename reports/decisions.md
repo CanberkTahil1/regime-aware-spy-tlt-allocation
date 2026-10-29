@@ -693,3 +693,46 @@ owner's approval; never push.
      manifest sha256 and fetch date, labelled "forward, unseen", no ladder decisions, windows unchanged.
   3. A "Forward (optional, not built in R5)" line in the ledger next to the prereg `forward` entry.
 - **Why the other lost:** no forward month exists at R5; an untested harness in the run-once phase goes beyond scope.
+
+### D5.4 order note (review R5 MINOR, acknowledged)
+- V_dev was computed and committed (b422016) before D5.4 was logged here (6e877ae). It used development data only and
+  the research note (2ed4aa3) recommended it first, but "log before acting" was not followed. No number moved.
+
+### D5.8 — Placebo for the regime layers on the test window (raised by review R5 M4, before the freeze) · confidence medium · decider = advisor
+- **Options:**
+  - (a) [rec] Both: bind the README to the development placebo verdicts, and add a descriptive test-window placebo for
+    L6, L7 and L8 (seeds 0–99).
+  - (b) README binding only.
+  - (c) Keep D5.6 (no placebo).
+- **Choice:** (a), amended:
+  1. The primary fix is the README binding. Every test L6–L8 number sits beside the development placebo verdict
+     (reports/r3/placebo.csv: L6 and L7 beats_placebo False; L8 via R3's sizing.judge), built from facts.
+  2. The shuffle uses test rows only. L6 shuffles the correlation keep and L7 the trend keep, in 12-month blocks; L8
+     shuffles the multiplier in 21-row blocks. Development states are never mixed in.
+  3. Report the gate's percentile among seeds 0–99 and the placebo median / p05 / p95 of the matched ΔSharpe vs the
+     parent and of the matched COVID and 2022 returns. No p-value, no "beats" verdict on the test (≈ 7 blocks). The
+     caveat is printed beside every placebo figure.
+  4. One-directional: the placebo can only qualify or weaken a claim, never upgrade a gate or enter the family, Holm or
+     the ablation chain. If a gate's 2022 gain is inside the placebo's p05–p95, the README says "2022 gain not
+     distinguishable from holding fewer bonds at random times".
+  5. The prereg exclusion list narrows to "placebo seeds beyond 0–99, block-6 sensitivity, zoo-gate placebos". The
+     placebo sets are registered in variants.csv (counted no) before the freeze hash, with a perf budget.
+- **Reviewer vs advisor:** no disagreement. The advisor amends its own D5.6, because a control row is not a strategy
+  row, so D5.6's cherry-pick reason does not apply.
+- **Why the others lost:**
+  - (b) leaves the 2022 "fewer bonds vs timing" question about the test window unexamined.
+  - (c) lets a 2022 gate gain stand unqualified.
+
+### D5.9 — The Makefile in the replay check (raised by review R5 MINOR, before the freeze) · confidence high · decider = advisor
+- **Options:**
+  - (a) [rec] The run guard checks every locked file; replay exempts only the Makefile.
+  - (b) Replay checks engine and data only.
+  - (c) Keep the Makefile in the replay check.
+- **Choice:** (a), amended:
+  1. The Makefile hash stays in the lock, and the test-run guard requires it to match and be clean.
+  2. Replay prints "Makefile changed since freeze (orchestration; outputs still required byte-identical)" when the
+     Makefile differs.
+  3. The exemption is written into prereg r5_test.freeze.replay_exempt before the freeze hash.
+- **Why the others lost:**
+  - (b) would let a dependency move (uv.lock, pyproject) pass the lock check.
+  - (c) would make any later harmless target, such as the forward log, break `make all` permanently.

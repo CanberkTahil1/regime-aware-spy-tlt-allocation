@@ -10,7 +10,7 @@ Modes (D5.5):
 - `--mode replay` (`make r5-replay`, part of `make all`): needs a completed record and a matching lock; recomputes into
   a temporary directory, requires every committed reports/r5 table to be byte-identical, then writes the local books.
 Committed (statistics only): reports/r5/{metrics, family, vs_l1, costs, crisis, sens10y, dsr, v1_vs_v2,
-v1_corrections}.csv, headline.json,
+v1_corrections, placebo}.csv, headline.json,
 facts.json, test_run.json. Local only (gitignored, KF-derived daily series): data/r5/books.parquet.
 """
 
@@ -22,6 +22,7 @@ import shutil
 import sys
 import tempfile
 import time
+import traceback
 
 import numpy as np
 import pandas as pd
@@ -29,7 +30,7 @@ import pandas as pd
 from rspy import freeze, paths, testwin
 from rspy.data import build as dbuild
 
-TABLES = ("metrics", "family", "vs_l1", "costs", "crisis", "sens10y", "dsr", "v1_vs_v2", "v1_corrections")
+TABLES = ("metrics", "family", "vs_l1", "costs", "crisis", "sens10y", "dsr", "v1_vs_v2", "v1_corrections", "placebo")
 JSONS = ("headline", "facts")
 
 
@@ -68,11 +69,16 @@ def r4_inputs() -> tuple[pd.DataFrame | None, int]:
     return pd.read_csv(p / "dsr.csv"), int(k_gap)
 
 
+STAGE = {"now": "load"}
+
+
 def compute(panel: pd.DataFrame, *, stored: bool) -> tuple[dict, dict, dict]:
     t0 = time.perf_counter()
     end = str(paths.rules()["r5"]["scored"][1])
+    STAGE["now"] = "build"
     B = testwin.build(panel, end)
     t_build = time.perf_counter()
+    STAGE["now"] = "identity"
     ident = testwin.dev_identity(B, testwin.dev_only_books(panel))
     if stored:
         ident |= stored_identity(B)
@@ -80,6 +86,7 @@ def compute(panel: pd.DataFrame, *, stored: bool) -> tuple[dict, dict, dict]:
     bad = [k for k, v in ident.items() if v is False]
     if bad:
         return {}, ident, {"stopped": f"development rows moved: {bad}"}
+    STAGE["now"] = "evaluate"
     r4d, kg = r4_inputs()
     E = testwin.evaluate(B, r4_dsr=r4d, r4_k_gap=kg, recon=pd.read_csv(paths.REPORTS / "r1" / "reconciliation.csv"))
     E["facts"]["dev_identity"] = ident
@@ -111,6 +118,8 @@ def main() -> int:
     if a.mode == "dry":
         if os.environ.get(freeze.ENV):
             sys.exit(f"dry run refused: {freeze.ENV} is set (the dry run never runs beside the real one)")
+        if os.environ.get("RSPY_DATA") and pathlib.Path(os.environ["RSPY_DATA"]).resolve() == (paths.ROOT / "data").resolve():
+            sys.exit("dry run refused: RSPY_DATA points at the repo's data/ (D5.5 amendment 6)")
         tmp = pathlib.Path(tempfile.mkdtemp(prefix="rspy_r5_dry_"))
         for forbidden in (paths.REPORTS, paths.data_dir()):
             if forbidden.resolve() in tmp.resolve().parents:
@@ -132,7 +141,15 @@ def main() -> int:
             sys.exit(str(e))
         rec = freeze.start_record()
         print("test_run.json started:", rec["started_utc"], "lock", rec["lock_sha256"][:12])
-        E, ident, timing = compute(dbuild.load(), stored=True)
+        try:
+            E, ident, timing = compute(dbuild.load(), stored=True)
+        except Exception:  # review R5 M2: never leave an unexplained "started" record
+            p = paths.ROOT / freeze.RECORD
+            r = json.loads(p.read_text())
+            r.update({"status": "crashed", "stage": STAGE["now"], "traceback": traceback.format_exc(),
+                      "note": "no statistic was written to reports/r5; a rerun needs the owner's call (logged deletion)"})
+            p.write_text(json.dumps(r, indent=1, sort_keys=True) + "\n")
+            raise
         unl = freeze.loaded_unlocked(freeze.read())
         if not E or unl:
             p = paths.ROOT / freeze.RECORD
@@ -149,7 +166,10 @@ def main() -> int:
     rec_p = paths.ROOT / freeze.RECORD
     if not rec_p.exists() or json.loads(rec_p.read_text())["status"] != "completed":
         sys.exit("replay refused: no completed reports/r5/test_run.json")
-    probs = freeze.verify(git=False)
+    probs = freeze.verify(git=False, replay=True)
+    for f in freeze.NOT_REPLAYED:  # D5.9 amendment 2: an exempt change is shown, never silent
+        if paths.sha256(paths.ROOT / f) != freeze.read()["files"].get(f):
+            print(f"{f} changed since freeze (orchestration; outputs still required byte-identical)")
     if probs:
         sys.exit("replay refused: the lock does not match:\n  " + "\n  ".join(probs))
     E, ident, timing = compute(dbuild.load(), stored=True)

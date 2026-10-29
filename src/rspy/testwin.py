@@ -19,6 +19,12 @@ One line per transform (value at t uses data ≤ t):
   raw-N companion `dsr` with N 751 and V = max(V_dev, 1/(T − 1)) (`trial_var`);
 - crisis panels (COVID, 2022): in-window cumulative return of each rung, its ex-ante line and its parent matched on the
   whole test window (k includes the crises; in-crisis vols are not matched), and mean SPY / TLT / cash weights.
+- `placebos` (D5.8, descriptive): the L6 correlation keep, the L7 trend keep and the L8 multiplier shuffled on the
+  TEST rows only (R3 machinery: `regime.shuffle_decisions`, blocks of 12 month-end decisions; L8: `quantkit.vol.
+  shuffle_blocks` of g in 21-row blocks, the R4 L8_placebo analog), seeds 0–99; per gate: the gate's percentile among
+  the seeds and the placebo median / p05 / p95 of (i) ΔSharpe vs its parent (matched) and (ii) the matched cumulative
+  return in COVID and 2022. No p-value, no "beats" verdict (≈ 7 blocks: coarse); one-directional (it can only
+  qualify a claim);
 - `synthetic_panel(seed)`: the dry run's data (D5.5): seeded t(5) equity and bond returns on business days, an AR(1)
   3-month discount rate turned into bill / mmy / dt by the D1.1 rule. A code check, never evidence.
 Complexity: build O(T·N) per book + three cold vol-zoo series (GARCH refits every 21 rows); the evaluation is
@@ -34,6 +40,7 @@ import pandas as pd
 from quantkit.stats import dsr, dsr_effective
 from quantkit.stats.multitest import adjust_pvalues
 from quantkit.stats.power import power
+from quantkit.vol import shuffle_blocks
 
 from rspy import evaluate as ev
 from rspy import paths, regime, robust, rungs, volzoo
@@ -68,7 +75,7 @@ def synthetic_panel(seed: int = 0, start: str = "1985-06-03", end: str = "2026-0
     for t in range(1, T):
         d[t] = max(0.0, d[t - 1] + 0.002 * (0.03 - d[t - 1]) + e[t])
     dl = np.r_[d[0], d[:-1]]  # rate dated <= the previous session (D1.1)
-    days = np.r_[1, np.diff(idx.asi8) // 86_400_000_000_000]
+    days = np.r_[1, np.diff(idx.values).astype("timedelta64[D]").astype(np.int64)]  # unit-independent (review R5 M1)
     P = 1 - dl * 91 / 360
     p = pd.DataFrame({"hi20": eq, "tlt25": bd, "tlt10": 0.45 * bd, "tlt20": 0.85 * bd, "tlt30": 1.1 * bd,
                       "bill": P ** (-days / 91) - 1, "mmy": (1 / P - 1) * 360 / 91, "dt": days / 360,
@@ -224,7 +231,8 @@ def v1_vs_v2(metrics: pd.DataFrame, recon: pd.DataFrame) -> tuple[pd.DataFrame, 
     for r, name in (("L1", "v1 corrected (L1)"), ("L0", "SPY proxy (L0)"), ("L3", "60/40 (L3)"),
                     ("L5", "inverse-vol + vol target (L5)"), ("L6", "+ correlation regime (L6)"), ("L7", "+ trend (L7)"),
                     ("L8", "+ crash rule (L8)"), ("L5-line", "SPY + T-bills at L5's vol (line)")):
-        rows.append({"row": name, "rung": r, "window": f"{t0} .. {t1}", "data": "KF Hi 20, GSW 25y, H.15",
+        rows.append({"row": name, "rung": r, "window": f"{t0} .. {t1}",
+                     "data": "SPY proxy (KF Hi 20); " + paths.rules()["bonds"]["label"] + "; H.15 bills",
                      "accounting": "charter (t+1, bills, financing, true-turnover costs)", "source": "reports/r5",
                      **{k: float(m.loc[r, k]) if k in m.columns and pd.notna(m.loc[r, k]) else None for k in V1_COLS}})
     side = pd.DataFrame(rows)
@@ -238,6 +246,52 @@ def v1_vs_v2(metrics: pd.DataFrame, recon: pd.DataFrame) -> tuple[pd.DataFrame, 
                     "d_sharpe_excess": None if prev is None else float(v.sharpe_excess - prev.sharpe_excess)})
         prev = v
     return side, pd.DataFrame(cor).assign(source="reports/r1/reconciliation.csv (R1; v1's own test 2020-2025, seen)")
+
+
+# ---- D5.8 placebos ------------------------------------------------------------------------------------------------------
+def placebos(B: dict, ts: np.ndarray, c, rate, dt, pos: dict, net: dict) -> pd.DataFrame:
+    core = B["core"]
+    pz = spec()["placebo_descriptive"]
+    seeds = range(pz["seeds"][0], pz["seeds"][1] + 1)
+    T, rows = core.T, core.rows
+    g = core.rt["g"]
+
+    def tg_for(gate, seed):
+        if gate == "L6":
+            return regime.gate(T["L5"], regime.shuffle_decisions(core.keep["corr126"], rows, ts,
+                                                                 block=pz["block_months"], seed=seed))
+        if gate == "L7":
+            return regime.gate(T["L6"], regime.shuffle_decisions(core.keep["trend"], rows, ts,
+                                                                 block=pz["block_months"], seed=seed))
+        gs = g.copy()
+        gs[ts] = shuffle_blocks(g[ts], block=pz["l8_block_rows"], seed=seed)
+        return T["L7"] * gs[:, None]
+
+    par = {"L6": "L5", "L7": "L6", "L8": "L7"}
+    out = []
+    for gate, parent in par.items():
+        y = net[parent]
+
+        def stats(x, y=y):
+            ds = ev.pair(x, y, c, rate, dt)[0]
+            cm = {r["crisis"]: r["diff_matched"] for r in ev.crisis_matched(x, y, c, rate, dt, pos)}
+            return ds, cm
+
+        g_ds, g_cm = stats(net[gate])
+        dist = [stats(robust.book(core, gate, tg_for(gate, s)).net[ts]) for s in seeds]
+        ds = np.array([d for d, _ in dist])
+        row = {"gate": gate, "parent": parent, "n_seeds": len(ds), "n_test_decisions": int((rows & ts).sum()),
+               "block_months": pz["block_months"], "dsharpe_gate": g_ds,
+               "gate_percentile_dsharpe": float((ds < g_ds).mean() * 100), "placebo_dsharpe_median": float(np.median(ds)),
+               "placebo_dsharpe_p05": float(np.quantile(ds, 0.05)), "placebo_dsharpe_p95": float(np.quantile(ds, 0.95))}
+        for k in pos:
+            v = np.array([cm[k] for _, cm in dist])
+            row |= {f"{k}_gate_minus_parent": g_cm[k], f"{k}_gate_percentile": float((v < g_cm[k]).mean() * 100),
+                    f"{k}_placebo_median": float(np.median(v)), f"{k}_placebo_p05": float(np.quantile(v, 0.05)),
+                    f"{k}_placebo_p95": float(np.quantile(v, 0.95)),
+                    f"{k}_inside_placebo_p05_p95": bool(np.quantile(v, 0.05) <= g_cm[k] <= np.quantile(v, 0.95))}
+        out.append(row)
+    return pd.DataFrame(out).assign(label=pz["label"], caveat=pz["caveat"], tier="disclosed-reuse")
 
 
 # ---- the evaluation ----------------------------------------------------------------------------------------------------------
@@ -267,7 +321,7 @@ def evaluate(B: dict, *, r4_dsr: pd.DataFrame | None = None, r4_k_gap: int = 3,
     for r, v in line.items():
         if not np.isfinite(v).all():
             raise RuntimeError(f"{r}: the ex-ante line is not finite on every test row")
-    lab = {"tier": "disclosed-reuse", "label": spec()["label"]}
+    lab = {"tier": "disclosed-reuse", "label": spec()["label"], "tlt_leg": paths.rules()["bonds"]["label"]}
     out, facts = {}, {"n_test_rows": int(ts.sum()), "test_first": str(D[0].date()), "test_last": str(D[-1].date())}
 
     # metrics (1× and stress books, the lines, the 10-year row)
@@ -324,7 +378,8 @@ def evaluate(B: dict, *, r4_dsr: pd.DataFrame | None = None, r4_k_gap: int = 3,
             x, y = books[r][k].net[ts], books[par[r]][k].net[ts]
             cr.append({"rung": r, "parent": par[r], "book": k, "sharpe": ev.sr(x - c),
                        "dsharpe_vs_parent": ev.pair(x, y, c, rate, dt, spread_bp=25.0 + (75.0 if k == "f75" else 0.0))[0]})
-    out["costs"] = pd.DataFrame(cr).assign(label=spec()["scope"]["costs"]["label"], tier="disclosed-reuse")
+    out["costs"] = pd.DataFrame(cr).assign(label=spec()["scope"]["costs"]["label"], tier="disclosed-reuse",
+                                           tlt_leg=lab["tlt_leg"])
 
     # crisis panels (COVID, 2022)
     pos = {k: v for k, v in ev.crisis_positions(D).items() if k in rules()["crisis"]}
@@ -374,7 +429,10 @@ def evaluate(B: dict, *, r4_dsr: pd.DataFrame | None = None, r4_k_gap: int = 3,
                 q = r4_dsr[(r4_dsr.rung == r) & r4_dsr.pool.str.startswith("headline")]
                 row["dsr_development_headline"] = float(q.dsr.iloc[0]) if len(q) else None
             dr.append({"rung": r, **row})
-    out["dsr"] = pd.DataFrame(dr).assign(label=spec()["dsr"]["label"], tier="disclosed-reuse")
+    out["dsr"] = pd.DataFrame(dr).assign(label=spec()["dsr"]["label"], tier="disclosed-reuse", tlt_leg=lab["tlt_leg"])
+
+    # placebos (D5.8, descriptive; counted no)
+    out["placebo"] = placebos(B, ts, c, rate, dt, pos, net)
 
     # facts
     kp = B["core"].keep

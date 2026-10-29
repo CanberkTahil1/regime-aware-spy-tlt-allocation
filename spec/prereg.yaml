@@ -200,7 +200,8 @@ r5_test:
             label: "frozen rule re-scored (robustness_legs, counted no)"}
     excluded: [L4b, max_div, min_cdar, hmm_gate, jump_model_gate, L5_vol_ewma_slow, L5_vol_ewma_fast, L5_vol_har,
                L5_vol_gjr_garch_t, L5_vol_egarch_t, v1_spread_overlay_on_L5, v1_bollinger_overlay_on_L5, gbm_risk_sizing,
-               gbm_risk_sizing_raw, L6-63, L6-th-0.2, L6-th+0.2, L7-on-L5, L7-63, "tranche offsets 1-20", placebos,
+               gbm_risk_sizing_raw, L6-63, L6-th-0.2, L6-th+0.2, L7-on-L5, L7-63, "tranche offsets 1-20",
+               "placebo seeds beyond 0-99, block-6 sensitivity, zoo-gate placebos (hmm/jump)",   # D5.8 (was: placebos)
                "leave-one-crisis-out / decades / rolling 5y on the test", "R4 band / calendar / 20y / 30y sensitivity books"]
   sensitivity_10y:   # owner instruction (1), 2026-10-29: POST-HOC lead from R4, registered before the freeze
     label: "POST-HOC (owner, lead from R4): L5-L7 on a GSW 10-year constant-maturity bond leg instead of 25-year; not QA'd vs an ETF; cannot change any verdict; counted in DSR N"
@@ -234,6 +235,19 @@ r5_test:
     power: "quantkit stats.power.power at the test length with the development point Sharpes and correlation of each pair (optimistic iid planning)"
     sign_agreement: "descriptive: sign(test dSharpe) == sign(development dSharpe of the same pair, matched on development)"
     descriptive_outside_family: ["CDaR-95 / max-DD ratios (dd_ratio_ci)", "COVID / 2022 panels", "L1 vs every rung", "L5-lev", "L2-u", "the 10-year row"]
+  placebo_descriptive:   # D5.8 (advisor, after the pre-run review M4; before the freeze and any test number)
+    gates: {L6: "correlation keep shuffled (parent L5)", L7: "trend keep shuffled (parent L6)",
+            L8: "multiplier g shuffled (parent L7; R4 L8_placebo analog)"}
+    shuffle: "test-window rows only (2020-01-02 .. 2026-09-30); never mixed with development states"
+    block_months: 12          # r3_evaluation.placebo, reused (nothing searched)
+    l8_block_rows: 21         # r3 L8 judge block, reused
+    seeds: [0, 99]
+    report: "gate percentile among seeds; placebo median / p05 / p95 of (i) matched dSharpe vs parent, (ii) matched cumulative return in covid and infl_2022"
+    no_verdict: "no LW p-value, no beats_placebo verdict on the test (about 7 blocks: outside the R3 rule's calibration)"
+    one_directional: "a test placebo can only qualify or weaken a claim; never upgrades a gate, never enters the family / Holm or the ablation chain; if a gate's 2022 gain is inside the placebo p05-p95 the README says: 2022 gain not distinguishable from holding fewer bonds at random times"
+    readme_binding: "every test L6-L8 number sits beside the development placebo verdict (reports/r3/placebo.csv; L8: reports/r3/crash.json judge), built from facts"
+    label: "placebo, descriptive (counted no); test window; seen by owner in v1, disclosed"
+    caveat: "about 7 blocks; coarse; descriptive"
   crisis:
     windows: [covid, infl_2022]
     rows: "each official rung: cumulative in-window return vs its ex-ante line and vs its parent matched (D5.2); in-window mean weights SPY / TLT / cash"
@@ -255,4 +269,6 @@ r5_test:
     decides: "content hashes (spec, pin, uv.lock, Makefile, engine modules, raw-data and panel bytes, test window); commit sha is a label only (owner's history rewrite pending)"
     run_guard: "RSPY_TEST_RUN=run-once; lock verified; locked files clean in git; reports/r5/test_run.json absent; it is written with status started before any test statistic"
     dry_run: "seeded synthetic panel, temporary RSPY_DATA and output dir; refuses RSPY_TEST_RUN and the repo's data/; never writes reports/r5; code check, not evidence"
+    replay_exempt: [Makefile]   # D5.9: orchestration only; the run guard still checks it; replay prints any change and still requires byte-identical outputs
+    locked_inputs: [reports/r1/reconciliation.csv, reports/r4/dsr.csv, reports/r4/facts.json, data/r2/books.parquet, data/r3/books.parquet]   # review R5 MINOR
   forward: "optional, not built in R5 (D5.7); from 2026-10 behind this lock, append-only, labelled forward, unseen"

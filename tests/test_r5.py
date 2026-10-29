@@ -185,6 +185,9 @@ def test_synthetic_panel_is_seeded_and_shaped_like_the_real_one():
     pd.testing.assert_frame_equal(a, b)
     assert set(a.columns) == {"hi20", "tlt25", "tlt10", "tlt20", "tlt30", "bill", "mmy", "dt", "disc_used"}
     assert a.notna().all().all() and a.index[-1] == pd.Timestamp("2026-09-30")
+    # review R5 M1: the dry run must exercise cash, excess returns and financing (bill > 0, dt >= 1 day / 360)
+    assert (a.bill.iloc[1:] > 0).all() and (a.dt.iloc[1:] >= 1 / 360 - 1e-15).all()
+    assert (a.dt[a.index.day_of_week == 0].iloc[1:] == 3 / 360).all()  # Monday after a weekend
 
 
 def test_dev_identity_flags_a_moved_development_row():
@@ -205,3 +208,78 @@ def test_dev_identity_flags_a_moved_development_row():
     dev["picks"][2007] = {"pick": "gjr_garch_t"}
     out = testwin.dev_identity(B, dev)
     assert out["L5_net"] is False and out["L0_net"] is True and out["picks_1989_2018"] is False
+
+
+def _fake_E():
+    z = {"cagr": 0.0, "vol": 0.0, "sharpe_excess": 0.0, "max_dd": 0.0, "cdar95": 0.0, "turnover_pa": 0.0}
+    fam = {"child": "L5", "reference": "L4", "k": 1.0, "dsharpe": 0.0, "lo": 0.0, "hi": 0.0, "p_one_sided": 0.5,
+           "holm_p": 1.0, "beat_raw": False, "beat_holm": False, "dsharpe_dev": 0.0, "sign_agrees_with_dev": True,
+           "power_at_test_length": 0.05}
+    cz = {"rung": "L5", "crisis": "covid", "return": 0.0, "line_return": 0.0, "diff_vs_line": 0.0, "parent": "L4",
+          "diff_vs_parent_matched": 0.0}
+    d = {"rung": "L5", "pool": "headline", "dsr": 0.5, "sr_ann": 0.0, "sr0_ann": 0.0, "trial_var_source": "null"}
+    one = lambda row: pd.DataFrame([row])  # noqa: E731
+    return {"metrics": one({"rung": "L5", "book": "1x", **z}), "family": one(fam), "crisis": one(cz), "dsr": one(d),
+            "sens10y": one({"variant": "L5@10y", "label": "x", "tier": "t"}), "vs_l1": one({"rung": "L5"}),
+            "costs": one({"rung": "L5"}), "v1_vs_v2": one({"row": "x"}), "v1_corrections": one({"step": "S0"}),
+            "placebo": one({"gate": "L6"}),
+            "headline": {"q": {"answer": "x"}}, "facts": {}, "local": pd.DataFrame({"x": [0.0]})}
+
+
+def _run_script(monkeypatch, tmp_path, mode, **patch):
+    import runpy
+
+    monkeypatch.setattr(testwin, "build", patch.get("build", lambda panel, end: {}))
+    monkeypatch.setattr(testwin, "dev_only_books", lambda panel: {})
+    monkeypatch.setattr(testwin, "dev_identity", lambda B, d: {"ok": True})
+    monkeypatch.setattr(testwin, "evaluate", patch.get("evaluate", lambda B, **kw: _fake_E()))
+    monkeypatch.setattr(testwin, "synthetic_panel", lambda seed: pd.DataFrame())
+    monkeypatch.setattr(sys, "argv", ["r5.py", "--mode", mode])
+    with pytest.raises(SystemExit) as e:
+        runpy.run_path(str(ROOT / "scripts/r5.py"), run_name="__main__")
+    return e.value.code
+
+
+def test_a_completed_dry_run_writes_only_its_temporary_directory(monkeypatch, tmp_path):
+    """D5.5 amendment 6: the dry run's outputs land in a fresh temporary directory, never in reports/ or data/, and
+    reports/r5/test_run.json is untouched."""
+    import tempfile
+
+    monkeypatch.delenv(freeze.ENV, raising=False)
+    monkeypatch.setattr(tempfile, "mkdtemp", lambda prefix="": str(tmp_path / (prefix + "x")))
+    rec = (ROOT / freeze.RECORD).exists()
+    r5_before = sorted((paths.REPORTS / "r5").glob("*")) if (paths.REPORTS / "r5").exists() else None
+    assert _run_script(monkeypatch, tmp_path, "dry") == 0
+    assert (tmp_path / "rspy_r5_dry_x" / "r5" / "family.csv").exists()
+    assert (tmp_path / "rspy_r5_dry_x" / "local" / "books.parquet").exists()
+    assert (ROOT / freeze.RECORD).exists() == rec
+    assert (sorted((paths.REPORTS / "r5").glob("*")) if (paths.REPORTS / "r5").exists() else None) == r5_before
+    monkeypatch.setenv("RSPY_DATA", str(ROOT / "data"))
+    with pytest.raises(SystemExit, match="RSPY_DATA points at the repo"):
+        runpy_exit = _run_script(monkeypatch, tmp_path, "dry")
+        raise SystemExit(runpy_exit)
+
+
+def test_a_crash_after_the_record_marks_it_crashed(monkeypatch, tmp_path):
+    """Review R5 M2: an exception after start_record leaves status "crashed" with the stage, not a bare "started"."""
+    root = tmp_path / "repo"
+    (root / "reports" / "r5").mkdir(parents=True)
+    monkeypatch.setattr(paths, "ROOT", root)
+    monkeypatch.setattr(freeze, "guard", lambda *a, **k: None)
+    monkeypatch.setattr(freeze, "read", lambda *a, **k: {"rules_commit": "x", "data": {"panel_sha256": "p",
+                                                                                         "test_window": {}}})
+    (root / "spec").mkdir()
+    (root / freeze.LOCK).write_text("{}")
+    monkeypatch.setattr(freeze, "_git", lambda *a: "head")
+    from rspy.data import build as dbuild
+
+    monkeypatch.setattr(dbuild, "load", lambda *a, **k: pd.DataFrame())
+
+    def boom(panel, end):
+        raise ValueError("planted")
+
+    with pytest.raises(ValueError, match="planted"):
+        _run_script(monkeypatch, tmp_path, "run", build=boom)
+    rec = json.loads((root / freeze.RECORD).read_text())
+    assert rec["status"] == "crashed" and rec["stage"] == "build" and "planted" in rec["traceback"]
+    assert not (ROOT / freeze.RECORD).exists() or ROOT == root
