@@ -3,9 +3,9 @@ inset table (CAGR, excess Sharpe over H.15 bills, max DD, worst year). Written t
 reports/figures_local/Rn/ only (owner O1.1: curves traced from KF/Yahoo/Cboe-derived series are never committed).
 
 - `NAMES`: the readable line names the owner fixed (rung id → label); the first line passed is the emphasised one.
-- `SHORT`: chart labels for the names that do not fit: viz.headline v0.19.2 raises when "<name>  $<end>" leaves the
-  figure, which every label over ~17 characters does (measured 2026-10-28). `save_headline` prints each short label's
-  full name in the footer. Interim until the owner decides (O2.2: these labels, or a quantkit margin fix + re-pin).
+- `SHORT`: the chart labels (owner O2.2: readable abbreviations, full names in the footer key). viz.headline v0.19.2
+  raises when "<name>  $<end>" leaves the figure (any label over ~17 characters, measured 2026-10-28); room for longer
+  labels is an optional quantkit Q15 carry-over (reports/quantkit_carryovers.md). `save_headline` prints the key.
 - `crises(start, end)`: the pre-registered crisis windows (spec/prereg.yaml) that overlap [start, end], labelled.
 - `save_headline(lines, rf, out, name, **kw)`: `viz.headline` → out/name.svg + out/name.png (300 dpi); returns its table.
 Timing: a picture of finished series (no signal). Numbers: quantkit computes the table from the same series.
@@ -23,8 +23,8 @@ from rspy import paths
 
 NAMES = {"L0": "SPY", "L1": "v1 legacy", "L2": "Vol-targeted SPY", "L3": "60/40", "L4": "Inverse-vol SPY/TLT",
          "L5": "Inverse-vol + vol target", "L0-line": "SPY+T-bills at matched vol"}
-SHORT = {"Inverse-vol + vol target": "Inv-vol + vol tgt", "Inverse-vol SPY/TLT": "Inv-vol SPY/TLT",
-         "Vol-targeted SPY": "Vol-target SPY", "SPY+T-bills at matched vol": "SPY+T-bills line"}
+SHORT = {"v1 legacy": "v1", "Vol-targeted SPY": "VT SPY", "Inverse-vol SPY/TLT": "InvVol",
+         "Inverse-vol + vol target": "InvVol+VT", "SPY+T-bills at matched vol": "SPY+bills"}
 CRISIS_LABELS = {"bonds_1994": "1994 bonds", "dotcom": "Dot-com", "gfc": "GFC", "euro_2011": "Euro 2011",
                  "china_2015": "China 2015", "q4_2018": "Q4 2018", "covid": "Covid", "infl_2022": "2022 inflation"}
 FOOTER = ("SPY = SPY proxy (Ken French Hi 20, value-weighted, daily); TLT = " + paths.rules()["bonds"]["label"]
@@ -47,7 +47,7 @@ def save_headline(lines: dict[str, pd.Series], rf: pd.Series, out: pathlib.Path,
     key = [f"{SHORT[n]} = {n}" for n in lines if n in SHORT]
     lines = {SHORT.get(n, n): v for n, v in lines.items()}
     if key:
-        footer = footer + " Labels shortened to fit the chart: " + "; ".join(key) + "."
+        footer = footer + " Key: " + "; ".join(key) + "."
     footer = "\n".join(textwrap.wrap(footer, 150))  # viz.headline raises on a footer line wider than the figure
     h = viz.headline(lines, rf, tier=tier, crises=crises(idx[0], idx[-1]) if crisis is None else crisis, title=title,
                      subtitle=subtitle, footer=footer, data_cut=str(idx[-1].date()))

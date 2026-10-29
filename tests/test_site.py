@@ -15,11 +15,13 @@ def test_every_bundle_number_traces_to_the_committed_csv():
     m = pd.read_csv(paths.REPORTS / "r2" / "metrics.csv")
     m1 = m[m.book == "1x"].set_index("rung")
     ln = pd.read_csv(paths.REPORTS / "r2" / "lines.csv").set_index("rung")
+    v1 = pd.read_csv(paths.REPORTS / "r2" / "vs_l1.csv").set_index("rung")
     r2 = set(site.R2_NAMES)
     for r in b.tables["summary"].itertuples(index=False):
         metric, window = r.metric.rsplit(" (", 1)
         if r.strategy in r2:  # R2: development window, in-sample, copied from reports/r2/*.csv
-            want = ln.loc[r.strategy, metric] if metric == "dsharpe_vs_line" else m1.loc[r.strategy, metric]
+            want = (ln.loc[r.strategy, metric] if metric == "dsharpe_vs_line"
+                    else v1.loc[r.strategy, metric] if metric == "dsharpe_vs_L1" else m1.loc[r.strategy, metric])
             assert r.value == want and r.tier == "in-sample", (r.strategy, r.metric)
             continue
         want = tab[(tab.step == r.strategy) & (tab.window == window.rstrip(")"))].iloc[0][metric]

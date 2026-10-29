@@ -6,6 +6,10 @@
  "L5_mean_target_gross": 0.9805029134128177,
  "L5_record_equals_offset0_book": true,
  "L5_share_days_at_cap": 0.8442915729593862,
+ "chain_winners": {
+  "core": "L0",
+  "vt_spy": "L0"
+ },
  "limitation_ewma60_vol_book_over_current_weights": {
   "median": 1.0011204443060737,
   "p05": 0.947984373956172,
@@ -13,11 +17,11 @@
  },
  "line_first_finite_scored": "1990-01-02",
  "timing_s": {
-  "books": 1.41,
-  "metrics_lines_walk": 4.61,
-  "targets_and_zoo": 5.43,
-  "timing_luck": 2.19,
-  "total": 13.64
+  "books": 1.38,
+  "metrics_lines_walk": 8.01,
+  "targets_and_zoo": 5.49,
+  "timing_luck": 2.18,
+  "total": 17.06
  },
  "walk_winner": "L1"
 }

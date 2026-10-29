@@ -60,3 +60,5 @@ Note: the grid test is marked `slow` (runtime recorded above, D0.3 amendment 5) 
 | 2026-10-28 | `make ladder`, warm cache | 15.6 s | 914 MB | yes |
 | 2026-10-28 | parts (facts.json timing_s, warm): targets + zoo selection 5.7 s; 56 books 1.5 s; metrics + 14 lines (LW 1,000) + walk 4.7 s; timing luck 3 rungs × 21 offsets 2.3 s | — | — | yes (per rung < 2 s ≤ 10 s) |
 | 2026-10-28 | `make test` (94 tests, -n auto, 4 workers) | 9.3 s | — | yes |
+| 2026-10-29 | `make ladder` with the post-hoc chain walk (2 chains) + vs-L1 table (7 LW), warm | 19.9 s | 911 MB | yes (E2.15) |
+| 2026-10-29 | `make test` (98 tests, -n auto) | 8.7 s | — | yes |

@@ -142,7 +142,17 @@ L0 +0.053, L3 vs L0 +0.215, L4 vs L3 +0.127, L5 vs L4 +0.011 / CDaR −7%) and c
 
 | ID | Expectation (band) | Source | Status |
 |---|---|---|---|
-| E2.12 | chain vt_spy: L2 not promoted over L0 (seat L0) — effect ≈ +0.05 at best, LW p > 0.05 expected | O2.3 | open |
-| E2.13 | chain core: author's prediction (low confidence): L3 fails quantkit's in-crisis robustness vs L0 in 1994 (bonds fell), so the seat stays L0; if L3 passes, L4 is promoted over L3 and L5 is not (effect +0.01, CDaR −7% < −15%) | O2.3 | open |
-| E2.14 | code: the pre-registered walk's reports/r2/ladder.json and the register rows unchanged byte for byte; the chain walk uses the same `ev.walk`; a synthetic test checks the chain topology (L1 never an incumbent) and that the chain ladders register without a rung-set clash | O2.3 | open |
-| E2.15 | perf: `make ladder` ≤ 5 min, peak RSS ≤ 1.5 GB (rss_peak) with the chain walk added | performance contract | open |
+| E2.12 | chain vt_spy: L2 not promoted over L0 (seat L0) — effect ≈ +0.05 at best, LW p > 0.05 expected | O2.3 | **held** — reports/r2/ladder_chains.json: L2 vs L0 effect +0.053, LW p 0.254, and loses Sharpe inside all six development crisis windows (1994, dot-com, GFC, 2011, 2015, Q4 2018); seat **L0** |
+| E2.13 | chain core: author's prediction (low confidence): L3 fails quantkit's in-crisis robustness vs L0 in 1994 (bonds fell), so the seat stays L0; if L3 passes, L4 is promoted over L3 and L5 is not (effect +0.01, CDaR −7% < −15%) | O2.3 | **held (main branch)** — L3 vs L0: effect +0.215, LW p 0.005, MCS pass, rspy legs pass on both routes (CDaR −23%), but quantkit robustness fails: L3's Sharpe is lower inside 1994 bonds (ΔSharpe −0.54; return −6.9% vs SPY −3.0%) and Q4 2018 (−0.10, although L3 lost less: −7.7% vs −12.9%; in-window Sharpe of a losing window rewards higher vol). Seat **L0**; L4, L5 not tested |
+| E2.14 | code: the pre-registered walk's reports/r2/ladder.json and the register rows unchanged byte for byte; the chain walk uses the same `ev.walk`; a synthetic test checks the chain topology (L1 never an incumbent) and that the chain ladders register without a rung-set clash | O2.3 | **held** — ladder.json `cmp`-identical to the pre-change file; register rows 1–2 identical (chain rows appended); `test_chains_are_parent_only_and_cut_at_the_first_unbuilt_rung` (planted L1 in a chain raises), `test_chain_walk_registers_beside_the_prereg_walk_and_never_uses_l1` (same set under a new name raises PreregistrationError) |
+| E2.15 | perf: `make ladder` ≤ 5 min, peak RSS ≤ 1.5 GB (rss_peak) with the chain walk added | performance contract | **held** — warm `make ladder` 911 MB summed peak, 19.9 s wall (rss_peak) |
+
+**Chain-walk result (post-hoc, development, descriptive of the rule, not evidence):** both chains stop at their first
+step; the seat holder is **L0 (SPY)** in each. Seat holder under the pre-registered walk: L1 (unchanged). No stock-bond
+rung is promoted under either walk. The binding part is quantkit's in-crisis robustness ("no Sharpe loss inside any
+development crisis window"); the CDaR route and the rspy legs would have passed L3. Observation for the owner (no
+action, changing the rule now would be post-hoc again): the in-window Sharpe compares a negative mean over a smaller vol,
+so a lower-vol rung that loses less can still "lose" a window (Q4 2018 above); 1994 is a real loss on returns too.
+Every rung vs L1 (comparison row, reports/r2/vs_l1.csv, LW 95%): L2 +0.02 [−0.03, +0.08], L3 +0.18 [−0.05, +0.41],
+L4 +0.31 [−0.01, +0.63], L5 +0.32 [+0.01, +0.63] (p 0.022), L5-lev +0.37 [+0.06, +0.68]; CDaR vs matched L1: L4 −44%,
+L5 −47%. Chart: reports/figures/R2/promotion_walks.png. DSR N: one extra trial (variants.csv `walk_chains_O2.3`).

@@ -1,8 +1,9 @@
 """make ladder (R2): L0–L5 + L4b, L5-lev, L2-u and the vol-zoo rows on 1986–2019 (development scored 1990–2019), the
-L0-line, the promotion walk L1 → L5 (D2.4), timing luck (D2.5).
+L0-line, the pre-registered promotion walk L1 → L5 (D2.4), the post-hoc parent-chain walk and every rung vs L1 (owner
+O2.3), timing luck (D2.5).
 
 Committed (statistics only): reports/r2/{metrics.csv, lines.csv, ablation.csv, crisis.csv, timing_luck.csv,
-volzoo.json, ladder.json, facts.json, ladder_prereg.jsonl (append-only, written before any book is built)}.
+volzoo.json, ladder.json, ladder_chains.json, vs_l1.csv, facts.json, ladder_prereg.jsonl (append-only, written before any book is built)}.
 Local only (gitignored, KF-derived daily series): data/r2/books.parquet, data/r2/register.csv (rebuilt each run).
 The test window 2020+ is not run here (R5).
 """
@@ -33,6 +34,9 @@ REGISTER = LOCAL / "register.csv"
 REGISTER.unlink(missing_ok=True)
 WALK = list(PR["walk"])
 ev.ladder("r2_core", WALK).preregister(PREREG)  # before any book exists (quantkit refuses a changed spec later)
+CHAINS = ev.chains({"L0", "L2", "L3", "L4", "L5"})  # post-hoc (O2.3): registered before this run's books
+for k, ch in CHAINS.items():
+    ev.ladder(f"r2_chain_{k}", ch).preregister(PREREG)
 
 # ---- inputs and targets (rungs docstring: one line per transform) ---------------------------------------------------
 panel = build.load()
@@ -131,6 +135,23 @@ pd.DataFrame(crows).to_csv(OUT / "crisis.csv", index=False, float_format="%.10g"
 # ---- promotion walk (development rows) -----------------------------------------------------------------------------------
 wb = {r: {k: books[r][k].net[dev] for k in ("1x", "2x", "f75")} for r in WALK}
 res = ev.walk(wb, c, rate, dt, D, prereg_path=PREREG, register_path=REGISTER)
+res_chains = {}
+for k, ch in CHAINS.items():  # post-hoc (O2.3): same rule, same books, parents only
+    cb = {r: {kk: books[r][kk].net[dev] for kk in ("1x", "2x", "f75")} for r in ch}
+    res_chains[k] = {"chain": ch, **ev.walk(cb, c, rate, dt, D, prereg_path=PREREG, register_path=REGISTER,
+                                            name=f"r2_chain_{k}")}
+
+# ---- every rung vs L1 (comparison row, descriptive; O2.3) --------------------------------------------------------------
+x1 = books["L1"]["1x"].net[dev]
+v1rows = []
+for r in ["L0", "L2", "L2-u", "L3", "L4", "L5", "L5-lev"]:
+    x = books[r]["1x"].net[dev]
+    ds, cs, cb_ = ev.pair(x, x1, c, rate, dt)
+    t_ = ev.lw(x - c, x1 - c)
+    v1rows.append({"rung": r, "dsharpe_vs_L1_matched": ds, "dsharpe_vs_L1": t_["dsharpe"], "lo": t_["lo"],
+                   "hi": t_["hi"], "p_one_sided": t_["p_one_sided"], "cdar_rung": cs, "cdar_L1_matched": cb_,
+                   "cdar_change": cs / cb_ - 1.0})
+pd.DataFrame(v1rows).to_csv(OUT / "vs_l1.csv", index=False, float_format="%.10g")
 t_walk = time.perf_counter() - t0
 
 # ---- timing luck (D2.5): 21 offsets for L3, L4, L5 on the development rows --------------------------------------------
@@ -204,10 +225,14 @@ facts["L5_mean_target_gross"] = float(tg5[fin5].sum(axis=1).mean())
 facts["L2_share_days_above_1x"] = float((books["L2"]["1x"].held[dev, 0] > 1).mean())
 facts["line_first_finite_scored"] = str(D[np.isfinite(line_books["L0"][dev])][0].date())
 facts["walk_winner"] = res["winner"]
+facts["chain_winners"] = {k: v["winner"] for k, v in res_chains.items()}
 facts["timing_s"] = {"targets_and_zoo": round(t_targets, 2), "books": round(t_books - t_targets, 2),
                      "metrics_lines_walk": round(t_walk - t_books, 2), "timing_luck": round(t_tl - t_walk, 2),
                      "total": round(time.perf_counter() - t0, 2)}
-(OUT / "ladder.json").write_text(json.dumps(res, indent=1, default=lambda o: o.tolist() if hasattr(o, "tolist") else float(o)))
+js = lambda o: o.tolist() if hasattr(o, "tolist") else float(o)  # noqa: E731
+(OUT / "ladder.json").write_text(json.dumps(res, indent=1, default=js))
+(OUT / "ladder_chains.json").write_text(json.dumps({"label": "POST-HOC (owner O2.3, charter amendment 32bf308)",
+                                                    "chains": res_chains}, indent=1, default=js))
 (OUT / "facts.json").write_text(json.dumps(facts, indent=1, sort_keys=True, default=float))
 
 # ---- local daily books for the curve figures (gitignored) -------------------------------------------------------------------
@@ -225,5 +250,13 @@ print(lines.set_index("rung")[["dsharpe_vs_line", "lo", "hi", "p_one_sided", "be
 for s in res["steps"]:
     print(s["rung"], "vs", s["incumbent"], "promoted" if s["promoted"] else "failed", s["route"],
           s["quantkit"]["reasons"], {k: v for k, v in s["rspy"]["legs"].items()})
+for k, v in res_chains.items():
+    for s in v["steps"]:
+        print(f"[post-hoc chain {k}]", s["rung"], "vs", s["incumbent"], "promoted" if s["promoted"] else "failed",
+              s["route"], s["quantkit"]["reasons"])
+    print(f"[post-hoc chain {k}] winner:", v["winner"])
+print(pd.DataFrame(v1rows).set_index("rung")[["dsharpe_vs_L1", "lo", "hi", "p_one_sided", "dsharpe_vs_L1_matched",
+                                            "cdar_change"]].round(3)
+      .to_string())
 print("winner:", res["winner"], "| facts:", json.dumps(facts, default=float)[:600])
 print(f"ladder: {time.perf_counter() - t0:.1f} s")

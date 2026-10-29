@@ -1,13 +1,16 @@
 """R2 rungs and evaluation (D2.2, D2.5–D2.8): decision rows, L4 σ vs quantkit's sample covariance (E2.7), ERC = inverse
 vol for two assets (E2.7), the record book = quantkit tranche offset 0 (E2.8), the ex-ante line uses rows < t (E2.9),
-the vol-zoo pick uses losses realised ≤ the year-end only (E2.10), the vol layer's cap, the promotion legs."""
+the vol-zoo pick uses losses realised ≤ the year-end only (E2.10), the vol layer's cap, the promotion legs, the
+post-hoc parent chains (O2.3, E2.14)."""
 
 import numpy as np
 import pandas as pd
+import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 from quantkit.alloc.cov import sample_cov
 from quantkit.alloc.risk import erc
+from quantkit.ladder import PreregistrationError
 from quantkit.trade import tranche as qtr
 
 from rspy import evaluate as ev
@@ -162,3 +165,35 @@ def test_vol_target_uses_the_forecast_stamped_t():
     assert np.allclose(T[:, 0], want, rtol=0, atol=1e-15)
     T2 = rungs.vol_target(parent, f.iloc[::2], inp.index, 0.10, 10.0)  # a stamp missing on day t → no decision at t
     assert np.isnan(T2[1]).all() and np.isfinite(T2[2]).all()
+
+
+def test_chains_are_parent_only_and_cut_at_the_first_unbuilt_rung(monkeypatch):
+    """O2.3 (post-hoc): L1 is a comparison row, never a parent; a chain stops at its first rung not built yet."""
+    assert ev.chains({"L0", "L1", "L2", "L3", "L4", "L5"}) == {"vt_spy": ["L0", "L2"], "core": ["L0", "L3", "L4", "L5"]}
+    assert ev.chains({"L0", "L2", "L4", "L5"})["core"] == ["L0"]  # L3 missing: L4 is never judged against L0
+    pr = paths.prereg()
+    bad = {**pr, "promotion_rule": {**pr["promotion_rule"], "walk_chains": {"x": ["L1", "L3"]}}}
+    monkeypatch.setattr(paths, "prereg", lambda: bad)
+    with pytest.raises(ValueError, match="comparison row"):
+        ev.chains({"L1", "L3"})
+
+
+def test_chain_walk_registers_beside_the_prereg_walk_and_never_uses_l1(tmp_path):
+    """The chain ladders register next to r2_core without a rung-set clash; each step's incumbent is its parent."""
+    pre, reg = tmp_path / "prereg.jsonl", tmp_path / "register.csv"
+    ev.ladder("r2_core", paths.prereg()["promotion_rule"]["walk"]).preregister(pre)
+    rng = np.random.default_rng(11)
+    D = pd.bdate_range("1990-01-02", "2019-12-31")
+    T = len(D)
+    c, rate, dt = np.full(T, 1e-4), np.full(T, 0.0365), np.full(T, 1 / 360)
+    books = {r: {k: rng.normal(3e-4 + 1e-5 * i, 0.01, T) for k in ("1x", "2x", "f75")}
+             for i, r in enumerate(["L0", "L2", "L3", "L4", "L5"])}
+    for k, ch in ev.chains(set(books)).items():
+        ev.ladder(f"r2_chain_{k}", ch).preregister(pre)
+        res = ev.walk({r: books[r] for r in ch}, c, rate, dt, D, prereg_path=pre, register_path=reg,
+                      name=f"r2_chain_{k}")
+        assert res["steps"] and res["winner"] in ch
+        for s in res["steps"]:
+            assert s["incumbent"] == ch[ch.index(s["rung"]) - 1] and "L1" not in (s["rung"], s["incumbent"])
+    with pytest.raises(PreregistrationError):  # the same rung set under another name: order chosen after the fact
+        ev.ladder("renamed", ["L0", "L2"]).preregister(pre)

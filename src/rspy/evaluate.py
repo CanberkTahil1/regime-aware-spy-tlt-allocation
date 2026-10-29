@@ -180,5 +180,18 @@ def walk(books: dict, c, rate, dt, dates: pd.DatetimeIndex, *, prereg_path, regi
     return {"steps": steps, "winner": order[start], "ladders": ladders, "mcs_all": {}}
 
 
+def chains(built) -> dict[str, list[str]]:
+    """Post-hoc parent chains (owner O2.3; prereg `walk_chains`), each cut at its first rung not built yet (L6–L8 join in
+    R3). A comparison row (L1) is never a parent: refuses a chain that contains one."""
+    pr = paths.prereg()["promotion_rule"]
+    out = {}
+    for k, ch in pr["walk_chains"].items():
+        if set(ch) & set(pr["comparison_rows"]):
+            raise ValueError(f"chain {k} contains a comparison row ({pr['comparison_rows']}): never a parent")
+        cut = next((i for i, r in enumerate(ch) if r not in built), len(ch))
+        out[k] = list(ch[:cut])
+    return out
+
+
 def as_ladder(lad: Ladder, **kw) -> Ladder:
     return dataclasses.replace(lad, **kw)

@@ -59,7 +59,8 @@ R2_NAMES = {"L0": "SPY", "L1": "v1 legacy", "L2": "Vol-targeted SPY", "L3": "60/
             "L2-u": "Vol-targeted SPY, 10%"}
 
 
-def tables_r2(m: pd.DataFrame, ln: pd.DataFrame) -> dict[str, pd.DataFrame]:
+def tables_r2(m: pd.DataFrame, ln: pd.DataFrame, v1: pd.DataFrame) -> dict[str, pd.DataFrame]:
+    """v1: reports/r2/vs_l1.csv indexed by rung (every rung vs the L1 comparison row, O2.3)."""
     dev = paths.rules()["r2"]["scored"]
     a, z = str(dev[0]), str(dev[1])
     m1 = m[(m.book == "1x") & m.rung.isin(R2_NAMES)].set_index("rung")
@@ -69,6 +70,9 @@ def tables_r2(m: pd.DataFrame, ln: pd.DataFrame) -> dict[str, pd.DataFrame]:
             sm.append((r, f"{k} (development)", float(m1.loc[r, k]), unit, "in-sample", a, z))
         sm.append((r, "dsharpe_vs_line (development)", float(ln.loc[r, "dsharpe_vs_line"]),
                    "ΔSharpe vs SPY + T-bills at matched vol (ex ante)", "in-sample", a, z))
+        if r in v1.index:
+            sm.append((r, "dsharpe_vs_L1 (development)", float(v1.loc[r, "dsharpe_vs_L1"]),
+                       "ΔSharpe vs v1 legacy (comparison row, LW)", "in-sample", a, z))
         if r in ("L1", "L2", "L3", "L4", "L5"):
             v = m1.loc[r]
             for part, val in (("gross", v.net_pa + v.cost_pa + v.financing_pa), ("cost", -v.cost_pa),
@@ -77,9 +81,10 @@ def tables_r2(m: pd.DataFrame, ln: pd.DataFrame) -> dict[str, pd.DataFrame]:
     cols = ["strategy", "metric", "value", "unit", "tier", "window_start", "window_end"]
     summary = pd.DataFrame(sm, columns=cols)
     summary["lo"] = summary["hi"] = np.nan
-    lo = summary.metric == "dsharpe_vs_line (development)"
-    summary.loc[lo, "lo"] = [float(ln.loc[r, "lo"]) for r in summary.loc[lo, "strategy"]]
-    summary.loc[lo, "hi"] = [float(ln.loc[r, "hi"]) for r in summary.loc[lo, "strategy"]]
+    for key, src in (("dsharpe_vs_line", ln), ("dsharpe_vs_L1", v1)):
+        lo = summary.metric == f"{key} (development)"
+        summary.loc[lo, "lo"] = [float(src.loc[r, "lo"]) for r in summary.loc[lo, "strategy"]]
+        summary.loc[lo, "hi"] = [float(src.loc[r, "hi"]) for r in summary.loc[lo, "strategy"]]
     loss = pd.DataFrame(loss, columns=["strategy", "part", "value", "unit", "tier", "window_start", "window_end"])
     windows = pd.DataFrame([("development", a, z, "in-sample", False, False, "every R2 choice was made here")],
                            columns=["name", "start", "end", "tier", "sealed", "opened", "note"])
@@ -135,14 +140,25 @@ def git_head() -> str:
     return r.stdout.strip() or "unknown"
 
 
-def r2_verdicts(m: pd.DataFrame, ln: pd.DataFrame, lad: dict) -> list[dict]:
+def r2_verdicts(m: pd.DataFrame, ln: pd.DataFrame, lad: dict, chains: dict, v1: pd.DataFrame) -> list[dict]:
     m1 = m[m.book == "1x"].set_index("rung")
     st = lad["steps"][0]
     return [
         {"id": "R2 walk", "tier": "in-sample",
-         "text": f"Promotion walk L1 → L5 (development 1990–2019) stopped at its first step: L2 (vol-targeted SPY) did not "
+         "text": f"Pre-registered promotion walk L1 → L5 (development 1990–2019) stopped at its first step: L2 (vol-targeted SPY) did not "
                  f"beat L1 (v1 legacy) (ΔSharpe {st['quantkit']['effect']:+.3f} < +0.05, LW p {st['quantkit']['p']:.2f}). "
                  f"Seat holder: {lad['winner']}; L3–L5 not tested by the rule (fixed sequence)."},
+        {"id": "R2 chains (post-hoc)", "tier": "in-sample",
+         "text": "POST-HOC parent-chain walk (owner O2.3, charter amended after R2 results, counted in DSR N): "
+                 + "; ".join(f"{' → '.join(c['chain'])}: " + ", ".join(
+                     f"{s['rung']} vs {s['incumbent']} {'promoted' if s['promoted'] else 'failed'} "
+                     f"(effect {s['quantkit']['effect']:+.3f}, LW p {s['quantkit']['p']:.3f}"
+                     + ("" if s["quantkit"]["parts"]["robust"] else ", loses Sharpe inside a crisis window") + ")"
+                     for s in c["steps"]) + f", seat {c['winner']}" for c in chains["chains"].values()) + "."},
+        {"id": "vs L1", "tier": "in-sample",
+         "text": "Every rung vs v1 legacy (comparison row, descriptive): ΔSharpe "
+                 + ", ".join(f"{r} {v1.loc[r, 'dsharpe_vs_L1']:+.2f} [{v1.loc[r, 'lo']:+.2f}, {v1.loc[r, 'hi']:+.2f}]"
+                             for r in ("L2", "L3", "L4", "L5")) + " (LW 95%)."},
         {"id": "E2.1-E2.3", "tier": "in-sample",
          "text": f"Descriptive: inverse-vol + vol target excess Sharpe {m1.loc['L5', 'sharpe_excess']:.2f}, max DD "
                  f"{m1.loc['L5', 'max_dd']:.1%}; 60/40 {m1.loc['L3', 'sharpe_excess']:.2f} / {m1.loc['L3', 'max_dd']:.1%}; "
@@ -166,10 +182,13 @@ def bundle() -> qr.Bundle:
         import json
 
         m, ln = pd.read_csv(r2p / "metrics.csv"), pd.read_csv(r2p / "lines.csv").set_index("rung")
-        t2 = tables_r2(m, ln)
+        v1 = pd.read_csv(r2p / "vs_l1.csv").set_index("rung")
+        t2 = tables_r2(m, ln, v1)
         t = {k: pd.concat([t[k], t2[k]], ignore_index=True) for k in t}
-        r2 = {"verdicts": r2_verdicts(m, ln, json.loads((r2p / "ladder.json").read_text()))}
+        r2 = {"verdicts": r2_verdicts(m, ln, json.loads((r2p / "ladder.json").read_text()),
+                                      json.loads((r2p / "ladder_chains.json").read_text()), v1)}
         sources += [{"path": str((r2p / f).relative_to(paths.ROOT)), "sha256": paths.sha256(r2p / f),
                      "licence": "derived statistics only; KF Hi 20 (gitignored), GSW and H.15 (public domain)",
-                     "ledger_ref": "reports/ledger.md R2"} for f in ("metrics.csv", "lines.csv", "ladder.json")]
+                     "ledger_ref": "reports/ledger.md R2"} for f in ("metrics.csv", "lines.csv", "ladder.json", "ladder_chains.json",
+                                                                       "vs_l1.csv")]
     return qr.Bundle(manifest(tab, qa, sources, r2), t)

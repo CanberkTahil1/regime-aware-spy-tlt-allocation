@@ -115,4 +115,38 @@ ax.set_title("Timing luck: the same rule rebalanced on each of 21 trading days")
 fig.text(0.01, -0.05, NOTE + " quantkit timing_luck (cash at 0, costs 3/2 bp); never used to pick a day.", fontsize=7,
          color=fg.INK2)
 fg.save(fig, OUT, "timing_luck")
+# 6. the two walks side by side (O2.3): pre-registered L1 → L5 (record) and the post-hoc parent chains ----------------
+import json  # noqa: E402
+import textwrap  # noqa: E402
+
+pre = json.loads((R2 / "ladder.json").read_text())
+ch = json.loads((R2 / "ladder_chains.json").read_text())["chains"]
+walks = [("pre-registered (record)", ["L1", "L2", "L3", "L4", "L5"], pre)]
+walks += [(f"post-hoc chain {k}", v["chain"], v) for k, v in ch.items()]
+rows_ = []
+for title, order, w in walks:
+    done = {s_["rung"]: s_ for s_ in w["steps"]}
+    for cand, inc in zip(order[1:], order[:-1], strict=True):
+        rows_.append((title, cand, inc, done.get(cand)))
+fig, ax = plt.subplots(figsize=(9, 0.42 * len(rows_) + 1.2))
+yy = np.arange(len(rows_))[::-1]
+for yi, (*_, st_) in zip(yy, rows_, strict=True):
+    if st_ is None:
+        ax.text(0.06, yi, "not tested (walk stopped)", va="center", fontsize=8, color=fg.MUTED)
+        continue
+    q = st_["quantkit"]
+    ax.barh(yi, q["effect"], color=fg.AQUA if st_["promoted"] else fg.RED, height=0.6)
+    failed = [k for k, v in q["parts"].items() if not v]
+    ax.text(max(q["effect"], 0) + 0.005, yi, f"{q['effect']:+.3f}, LW p {q['p']:.3f}"
+            + (f"; fails: {', '.join(failed)}" if failed else "; promoted"), va="center", fontsize=8, color=fg.INK)
+ax.axvline(0, color=fg.INK2, lw=0.8)
+ax.axvline(0.05, color=fg.MUTED, lw=0.8, ls="--")
+ax.set_yticks(yy, [f"{t}: {N[c]} vs {N[i]}" for t, c, i, _ in rows_], fontsize=8)
+ax.set_xlim(-0.05, 0.55)
+ax.set_ylim(-0.7, len(rows_) - 0.3)
+ax.set_xlabel("ΔSharpe vs the incumbent (quantkit effect; dashed = +0.05 minimum)")
+ax.set_title("Promotion walks: pre-registered order vs post-hoc parent chains (owner O2.3)")
+fig.text(0.01, -0.04, "\n".join(textwrap.wrap(NOTE + " Post-hoc: charter amended after R2 results; counted in the DSR "
+         "trial count. robust = no Sharpe loss inside any development crisis window.", 170)), fontsize=7, color=fg.INK2)
+fg.save(fig, OUT, "promotion_walks")
 print("R2 figures ->", OUT, sorted(p.name for p in OUT.glob("*.png")))
