@@ -64,3 +64,6 @@ Research for R0: `reports/research/R0.md`.
 - Also flagged: tracked `.DS_Store`, `results/.DS_Store`, `signals/.DS_Store` (untracking = delete; the last two are
   all that remains in the root `results/` and `signals/` after the D0.1 move; reviewer R0 MINOR 3).
 - Status: **not touched by the session.** The session never pushes or rewrites history.
+- **Owner decision (2026-10-28): (a).** Untrack `data/prices.csv` and the three `.DS_Store` files (local copies kept;
+  all gitignored). History rewriting: later, by the owner, before the next push. The session does not push. Owner also
+  said "tag it": `r0-done`.

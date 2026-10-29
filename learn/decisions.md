@@ -13,5 +13,5 @@
 - **D0.4 (advisor, after a miss): the test suite used too much memory in total.** I first checked one process
   (185 MB) but the budget is for the whole run; with 16 parallel workers it peaks near 2 GB. Recorded as a failed
   expectation, then capped the workers at 4 (same speed, ~0.7 GB) instead of redefining the budget.
-- **O0.1 (owner, pending): what to do about the Yahoo/Cboe price file already on the public GitHub repo.** The session
-  left it alone and is waiting for your call.
+- **O0.1 (owner): the Yahoo/Cboe price file is no longer tracked by git.** It stays on disk for the v1 tests. It is
+  still in the repo's history; you will rewrite that yourself before the next push.
