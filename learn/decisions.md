@@ -30,3 +30,6 @@
 - **D1.5 (advisor): VIX is replaced by 20-day realised volatility**, the same substitute v1 already used elsewhere.
 - **D1.6 (advisor): the proxies are checked against the real ETFs with pass marks fixed in advance**: monthly
   correlation ≥ 0.98, tracking error ≤ 1.5%/yr (stocks) and ≤ 3%/yr (bonds).
+- **O1.1 (owner, pending): may the R1 outputs built from v1's Yahoo/Cboe file stay in the public repo?** The tables
+  are statistics only, but the curve SVGs trace near-daily paths. The session recommends PNG-only monthly curves and has
+  changed nothing yet.

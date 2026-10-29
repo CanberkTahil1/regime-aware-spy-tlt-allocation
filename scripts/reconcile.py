@@ -100,7 +100,8 @@ qa_rows = []
 for name, proxy, etf, band in [("hi20_vs_spy", "hi20", "SPY", qa_cfg["bands"]["hi20_vs_spy"]),
                                ("gsw25_vs_tlt", "tlt25", "TLT", qa_cfg["bands"]["gsw25_vs_tlt"])]:
     for sub, (a, z) in {"2005-2025": ("2005-01", "2025-12"), "2005-2019": ("2005-01", "2019-12"),
-                        "2020-2025 (test, seen)": ("2020-01", "2025-12")}.items():
+                        "2020-2025 (test, seen)": ("2020-01", "2025-12"),
+                        "2022 (descriptive; inside test, seen)": ("2022-01", "2022-12")}.items():
         p_, e_ = mk[proxy].loc[a:z], my[etf].loc[a:z]
         d = p_ - e_
         dd = kf[proxy].loc[str(a):str(z) + "-31"] - ya[etf].reindex(kf.index).loc[str(a):str(z) + "-31"]
@@ -113,6 +114,21 @@ for name, proxy, etf, band in [("hi20_vs_spy", "hi20", "SPY", qa_cfg["bands"]["h
 qa = pd.DataFrame(qa_rows)
 qa["pass"] = np.where(qa["role"].str.startswith("scored"), (qa["corr"] >= qa["corr_min"]) & (qa["te_pa"] <= qa["te_max"]), np.nan)
 qa.to_csv(OUT / "qa.csv", index=False, float_format="%.10g")
+worst = []
+for name, proxy, etf in [("hi20_vs_spy", "hi20", "SPY"), ("gsw25_vs_tlt", "tlt25", "TLT")]:
+    d = (mk[proxy] - my[etf]).dropna()
+    for m in d.abs().sort_values(ascending=False).index[:8]:
+        worst.append({"pair": name, "month": str(m), "proxy": mk[proxy][m], "etf": my[etf][m], "diff": d[m]})
+pd.DataFrame(worst).to_csv(OUT / "qa_worst_months.csv", index=False, float_format="%.10g")
+(OUT / "qa.md").write_text(
+    "# R1 data QA (D1.6)\n\nMonthly, 2005-01 → 2025-12, each series compounded on its own sessions; diff = proxy − ETF; "
+    "TE = std(diff)·√12; the scored row is 2005–2025, the other rows are descriptive (2020+ = test, seen by owner in v1). "
+    "Results: `qa.csv`; the eight largest |monthly diff| per pair with dates: `qa_worst_months.csv`.\n\n"
+    "**Limits.** The ETF comparison starts in 2005 (v1's cached file; TLT itself launched in 2002), so the 25-year proxy "
+    "**cannot be checked against TLT in 1994 or 2000–02**, crisis windows the development sample relies on; there it "
+    "rests on the construction check (quantkit = the validated reference, max diff 0.0 on the real curve, E1.10). "
+    "The proxies carry no fund expenses, so a small positive mean diff is expected (SPY 0.09%/yr, TLT 0.15%/yr expense "
+    "ratios). The local Yahoo file is a comparison only: never committed, never used by a rung.\n")
 facts["runtime_s"] = round(time.perf_counter() - t0, 2)
 (OUT / "facts.json").write_text(json.dumps(facts, indent=1, sort_keys=True, default=float))
 

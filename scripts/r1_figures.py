@@ -64,6 +64,7 @@ fig.suptitle("v1 → L1, one correction per step (S0–S3: v1's Sharpe without r
              fontsize=11, fontweight="bold")
 fig.text(0.01, -0.02, "Steps: " + "; ".join(f"{k} {v}" for k, v in STEP_NAMES.items())
          + ". Order fixed before results (D1.4); attribution is order-dependent.", color=INK2, fontsize=7, wrap=True)
+fig.text(0.01, -0.06, "S7 = L1 holds the " + TLT_LABEL + "; SPY = SPY proxy (KF Hi 20).", color=INK2, fontsize=7)
 save(fig, "reconciliation_by_step")
 
 # 2. test-window CAGR waterfall --------------------------------------------------------------------------------------------
@@ -86,6 +87,7 @@ ax.set_xticks(list(x) + [len(steps)], ["S0\nv1"] + [f"{k}" for k in steps[1:]] +
 ax.yaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(1.0, decimals=0))
 ax.set_ylim(min(0.10, t.min() - 0.02), t.max() + 0.02)
 ax.set_title("Test window 2020–2025 (seen by owner in v1, disclosed): CAGR change per correction")
+fig.text(0.01, -0.04, "L1 holds the " + TLT_LABEL + ".", color=INK2, fontsize=7)
 save(fig, "cagr_waterfall_test")
 
 # 3. growth of $1 with drawdown underneath --------------------------------------------------------------------------------
@@ -113,6 +115,7 @@ for k, (a, z) in wins.items():
     a1.text(a, a1.get_ylim()[1], f" {k}", color=MUTED, fontsize=8, va="top")
 a1.legend(loc="upper left", fontsize=8)
 a1.set_title("Growth of $1, 2005–2025 (test 2020+ seen by owner in v1, disclosed)")
+fig.text(0.01, -0.02, "L1 holds the " + TLT_LABEL + ".", color=INK2, fontsize=7)
 save(fig, "growth_and_drawdown")
 
 # 4. exposure over time (L1) ----------------------------------------------------------------------------------------------
@@ -147,6 +150,7 @@ ax.axhline(0, color=BASE, lw=0.8)
 ax.legend(loc="upper left", fontsize=8)
 ax.set_ylabel("excess Sharpe, trailing 5y")
 ax.set_title("Rolling 5-year excess Sharpe (over H.15 bills)")
+fig.text(0.01, -0.03, "L1 holds the " + TLT_LABEL + ".", color=INK2, fontsize=7)
 save(fig, "rolling_5y_excess_sharpe")
 
 # 6. crisis small multiples (pre-registered windows inside 2005-2025) --------------------------------------------------
@@ -165,20 +169,22 @@ for ax, (k, v) in zip(axes, cw.items(), strict=True):
 fig.suptitle("Pre-registered crisis windows: L1 (orange) vs SPY proxy (gray), growth of $1", fontsize=10,
              fontweight="bold", color=INK, y=1.06)
 fig.subplots_adjust(wspace=0.35)
+fig.text(0.01, -0.06, "L1 holds the " + TLT_LABEL + ".", color=INK2, fontsize=7)
 save(fig, "crisis_small_multiples")
 
 # 7. data QA ---------------------------------------------------------------------------------------------------------------
-fig, axes = plt.subplots(1, 2, figsize=(11, 3.6), gridspec_kw={"wspace": 0.75})
+fig, axes = plt.subplots(1, 2, figsize=(11, 4.2), gridspec_kw={"wspace": 0.75})
 for ax, (pair, lab) in zip(axes, [("hi20_vs_spy", "KF Hi 20 vs SPY"), ("gsw25_vs_tlt", "GSW 25y vs TLT")], strict=True):
     r = qa[(qa.pair == pair) & (qa["sample"] == "2005-2025")].iloc[0]
     rows = qa[qa.pair == pair].set_index("sample")
-    ax.barh(range(3), rows["te_pa"], color=[BLUE, AQUA, YELLOW], height=0.5)
+    n = len(rows)
+    ax.barh(range(n), rows["te_pa"], color=[BLUE, AQUA, YELLOW, ORANGE][:n], height=0.5)
     for i, (s_, v) in enumerate(rows["te_pa"].items()):
         ax.text(v, i, f" {v:.2%} (corr {rows.loc[s_, 'corr']:.3f})", va="center", fontsize=8, color=INK)
     ax.axvline(r["te_max"], color=RED, lw=1, ls="--")
-    ax.set_ylim(-0.5, 2.9)
-    ax.text(r["te_max"], 2.62, f" pass band ≤ {r['te_max']:.1%}", color=RED, fontsize=7, ha="left", va="center")
-    ax.set_yticks(range(3), list(rows.index), fontsize=8)
+    ax.set_ylim(-0.5, n - 0.1)
+    ax.text(r["te_max"], n - 0.38, f" pass band ≤ {r['te_max']:.1%}", color=RED, fontsize=7, ha="left", va="center")
+    ax.set_yticks(range(n), [i.replace(" (descriptive; inside test, seen)", " (test, seen)") for i in rows.index], fontsize=8)
     ax.xaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(1.0, decimals=1))
     ax.set_xlim(0, max(rows["te_pa"].max(), r["te_max"]) * 1.7)
     ax.set_title(f"{lab}: monthly TE ({'pass' if r['pass'] == 1 else 'FAIL'})")

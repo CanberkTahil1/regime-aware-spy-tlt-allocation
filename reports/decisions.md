@@ -141,3 +141,17 @@ Research for R0: `reports/research/R0.md`.
   2.06% (different window).
 - **Bands:** Hi 20 vs SPY corr ≥ 0.98, TE ≤ 1.5%/yr; GSW 25y vs TLT corr ≥ 0.98, TE ≤ 3.0%/yr.
 - **Why the others lost:** (b) curve-fit timing noise, not comparable to the validated monthly figures; (c) nothing can fail.
+
+### O1.1 — Committed R1 outputs derived from Yahoo/Cboe (and near-daily KF curves) in a PUBLIC repo · ESCALATED TO OWNER · pending
+- **Why escalated:** licence question (charter escalation list) and advisor vs reviewer disagreement: D1.4's advisor
+  passed it on as an optional flag; the R1 quant-reviewer (MATERIAL 2) says it had to be escalated. Logged before any
+  action; nothing is pushed.
+- **What is committed now (b46f998 + review fixes):** statistics derived from v1's local Yahoo/Cboe file (rows S0–S6 of
+  `reports/r1/reconciliation.*`, `qa.csv`, `qa_worst_months.csv`, `e12_diagnosis.json`); figures in
+  `reports/figures/R1/` whose SVGs carry the S0 and SPY-proxy / L1 wealth curves at near-daily resolution (3.5–3.6k
+  vertices per path); the site holds statistics only (no series).
+- **Options:** (a) [author's recommendation] keep the statistics tables; re-render every curve figure as PNG only from
+  monthly-resampled series (no vector paths recoverable to daily resolution); keep the site as is; (b) also make rows
+  S0–S6 and the QA local-only (remove them from git: a delete, owner-only); (c) keep everything as committed (the
+  advisor's reading: BUILD_PROMPTS prescribed these rows and only derived statistics are published).
+- **Status:** not acted on. Whatever is chosen happens before the owner's next push (with the O0.1 history rewrite).

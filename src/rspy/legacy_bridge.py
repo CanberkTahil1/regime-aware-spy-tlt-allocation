@@ -67,7 +67,8 @@ def v1_book(held: pd.DataFrame, returns: pd.DataFrame, cost: float = V1_COST) ->
     gross = held["SPY_pos"] * R["SPY"] + held["TLT_pos"] * R["TLT"]
     turn = held.diff().abs().sum(axis=1)
     return pd.DataFrame({"gross": gross, "cost": turn * cost, "net": gross - turn * cost, "turnover": turn,
-                         "cash": 0.0, "financing": 0.0, "gross_exp": held.abs().sum(axis=1)})
+                         "cash": 0.0, "financing": 0.0, "gross_exp": held.abs().sum(axis=1),
+                         "w_SPY": held["SPY_pos"], "w_TLT": held["TLT_pos"]})
 
 
 def add_cash_and_financing(book: pd.DataFrame, held: pd.DataFrame, bills: pd.DataFrame, spread: float) -> pd.DataFrame:

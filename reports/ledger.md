@@ -54,3 +54,10 @@ the row stays failed; code and spec unchanged.
 **R1 also fixed (found by the R1 test run, not a reviewer):** `tests/test_legacy_v1.py::test_v1_selection_rule_picks_the_summary_row`
 imported legacy without the yfinance stub and passed in R0 only when another test had imported legacy first in the same
 xdist worker; it now takes the `no_yahoo` fixture (assertion unchanged).
+
+**Deferred by the R1 review (open):**
+
+| ID | Item | Phase | Status |
+|---|---|---|---|
+| E1.12 | Growth / drawdown charts show the vol-matched SPY + T-bills line (`quantkit.bench.vol_matched`) once L0-line exists | R2 | open |
+| E1.13 | `make all` reproduces every figure from raw PERMITTED data on a machine without v1's file (legacy tests and `reconcile` are local targets, D0.3) | R5 (Definition of done) | open |

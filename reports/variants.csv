@@ -1,0 +1,7 @@
+id,phase,family,config,n_configs,role,registered_before_result,counted_in_dsr,note
+v1_grid,legacy,v1,"z x th x sw x sth x ddw x ddt x cw (legacy/config.py GridSearchSpace)",648,searched (v1),no,yes,"v1's own grid on 2005-2019; selected z=10 th=2.5 sw=60 sth=-0.03 ddw=50 ddt=-0.03 cw=0.2"
+L1,R1,v1,"v1 selected params on permitted data + charter accounting (reconciliation S7)",1,baseline,yes,yes,"D1.4; one rung"
+R1_S0-S6,R1,v1,"reconciliation steps S0-S6 (corrections one at a time)",7,reconciliation,yes,no,"descriptive bridge rows, not candidates"
+R1_diag_lag2,R1,v1,"v1 held weights shifted 2 rows (v1 accounting)",1,diagnostic,no (post-hoc),no,"E1.2 diagnosis; scripts/r1_diagnose.py"
+R1_diag_lag3,R1,v1,"v1 held weights shifted 3 rows (v1 accounting)",1,diagnostic,no (post-hoc),no,"E1.2 diagnosis; scripts/r1_diagnose.py"
+R1_diag_ex2008,R1,v1,"lags 0-3 excluding 2008-01-01..2009-06-30",4,diagnostic,no (post-hoc),no,"E1.2 diagnosis; scripts/r1_diagnose.py"

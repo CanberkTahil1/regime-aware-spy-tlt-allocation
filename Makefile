@@ -14,7 +14,7 @@ export PYTHONPYCACHEPREFIX := $(CURDIR)/.cache/pycache
 export NUMBA_CACHE_DIR := $(CURDIR)/.cache/numba
 export MPLBACKEND := Agg
 
-.PHONY: help doctor test test-nolegacy lint legacy fetch data reconcile qa ladder report-site all pin verify-pin logs
+.PHONY: help doctor test test-nolegacy lint legacy fetch data reconcile ladder report-site all pin verify-pin logs
 help:
 	@echo "make doctor | test | test-nolegacy | lint | legacy | data | ladder | report-site | all | pin | verify-pin"
 doctor:
@@ -33,6 +33,7 @@ data: logs  # R1: KF Hi 20, GSW 25y TR (TLT proxy) + 10/20/30y, H.15 bills -> da
 	$(RUN) scripts/make_data.py 2>&1 | tee logs/data.log | tail -30
 reconcile: logs  # R1: legacy reconciliation S0-S7 + data QA -> reports/r1/ (stats) + data/r1/ (local daily books)
 	$(RUN) scripts/reconcile.py 2>&1 | tee logs/reconcile.log | tail -60
+	$(RUN) scripts/r1_diagnose.py 2>&1 | tee -a logs/reconcile.log | tail -3
 	$(RUN) scripts/r1_figures.py 2>&1 | tee -a logs/reconcile.log | tail -3
 ladder: logs data  # R2-R4: L0-L8 + zoo (stub until R2)
 	$(RUN) scripts/ladder.py 2>&1 | tee logs/ladder.log | tail -20
@@ -45,4 +46,4 @@ verify-pin:  # full tree (also run by doctor)
 logs:
 	mkdir -p logs
 # Raw permitted data to every figure.
-all: data test lint reconcile ladder report-site
+all: data test lint ladder report-site  # reconcile (R1) is a local legacy target: it needs v1's cached file

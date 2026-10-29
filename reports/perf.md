@@ -39,3 +39,4 @@ Note: the grid test is marked `slow` (runtime recorded above, D0.3 amendment 5) 
 | 2026-10-28 | `make reconcile` (8 steps × 3 windows + QA) | ≤ 10 s | 1.4 s | 617 MB | yes | O(T·N) per step, numba walk |
 | 2026-10-28 | `make test` (69 tests, -n auto, max 4) | ≤ 60 s, ≤ 1.5 GB | 9.4 s | 1,140 MB | yes | — |
 | 2026-10-28 | `make report-site` | — | ~3 s | — | — | vl-convert SVG per chart × 2 themes |
+| 2026-10-28 | `make test` after the R1 review fixes (71 tests) | ≤ 60 s, ≤ 1.5 GB | 11.6 s | 1,219 MB | yes (headroom shrinking: numba + quantkit imports per worker) | — |

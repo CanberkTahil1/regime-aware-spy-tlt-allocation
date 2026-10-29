@@ -2,7 +2,7 @@
  "S2_financing_rows_negative": 0,
  "S3_equals_S4_returns_exact": true,
  "S7_min_weight": 0.0,
- "runtime_s": 1.36,
+ "runtime_s": 0.89,
  "v1_reported_turnover_signal_def": {
   "test": 18.73093379019074,
   "train": 19.88778326572923,

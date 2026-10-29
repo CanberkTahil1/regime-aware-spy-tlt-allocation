@@ -73,3 +73,30 @@ def test_rv_proxy_uses_returns_up_to_t_only():
     r2.iloc[40:] *= 5
     b = rv_proxy(r2, r.index, 20)
     assert a.iloc[:40].equals(b.iloc[:40]) and a.iloc[:19].isna().all() and np.isfinite(a.iloc[19])
+
+
+def test_reconcile_s1_is_one_row_later_and_s2_adds_cash_minus_financing(v1):
+    """Reviewer R1 MATERIAL 1: the S1 and S2 rows that E1.2 / E1.3 grade, through `reconcile` itself. S1 holds S0's
+    weights one row later; S2 − S1 = cash − financing exactly; financing ≥ 0, > 0 exactly on rows held long above 1."""
+    lb, prices, returns = v1
+    from rspy import paths
+
+    rules = paths.rules()
+    rng = np.random.default_rng(0)
+    bills = _bills(prices.index)
+    bills["bill"] = rng.uniform(0, 2e-4, len(bills))  # varying rates so a mis-aligned row would show
+    bills["mmy"] = bills["bill"] * 360 + 0.002
+    books = lb.reconcile(prices, returns, bills, prices, returns, bills, rules)
+    s0, s1, s2 = books["S0"], books["S1"], books["S2"]
+    w = ["w_SPY", "w_TLT"]
+    np.testing.assert_array_equal(s1[w].to_numpy()[1:], s0[w].to_numpy()[:-1])
+    assert not np.allclose(s1["net"], s0["net"])
+    np.testing.assert_allclose((s2["net"] - s1["net"]).to_numpy(), (s2["cash"] - s2["financing"]).to_numpy(),
+                               rtol=0, atol=1e-15)
+    longs = s1[w].clip(lower=0).sum(axis=1).to_numpy()
+    lev = longs > 1 + 1e-12
+    assert lev.any() and (s2["financing"].to_numpy()[lev] > 0).all() and (s2["financing"].to_numpy()[~lev] == 0).all()
+    b = bills.reindex(s2.index)
+    want_fin = np.maximum(longs - 1, 0) * (b["mmy"].to_numpy() + rules["accounting"]["financing_spread_bp"] * 1e-4) \
+        * b["dt"].to_numpy()
+    np.testing.assert_allclose(s2["financing"].to_numpy(), want_fin, rtol=0, atol=1e-15)
