@@ -5,8 +5,8 @@ description = "regime-aware SPY/TLT/cash allocation v2: a pre-registered ladder 
 requires-python = ">=3.12,<3.13"
 dependencies = [
     # Shared methods library: IMMUTABLE tagged install (non-editable); re-pin only with the owner's yes (CLAUDE.md).
-    # Adding an extra at the same tag is not a re-pin.
-    "quantkit[risk,viz] @ git+file:///Users/a90537/github/quantkit@v0.19.2",
+    # Adding an extra at the same tag is not a re-pin. R4 D4.3 (advisor): `ml` for the GBM zoo row (quantkit.ml.fit_cv + lightgbm).
+    "quantkit[risk,viz,ml] @ git+file:///Users/a90537/github/quantkit@v0.19.2",
     "numpy>=2.1",
     "pandas>=2.2",
     "pyarrow>=17",

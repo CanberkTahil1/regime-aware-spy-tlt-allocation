@@ -52,3 +52,11 @@ v2 result uses it.
 
 Gaps: the Ken French page has no data licence (hence the disclosed relaxation). Re-read every permitted source's terms
 before R5 (test run) and record the date here.
+
+## Software (non-data), R4 D4.3
+
+quantkit's `ml` extra, installed at the same pinned tag v0.19.2 for the GBM zoo row (`quantkit.ml.fit_cv` +
+`lightgbm`). Versions and licences are read from the installed package METADATA (uv.lock), 2026-10-29: lightgbm 4.7.0
+(MIT), scikit-learn 1.9.1 (BSD-3-Clause), xgboost 3.4.1 (Apache-2.0), catboost 1.2.10 (Apache-2.0), optuna 5.0.0
+(MIT), shap 0.54.1 (MIT). These are code licences; nothing is vendored or redistributed beyond lockfile entries, and
+none of them touches any data source's terms.
