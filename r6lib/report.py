@@ -26,9 +26,10 @@ import numpy as np
 import pandas as pd
 from quantkit.stats.power import power
 
+from r6lib import books as bk
 from r6lib import spec
 from rspy import evaluate as ev
-from rspy import testwin
+from rspy import paths, regime, rungs, testwin
 
 ANN = 252
 REF_ROWS = ["L0", "L1", "L2", "L3", "L5", "L7"]
@@ -91,7 +92,30 @@ def word(ds: float, lo: float, hi: float, cr: float, cr_lo: float, cr_hi: float)
 
 
 def verdict(dev: str, test: str) -> str:
-    return spec()["verdict"]["words"][f"{dev},{test}"]
+    """D6.4 words with the owner's post-hoc override (O6.3: "worse,better")."""
+    words = {**spec()["verdict"]["words"], **spec().get("post_hoc", {}).get("words", {})}
+    return words[f"{dev},{test}"]
+
+
+def flags(dev_clearly: bool, test_clearly: bool, power: float) -> str:
+    """O6.3: printed beside every verdict and count."""
+    c = lambda b: "clearly" if b else "not clearly"  # noqa: E731
+    return f"development {c(dev_clearly)}; test {c(test_clearly)}; test power {power:.2f}"
+
+
+SPY_LEG = "SPY proxy (KF Hi 20, value-weighted, daily)"
+
+
+def tlt_leg(row: str) -> str:
+    """The bond-leg label of a row (R5's tlt_leg convention; review R6 MINOR 3)."""
+    for m in (5, 10):
+        if f"@{m}y" in row:
+            return f"GSW {m}y constant-maturity proxy, not QA'd vs an ETF"
+    return paths.rules()["bonds"]["label"]
+
+
+def _labels(df: pd.DataFrame, col: str) -> pd.DataFrame:
+    return df.assign(spy_leg=SPY_LEG, tlt_leg=df[col].astype(str).str.replace("-line", "", regex=False).map(tlt_leg))
 
 
 # ---- comparisons -------------------------------------------------------------------------------------------------------
@@ -130,7 +154,8 @@ def evaluate(B: dict, *, workers: int = 1) -> dict:
         for x in cands:
             m.append({"row": f"{x['id']}-line", "window": w, "role": "SPY + T-bills, ex ante at the candidate's vol",
                       **ev.metrics(line[x["id"]][mask], c)})
-    out["metrics"] = pd.DataFrame(m).assign(label=lambda d: d.window.map(label), tier=lambda d: d.window.map(tier))
+    out["metrics"] = _labels(pd.DataFrame(m).assign(label=lambda d: d.window.map(label),
+                                                    tier=lambda d: d.window.map(tier)), "row")
 
     # matched comparisons
     keys, tasks, slot = [], [], {}
@@ -150,7 +175,8 @@ def evaluate(B: dict, *, workers: int = 1) -> dict:
     res = run_pairs(tasks, workers)
     cmp_ = pd.DataFrame([{**k, **res[j]} for k, j in keys])
     cmp_["reference_note"] = np.where(cmp_.reference == "line", "L0 rescaled ex post to the candidate's vol", "")
-    out["compare"] = cmp_.assign(label=lambda d: d.window.map(label), tier=lambda d: d.window.map(tier))
+    out["compare"] = _labels(cmp_.assign(label=lambda d: d.window.map(label), tier=lambda d: d.window.map(tier)),
+                             "candidate")
 
     # power at the test length (development point Sharpes and correlation vs the own parent matched on development)
     dv, ts = W["development"], W["test"]
@@ -179,12 +205,14 @@ def evaluate(B: dict, *, workers: int = 1) -> dict:
                     f"{w}_sharpe": mt.loc[(x["id"], w), "sharpe_excess"]}
         row["verdict"] = verdict(ws["development"], ws["test"])
         row["power_at_test_length"] = pw[x["id"]]
+        row["flags"] = flags(row["development_clearly"], row["test_clearly"], pw[x["id"]])
         if x["family"] == "R6e":
             for w in W:
                 t_c, t_p = mt.loc[(x["id"], w), "turnover_pa"], mt.loc[("L2", w), "turnover_pa"]
                 row[f"{w}_turnover_change_pct"] = 100.0 * (t_c / t_p - 1.0)
         v.append(row)
-    out["verdict"] = pd.DataFrame(v).assign(label_development=label("development"), label_test=label("test"))
+    out["verdict"] = _labels(pd.DataFrame(v).assign(label_development=label("development"), label_test=label("test")),
+                             "candidate")
 
     # crisis panels (test window)
     D = pd.DatetimeIndex(idx[ts])
@@ -200,8 +228,9 @@ def evaluate(B: dict, *, workers: int = 1) -> dict:
                 cz.append({"candidate": x["id"], "reference": r, "own_parent": r == x["parent"], **q,
                            "w_spy": float(h[p, 0].mean()), "w_tlt": float(h[p, 1].mean()),
                            "w_cash": float(np.maximum(1 - h[p].sum(axis=1), 0).mean())})
-    out["crisis"] = pd.DataFrame(cz).assign(label=label("test"), tier="disclosed-reuse",
-                                            note="reference matched on the whole test window; in-crisis vols not matched")
+    out["crisis"] = _labels(pd.DataFrame(cz).assign(label=label("test"), tier="disclosed-reuse",
+                                                    note="reference matched on the whole test window; in-crisis vols "
+                                                         "not matched"), "candidate")
 
     # costs
     cr = []
@@ -213,7 +242,7 @@ def evaluate(B: dict, *, workers: int = 1) -> dict:
                 cr.append({"candidate": x["id"], "window": w, "book": k, "sharpe": ev.sr(xs - c),
                            "dsharpe_vs_own_parent": ev.pair(xs, ys, c, rate, dt,
                                                             spread_bp=25.0 + (75.0 if k == "f75" else 0.0))[0]})
-    out["costs"] = pd.DataFrame(cr).assign(label=lambda d: d.window.map(label))
+    out["costs"] = _labels(pd.DataFrame(cr).assign(label=lambda d: d.window.map(label)), "candidate")
 
     # DSR
     d = spec()["dsr"]
@@ -226,9 +255,55 @@ def evaluate(B: dict, *, workers: int = 1) -> dict:
             rows[0]["pool"] = f"headline (N = {n_head}: R5/R4 N + {d['n_r6']} R6 rows)"
             rows[1]["pool"] = f"raw N = {d['test']['n_raw']} (variants.csv counted incl. R6)"
             dr += [{"candidate": x["id"], "window": w, **r} for r in rows]
-    out["dsr"] = pd.DataFrame(dr).assign(label=lambda d_: d_.window.map(label))
+    out["dsr"] = _labels(pd.DataFrame(dr).assign(label=lambda d_: d_.window.map(label)), "candidate")
+    out["placebo"] = placebos(B, W, cmp_)
     out["line_local"] = line
     return out
+
+
+# ---- D6.6 placebos (post-hoc, descriptive; one-directional) ---------------------------------------------------------
+def placebos(B: dict, W: dict, cmp_: pd.DataFrame) -> pd.DataFrame:
+    """Per R6 gate and window: the real matched ΔSharpe vs the gate's parent, the same keep block-shuffled on the
+    window's own decision rows (seeds 0–99, 12-month blocks; R3/R5 machinery) and a flat cut (the gated sleeve × the
+    window mean of the carried keep), each through the candidate's own pipeline (band, vol layer, costs, t + 1)."""
+    pz = spec()["post_hoc"]["placebo"]
+    core, inp, rows = B["core"], B["inp"], B["rows"]
+    seeds = range(pz["seeds"][0], pz["seeds"][1] + 1)
+    block = paths.prereg()["r5_test"]["placebo_descriptive"]["block_months"]
+    out = []
+    for name, g in pz["gates"].items():
+        parent, col = bk.GATES[name]
+        keep, P = bk.gate_keep(B, name), core.T[parent]
+        band = None if parent in bk.UNBANDED else core.band
+        for w, mask in W.items():
+            c, rate, dt = inp.bill[mask], inp.mmy[mask], inp.dt[mask]
+            y = B["books"][parent]["1x"].net[mask]
+
+            def ds(tg, mask=mask, y=y, c=c, rate=rate, dt=dt, band=band):
+                return ev.pair(rungs.book(tg, inp, band=band).net[mask], y, c, rate, dt)[0]
+
+            real = ev.pair(B["books"][name]["1x"].net[mask], y, c, rate, dt)[0]
+            dist = np.array([ds(regime.gate(P, regime.shuffle_decisions(keep, rows, mask, block=block, seed=s)))
+                             for s in seeds])
+            share = float(rungs.carry(keep)[mask, col].mean())
+            flat = P.copy()
+            flat[:, col] *= share
+            fl = ds(flat)
+            p05, p95 = (float(np.quantile(dist, q)) for q in (0.05, 0.95))
+            row = {"gate": name, "parent": parent, "window": w, "sleeve": g["sleeve"],
+                   "n_decisions_shuffled": int((rows & mask).sum()), "block_months": block, "n_seeds": len(dist),
+                   "dsharpe_real": real, "real_percentile": float((dist < real).mean() * 100),
+                   "placebo_median": float(np.median(dist)), "placebo_p05": p05, "placebo_p95": p95,
+                   "flat_kept_share": share, "dsharpe_flat_cut": fl, "real_minus_flat": real - fl,
+                   "inside_placebo_p05_p95": bool(p05 <= real <= p95),
+                   "timing_beats_random_and_flat": bool(real > p95 and real > fl) if w == "development" else None}
+            if "own_parent_beside" in g:
+                o = cmp_[(cmp_.candidate == name) & (cmp_.window == w) & (cmp_.kind == "own")].iloc[0]
+                row["own_parent_beside"] = f"{g['own_parent_beside']}: {o.dsharpe:+.3f}"
+            out.append(row)
+    return _labels(pd.DataFrame(out), "gate").assign(
+        label=lambda d: d.window.map(label), role="placebo, descriptive (post-hoc, D6.6); counted no; one-directional",
+        rule=lambda d: d.window.map({"development": pz["development_rule"], "test": pz["test_rule"]}))
 
 
 # ---- identity checks (prereg_r6 checks; ledger: E6.1 tolerance restated) ---------------------------------------------

@@ -130,3 +130,5 @@ Note: the grid test is marked `slow` (runtime recorded above, D0.3 amendment 5) 
 | fix: 2 threads (default) | ≤ 60 s warm, ≤ 1.5 GB | **33 s wall** (evaluate ≈ 28 s), **1,034 MB** | yes | outputs byte-identical to serial and to 4 threads |
 | fully cold (vol-zoo cache moved aside: 25y, 10y, 5y series rebuilt) | ≤ 120 s, ≤ 1.5 GB | **68.2 s** (build 39.4, evaluate 27.6), **1,222 MB** | yes | outputs byte-identical to warm |
 | `make test` (163 tests) | ≤ 60 s | 9.8 s | yes | — |
+| post-review: D6.6 placebo (800 book walks) inside `scripts/r6.py`, warm | total ≤ 60 s | **66.4 s** (evaluate 62.0 s), 1,056 MB | **no** (warm total) | profile: 41 ms per book, the per-row quantkit cost call inside the R5-locked accounting.run; threads 0.68 → 0.65 s (GIL); processes break 1.5 GB; the fix would edit a locked engine file — not done, logged in the ledger |
+| post-review, fully cold (vol-zoo cache moved aside) | ≤ 120 s, ≤ 1.5 GB | **102.7 s** (build 38.1, evaluate 63.5), 1,251 MB | yes | outputs byte-identical to warm |

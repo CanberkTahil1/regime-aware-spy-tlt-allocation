@@ -200,3 +200,69 @@ def test_r6_leaves_the_r5_lock_untouched():
     assert freeze.verify(git=False, replay=True) == []        # only the Makefile is replay-exempt (D5.9)
     lock = freeze.read()
     assert not any(f.startswith(("r6lib/", "scripts/r6", "spec/prereg_r6")) for f in lock["files"])
+
+
+# ---- review R6 MINOR 4: how `books.build` composes the candidates (timing) ---------------------------------------------
+def test_compose_gates_apply_from_the_decision_row_and_trade_next_close():
+    rng = np.random.default_rng(5)
+    idx = pd.bdate_range("2000-01-03", periods=260)
+    T = {"L2": np.column_stack([rng.uniform(0.5, 1.5, 260), np.zeros(260)]),
+         "L5": rng.uniform(0.2, 0.6, (260, 2))}
+    rows = np.r_[idx[1:].month != idx[:-1].month, False]
+    dec = np.flatnonzero(rows)
+    k_trend = np.full((260, 2), np.nan)
+    k_trend[dec] = 1.0
+    e = dec[4]
+    k_trend[e] = (0.0, 0.0)                          # both sleeves out at one month-end decision e
+    k_infl = np.full((260, 2), np.nan)
+    k_infl[dec] = (1.0, 1.0)
+    k_infl[e] = (1.0, 0.0)
+    C = books.compose(T, k_trend, k_infl, idx)
+    nxt = dec[5]
+    for name, parent, col in (("R6a_L2_trend", "L2", 0), ("R6d_L5_bondtrend", "L5", 1), ("R6c_infl", "L5", 1)):
+        tg = C[name]
+        assert np.array_equal(tg[dec[0]:e], T[parent][dec[0]:e])                 # before e: the parent
+        assert (tg[e:nxt, col] == 0).all()                                       # from the decision row e itself
+        assert np.array_equal(tg[e:nxt, 1 - col], T[parent][e:nxt, 1 - col])   # the other sleeve untouched
+        assert np.array_equal(tg[nxt:], T[parent][nxt:])                         # the next decision restores
+        R = rng.normal(0, 0.01, (260, 2))
+        b = rungs.accounting.run(tg, R, np.zeros(260), np.zeros(260), np.zeros(260), cost_rates=np.zeros(2), spread=0.0)
+        assert b.held[e + 1, col] != 0 and b.held[e + 2, col] == 0               # decided at e, traded e+1, out from e+2
+    raw = T["L2"][:, 0]
+    assert np.array_equal(C["R6e_weekly"][:, 0], books.asym(raw, idx, "weekly"))
+    assert (C["R6e_ewma5"][:, 1] == 0).all()
+
+
+def test_gate_keeps_match_the_registered_keeps():
+    k = np.array([[np.nan, np.nan], [0.0, 1.0], [1.0, 0.0]])
+    B = {"keep": {"trend": k, "infl": k * 2, "corr63": k * 3}}
+    assert np.array_equal(books.gate_keep(B, "R6a_L2_trend")[1:], [[0.0, 1.0], [1.0, 1.0]])
+    assert np.array_equal(books.gate_keep(B, "R6d_L5_bondtrend")[1:], [[1.0, 1.0], [1.0, 0.0]])
+    assert books.gate_keep(B, "R6c_infl") is B["keep"]["infl"]
+    assert set(books.GATES) == set(spec()["post_hoc"]["placebo"]["gates"])
+
+
+# ---- O6.3 / O6.4 -----------------------------------------------------------------------------------------------------
+def test_post_hoc_verdict_phrase_and_flags():
+    assert report.verdict("worse", "better") == "worse in development, better in the test"
+    assert report.verdict("same", "better") == "better only in the period that inspired it"
+    assert report.flags(True, False, 0.123) == "development clearly; test not clearly; test power 0.12"
+
+
+def test_makefile_r6_contract_and_main_makefile_locked():
+    mk6 = (paths.ROOT / "Makefile.r6").read_text()
+    assert "SHELL := /bin/bash -o pipefail" in mk6 and "UV := uv run --frozen --no-sync" in mk6
+    recipes = [ln.strip() for ln in mk6.splitlines() if ln.startswith("\t")]
+    assert all(r.startswith(("$(RUN)", "$(UV)", "$(MAKE)", "mkdir", "@$(MAKE)", "@echo")) for r in recipes), recipes
+    assert all("tee" in r for r in recipes if r.startswith("$(RUN)"))
+    assert paths.sha256(paths.ROOT / "Makefile") == freeze.read()["files"]["Makefile"]   # O6.4: byte for byte
+
+
+def test_make_freeze_verify_exits_zero():
+    """O6.4: R6 leaves R5's lock passing (the git-clean part included: run on a committed tree)."""
+    if not (paths.data_dir() / "panel.parquet").exists():
+        pytest.skip("no data/panel.parquet")
+    import subprocess
+
+    r = subprocess.run(["make", "--no-print-directory", "freeze-verify"], cwd=paths.ROOT, capture_output=True, text=True)
+    assert r.returncode == 0 and "freeze OK" in r.stdout, r.stdout + r.stderr

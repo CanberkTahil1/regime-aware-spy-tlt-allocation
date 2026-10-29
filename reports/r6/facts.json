@@ -9,6 +9,7 @@
   "mean": 0.8587896598216527,
   "reset_turnover_pa": 0.07003716870699836
  },
+ "development_words_clearly": 1,
  "gold": "R6g not run (owner O6.2): no monthly-frequency engine",
  "identity": {
   "L0_books_dev_vs_r2_exact": {
@@ -196,7 +197,12 @@
  "infl_share_development_days_tlt_out": 0.5386955946553776,
  "infl_share_test_days_tlt_out": 0.5699115044247788,
  "panel_sha256": "10aeb147043cd71222b38e754a990492eb48fc99d64c9fcc5f2b1728140f771e",
- "prereg_r6_sha256": "966103ffa6ac7612d68589b062a36b4b2a40455cb9a8f4882ae91bc8eebcfbfd",
+ "prereg_r6_sha256": "b2f06b2cee0aef9a3154e5fe788db0f7c9176292c87e2c19dc6b4cd67b670f99",
+ "test_power_range": [
+  0.009856775877975949,
+  0.29135230850712296
+ ],
+ "test_words_clearly": 0,
  "trend_share_development_days": {
   "spy_out": 0.217885963751819,
   "tlt_out": 0.31393041407593597
@@ -209,8 +215,18 @@
   "better in both periods": 2,
   "better in development only": 4,
   "better in development, worse in the test": 2,
-  "better only in the period that inspired it": 4,
-  "no real difference": 3
+  "better only in the period that inspired it": 1,
+  "no real difference": 3,
+  "worse in development, better in the test": 3
+ },
+ "verdict_counts_flagged": {
+  "better in both periods [development clearly; test not clearly]": 1,
+  "better in both periods [development not clearly; test not clearly]": 1,
+  "better in development only [development not clearly; test not clearly]": 4,
+  "better in development, worse in the test [development not clearly; test not clearly]": 2,
+  "better only in the period that inspired it [development not clearly; test not clearly]": 1,
+  "no real difference [development not clearly; test not clearly]": 3,
+  "worse in development, better in the test [development not clearly; test not clearly]": 3
  },
  "windows": {
   "development": {

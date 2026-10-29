@@ -75,3 +75,16 @@
 3. **The trend layer did well in 2022. Why not promote it?** Because promotion happens only in development, and there
    trend lowered Sharpe by 0.17 against its parent. On the test its 2022 gain is inside the range of random timing
    shuffles. One good crisis out of two, in a window chosen after the fact, is an anecdote.
+
+## R6 — Improvements suggested by R5
+
+1. **You tested ideas on the same window that suggested them. Isn't that useless?** Not useless, but it can't confirm
+   anything. Every rule was fixed before computing, and the test was labelled "disclosed reuse". Each idea was judged
+   mainly on whether it also helped in 1990–2019, which did not suggest it. Four helped only in 2020–26, three of them
+   after losing in 1990–2019. A 100-seed placebo showed the two bond switches did no better than random timing or a
+   flat bond cut.
+2. **Why did the inflation gate fail in development if inflation drives the stock–bond correlation?** It measures the
+   volatility of monthly inflation, which also spikes on oil swings, as in 2008. So it removed bonds when they hedged
+   the equity crash (CDaR 1.59× its parent). It even missed early 2022, because 2021's prints were high but steady.
+3. **Your asymmetric vol target cut turnover by a quarter. Why not adopt it?** Its Sharpe didn't move (±0.02), and at
+   3 bp a side the saving is a few basis points a year. It is an implementation detail, not an improvement.

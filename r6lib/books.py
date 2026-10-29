@@ -1,5 +1,6 @@
-"""R6 books (spec/prereg_r6.yaml candidates; D6.1–D6.3). Every rung is built by the registered R2–R5 code
-(`robust.build_core(end=…)`, `regime`, `rungs`), unchanged; R6 only composes targets and books.
+"""R6 books (spec/prereg_r6.yaml candidates; D6.1–D6.3, D6.6). Every rung is built by the registered R2–R5 code
+(`robust.build_core(end=…)`, `regime`, `rungs`), unchanged (R5-locked modules are imported, never edited); R6 only
+composes targets (`compose`, a pure function of the parents' targets and the keeps) and books.
 
 One line per transform (value at t uses data ≤ t; targets decided at close t, traded t + 1 by `accounting.run`):
 - 5y leg: `data.build.bond_leg(read_gsw(raw), 5)` → `to_sessions` on the KF sessions (the panel's own construction);
@@ -132,6 +133,33 @@ def _ones_col(k: np.ndarray, col: int) -> np.ndarray:
     return k
 
 
+def compose(T: dict, k_trend: np.ndarray, k_infl: np.ndarray, idx: pd.DatetimeIndex) -> dict:
+    """The gate / recursion candidates from the parents' daily targets T (L2, L5) and the month-end keeps (decided ≤ t;
+    `regime.gate` carries them): R6a = L2 × SPY trend keep; R6c_infl = L5 × inflation keep; R6d = L5 × TLT trend keep;
+    R6e = [asym(L2's SPY weight), 0]. Each target row t is traded at t + 1 by the accounting."""
+    def two(col0):
+        t = np.column_stack([col0, np.zeros_like(col0)])
+        t[np.isnan(col0)] = np.nan
+        return t
+
+    raw = T["L2"][:, 0]
+    return {"R6a_L2_trend": regime.gate(T["L2"], _ones_col(k_trend, 1)),
+            "R6c_infl": regime.gate(T["L5"], k_infl),
+            "R6d_L5_bondtrend": regime.gate(T["L5"], _ones_col(k_trend, 0)),
+            "R6e_weekly": two(asym(raw, idx, "weekly")),
+            "R6e_ewma5": two(asym(raw, idx, "ewma5"))}
+
+
+GATES = {"R6a_L2_trend": ("L2", 0), "R6c_infl": ("L5", 1), "R6d_L5_bondtrend": ("L5", 1), "R6c_L6-63": ("L5", 1)}
+
+
+def gate_keep(B: dict, name: str) -> np.ndarray:
+    """The month-end keep each R6 gate applies to its parent (D6.6), as `compose` / R3 use it."""
+    k = B["keep"]
+    return {"R6a_L2_trend": _ones_col(k["trend"], 1), "R6c_infl": k["infl"], "R6d_L5_bondtrend": _ones_col(k["trend"], 0),
+            "R6c_L6-63": k["corr63"]}[name]
+
+
 def build(panel: pd.DataFrame, cpi_state: pd.DataFrame) -> dict:
     """Every candidate and reference book (1×, 2×, 3×, +75 bp) over 1986-01-02 → the test end."""
     e = end()
@@ -146,21 +174,10 @@ def build(panel: pd.DataFrame, cpi_state: pd.DataFrame) -> dict:
     k_infl = cpi.keep(idx, rows, cpi_state)
     carried = int((~np.isfinite(k_infl[rows & dev])).any(axis=1).sum())
     regime.check_coverage("R6c_infl", k_infl, rows & dev)   # raises on any undefined scored decision
-    k_spy = _ones_col(k_trend, 1)
-    k_tlt = _ones_col(k_trend, 0)
     raw = core.T["L2"][:, 0]
-
-    def two(col0):
-        t = np.column_stack([col0, np.zeros_like(col0)])
-        t[np.isnan(col0)] = np.nan
-        return t
-
-    T = {"R6a_L2_trend": (regime.gate(core.T["L2"], k_spy), None, core),
-         "R6c_L6-63": (core.T["L6-63"], band, core),
-         "R6c_infl": (regime.gate(core.T["L5"], k_infl), band, core),
-         "R6d_L5_bondtrend": (regime.gate(core.T["L5"], k_tlt), band, core),
-         "R6e_weekly": (two(asym(raw, idx, "weekly")), None, core),
-         "R6e_ewma5": (two(asym(raw, idx, "ewma5")), None, core)}
+    C = compose(core.T, k_trend, k_infl, idx)
+    T = {k: (v, None if k.startswith(("R6a", "R6e")) else band, core) for k, v in C.items()}
+    T["R6c_L6-63"] = (core.T["L6-63"], band, core)
     for row in spec()["candidates"]["R6b"]["rows"]:
         c = core5 if row["maturity"] == 5 else core10
         T[row["id"]] = (c.T[row["rung"]], None if row["rung"] in UNBANDED else band, c)
@@ -178,4 +195,5 @@ def build(panel: pd.DataFrame, cpi_state: pd.DataFrame) -> dict:
         books["R6f_blend"][k] = Fund(idx, f["net"], f["held"], f["turnover"], f["cost"], f["financing"],
                                      f["gross_exposure"], f["reset_turnover"])
     return {"core": core, "core10": core10, "core5": core5, "books": books, "inp": inp, "rows": rows,
-            "keep": {"trend": k_trend, "infl": k_infl}, "infl_carried_scored": carried, "raw_l2": raw}
+            "keep": {"trend": k_trend, "infl": k_infl, "corr63": core.keep["corr63"]}, "infl_carried_scored": carried,
+            "raw_l2": raw}

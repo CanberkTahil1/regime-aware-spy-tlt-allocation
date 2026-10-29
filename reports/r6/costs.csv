@@ -1,121 +1,121 @@
-candidate,window,book,sharpe,dsharpe_vs_own_parent,label
-R6a_L2_trend,development,1x,0.5353461353,0.002042956337,in-sample
-R6a_L2_trend,development,2x,0.5149821544,0.0008398703076,in-sample
-R6a_L2_trend,development,3x,0.4946136989,-0.0003665098596,in-sample
-R6a_L2_trend,development,f75,0.5187771648,0.00104902073,in-sample
-R6b_L3@5y,development,1x,0.6255272082,-0.06912268591,in-sample
-R6b_L3@5y,development,2x,0.625409452,-0.06913095261,in-sample
-R6b_L3@5y,development,3x,0.6252916911,-0.06913921657,in-sample
-R6b_L3@5y,development,f75,0.6255272082,-0.06912268591,in-sample
-R6b_L4@5y,development,1x,0.9460296542,0.1242333441,in-sample
-R6b_L4@5y,development,2x,0.9452984798,0.1241549748,in-sample
-R6b_L4@5y,development,3x,0.9445670606,0.1240765004,in-sample
-R6b_L4@5y,development,f75,0.9460296542,0.1242333441,in-sample
-R6b_L5@5y,development,1x,0.9449468585,0.1116926178,in-sample
-R6b_L5@5y,development,2x,0.944111904,0.1121689453,in-sample
-R6b_L5@5y,development,3x,0.9432767374,0.1126452976,in-sample
-R6b_L5@5y,development,f75,0.9449468585,0.1116926178,in-sample
-R6b_L7@5y,development,1x,0.8125647942,0.2330059875,in-sample
-R6b_L7@5y,development,2x,0.8044307673,0.2307925406,in-sample
-R6b_L7@5y,development,3x,0.7962732304,0.2285607012,in-sample
-R6b_L7@5y,development,f75,0.8125647942,0.2330059875,in-sample
-R6b_L3@10y,development,1x,0.6712941711,-0.02335572301,in-sample
-R6b_L3@10y,development,2x,0.6711835337,-0.02335687087,in-sample
-R6b_L3@10y,development,3x,0.6710728907,-0.02335801701,in-sample
-R6b_L3@10y,development,f75,0.6712941711,-0.02335572301,in-sample
-R6b_L4@10y,development,1x,0.9024720108,0.08067570067,in-sample
-R6b_L4@10y,development,2x,0.9017416177,0.0805981127,in-sample
-R6b_L4@10y,development,3x,0.9010110351,0.08052047488,in-sample
-R6b_L4@10y,development,f75,0.9024720108,0.08067570067,in-sample
-R6b_L5@10y,development,1x,0.9060139288,0.07275968813,in-sample
-R6b_L5@10y,development,2x,0.9050279116,0.07308495292,in-sample
-R6b_L5@10y,development,3x,0.9040417056,0.07341026577,in-sample
-R6b_L5@10y,development,f75,0.9060139288,0.07275968813,in-sample
-R6b_L7@10y,development,1x,0.6739176971,0.09435889047,in-sample
-R6b_L7@10y,development,2x,0.6674493549,0.09381112827,in-sample
-R6b_L7@10y,development,3x,0.6609725076,0.09325997842,in-sample
-R6b_L7@10y,development,f75,0.6739176971,0.09435889047,in-sample
-R6c_L6-63,development,1x,0.7836798088,0.03186345628,in-sample
-R6c_L6-63,development,2x,0.7808492867,0.03132005688,in-sample
-R6c_L6-63,development,3x,0.7780167455,0.03077601802,in-sample
-R6c_L6-63,development,f75,0.7836798088,0.03186345628,in-sample
-R6c_infl,development,1x,0.787301572,-0.04595266871,in-sample
-R6c_infl,development,2x,0.785244347,-0.04669861167,in-sample
-R6c_infl,development,3x,0.7831857992,-0.04744564057,in-sample
-R6c_infl,development,f75,0.787301572,-0.04595266871,in-sample
-R6d_L5_bondtrend,development,1x,0.7233960071,-0.1098582336,in-sample
-R6d_L5_bondtrend,development,2x,0.7196000836,-0.1123428751,in-sample
-R6d_L5_bondtrend,development,3x,0.7158014629,-0.1148299769,in-sample
-R6d_L5_bondtrend,development,f75,0.7233960071,-0.1098582336,in-sample
-R6e_weekly,development,1x,0.5399639542,0.006660775236,in-sample
-R6e_weekly,development,2x,0.5247648199,0.01062253581,in-sample
-R6e_weekly,development,3x,0.5095631659,0.0145829571,in-sample
-R6e_weekly,development,f75,0.5254742491,0.007746105049,in-sample
-R6e_ewma5,development,1x,0.5378856201,0.004582441126,in-sample
-R6e_ewma5,development,2x,0.5238889354,0.009746651259,in-sample
-R6e_ewma5,development,3x,0.5098911295,0.01491092071,in-sample
-R6e_ewma5,development,f75,0.5230319052,0.005303761185,in-sample
-R6f_blend,development,1x,0.661448118,0.1815210047,in-sample
-R6f_blend,development,2x,0.6493857244,0.1694586111,in-sample
-R6f_blend,development,3x,0.6373239903,0.157396877,in-sample
-R6f_blend,development,f75,0.6528741496,0.1729470363,in-sample
-R6a_L2_trend,test,1x,0.5584353888,-0.1669526259,disclosed reuse: ideas inspired by this window
-R6a_L2_trend,test,2x,0.5364926177,-0.1697246487,disclosed reuse: ideas inspired by this window
-R6a_L2_trend,test,3x,0.5145406304,-0.1725025726,disclosed reuse: ideas inspired by this window
-R6a_L2_trend,test,f75,0.5475320765,-0.1679503409,disclosed reuse: ideas inspired by this window
-R6b_L3@5y,test,1x,0.6136910754,0.1362933429,disclosed reuse: ideas inspired by this window
-R6b_L3@5y,test,2x,0.6135671658,0.1363511878,disclosed reuse: ideas inspired by this window
-R6b_L3@5y,test,3x,0.6134432528,0.1364090339,disclosed reuse: ideas inspired by this window
-R6b_L3@5y,test,f75,0.6136910754,0.1362933429,disclosed reuse: ideas inspired by this window
-R6b_L4@5y,test,1x,0.1402884814,-0.0160374211,disclosed reuse: ideas inspired by this window
-R6b_L4@5y,test,2x,0.1396141247,-0.01615901674,disclosed reuse: ideas inspired by this window
-R6b_L4@5y,test,3x,0.1389397528,-0.0162806199,disclosed reuse: ideas inspired by this window
-R6b_L4@5y,test,f75,0.1402884814,-0.0160374211,disclosed reuse: ideas inspired by this window
-R6b_L5@5y,test,1x,0.1194757902,0.00335836122,disclosed reuse: ideas inspired by this window
-R6b_L5@5y,test,2x,0.1182253455,0.006913469752,disclosed reuse: ideas inspired by this window
-R6b_L5@5y,test,3x,0.1169746635,0.01046864912,disclosed reuse: ideas inspired by this window
-R6b_L5@5y,test,f75,0.1194757902,0.00335836122,disclosed reuse: ideas inspired by this window
-R6b_L7@5y,test,1x,0.4802595702,0.1506570859,disclosed reuse: ideas inspired by this window
-R6b_L7@5y,test,2x,0.4705718709,0.1506592228,disclosed reuse: ideas inspired by this window
-R6b_L7@5y,test,3x,0.4608647789,0.1506460396,disclosed reuse: ideas inspired by this window
-R6b_L7@5y,test,f75,0.4802595702,0.1506570859,disclosed reuse: ideas inspired by this window
-R6b_L3@10y,test,1x,0.5705757403,0.09317800783,disclosed reuse: ideas inspired by this window
-R6b_L3@10y,test,2x,0.5704466513,0.09323067337,disclosed reuse: ideas inspired by this window
-R6b_L3@10y,test,3x,0.5703175588,0.09328333987,disclosed reuse: ideas inspired by this window
-R6b_L3@10y,test,f75,0.5705757403,0.09317800783,disclosed reuse: ideas inspired by this window
-R6b_L4@10y,test,1x,0.1515109809,-0.004814921674,disclosed reuse: ideas inspired by this window
-R6b_L4@10y,test,2x,0.150967574,-0.004805567434,disclosed reuse: ideas inspired by this window
-R6b_L4@10y,test,3x,0.1504241531,-0.004796219595,disclosed reuse: ideas inspired by this window
-R6b_L4@10y,test,f75,0.1515109809,-0.004814921674,disclosed reuse: ideas inspired by this window
-R6b_L5@10y,test,1x,0.1152643758,-0.0008530532053,disclosed reuse: ideas inspired by this window
-R6b_L5@10y,test,2x,0.1127702062,0.001458330463,disclosed reuse: ideas inspired by this window
-R6b_L5@10y,test,3x,0.1102758185,0.003769804198,disclosed reuse: ideas inspired by this window
-R6b_L5@10y,test,f75,0.1152643758,-0.0008530532053,disclosed reuse: ideas inspired by this window
-R6b_L7@10y,test,1x,0.4079993999,0.07839691556,disclosed reuse: ideas inspired by this window
-R6b_L7@10y,test,2x,0.3994220492,0.0795094011,disclosed reuse: ideas inspired by this window
-R6b_L7@10y,test,3x,0.390835318,0.08061657878,disclosed reuse: ideas inspired by this window
-R6b_L7@10y,test,f75,0.4079993999,0.07839691556,disclosed reuse: ideas inspired by this window
-R6c_L6-63,test,1x,0.1015962842,-0.01553661526,disclosed reuse: ideas inspired by this window
-R6c_L6-63,test,2x,0.09477229662,-0.0155628666,disclosed reuse: ideas inspired by this window
-R6c_L6-63,test,3x,0.0879487617,-0.01558854255,disclosed reuse: ideas inspired by this window
-R6c_L6-63,test,f75,0.1015962842,-0.01553661526,disclosed reuse: ideas inspired by this window
-R6c_infl,test,1x,0.5004069921,0.3842895632,disclosed reuse: ideas inspired by this window
-R6c_infl,test,2x,0.4950332988,0.3837214231,disclosed reuse: ideas inspired by this window
-R6c_infl,test,3x,0.4896581823,0.3831521679,disclosed reuse: ideas inspired by this window
-R6c_infl,test,f75,0.5004069921,0.3842895632,disclosed reuse: ideas inspired by this window
-R6d_L5_bondtrend,test,1x,0.3642629607,0.2481455317,disclosed reuse: ideas inspired by this window
-R6d_L5_bondtrend,test,2x,0.3573833308,0.2460714551,disclosed reuse: ideas inspired by this window
-R6d_L5_bondtrend,test,3x,0.3505018251,0.2439958108,disclosed reuse: ideas inspired by this window
-R6d_L5_bondtrend,test,f75,0.3642629607,0.2481455317,disclosed reuse: ideas inspired by this window
-R6e_weekly,test,1x,0.7025864534,-0.02280156133,disclosed reuse: ideas inspired by this window
-R6e_weekly,test,2x,0.6872808638,-0.01893640257,disclosed reuse: ideas inspired by this window
-R6e_weekly,test,3x,0.6719704279,-0.01507277513,disclosed reuse: ideas inspired by this window
-R6e_weekly,test,f75,0.6937923532,-0.02169006424,disclosed reuse: ideas inspired by this window
-R6e_ewma5,test,1x,0.7115914381,-0.01379657666,disclosed reuse: ideas inspired by this window
-R6e_ewma5,test,2x,0.6977391927,-0.008478073738,disclosed reuse: ideas inspired by this window
-R6e_ewma5,test,3x,0.6838840042,-0.003159198772,disclosed reuse: ideas inspired by this window
-R6e_ewma5,test,f75,0.7024394888,-0.01304292867,disclosed reuse: ideas inspired by this window
-R6f_blend,test,1x,0.61635877,-0.06577560779,disclosed reuse: ideas inspired by this window
-R6f_blend,test,2x,0.6045060828,-0.07762829504,disclosed reuse: ideas inspired by this window
-R6f_blend,test,3x,0.592654186,-0.08948019183,disclosed reuse: ideas inspired by this window
-R6f_blend,test,f75,0.6113316376,-0.07080274023,disclosed reuse: ideas inspired by this window
+candidate,window,book,sharpe,dsharpe_vs_own_parent,label,spy_leg,tlt_leg
+R6a_L2_trend,development,1x,0.5353461353,0.002042956337,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6a_L2_trend,development,2x,0.5149821544,0.0008398703076,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6a_L2_trend,development,3x,0.4946136989,-0.0003665098596,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6a_L2_trend,development,f75,0.5187771648,0.00104902073,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6b_L3@5y,development,1x,0.6255272082,-0.06912268591,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L3@5y,development,2x,0.625409452,-0.06913095261,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L3@5y,development,3x,0.6252916911,-0.06913921657,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L3@5y,development,f75,0.6255272082,-0.06912268591,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L4@5y,development,1x,0.9460296542,0.1242333441,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L4@5y,development,2x,0.9452984798,0.1241549748,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L4@5y,development,3x,0.9445670606,0.1240765004,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L4@5y,development,f75,0.9460296542,0.1242333441,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L5@5y,development,1x,0.9449468585,0.1116926178,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L5@5y,development,2x,0.944111904,0.1121689453,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L5@5y,development,3x,0.9432767374,0.1126452976,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L5@5y,development,f75,0.9449468585,0.1116926178,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L7@5y,development,1x,0.8125647942,0.2330059875,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L7@5y,development,2x,0.8044307673,0.2307925406,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L7@5y,development,3x,0.7962732304,0.2285607012,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L7@5y,development,f75,0.8125647942,0.2330059875,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L3@10y,development,1x,0.6712941711,-0.02335572301,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L3@10y,development,2x,0.6711835337,-0.02335687087,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L3@10y,development,3x,0.6710728907,-0.02335801701,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L3@10y,development,f75,0.6712941711,-0.02335572301,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L4@10y,development,1x,0.9024720108,0.08067570067,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L4@10y,development,2x,0.9017416177,0.0805981127,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L4@10y,development,3x,0.9010110351,0.08052047488,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L4@10y,development,f75,0.9024720108,0.08067570067,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L5@10y,development,1x,0.9060139288,0.07275968813,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L5@10y,development,2x,0.9050279116,0.07308495292,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L5@10y,development,3x,0.9040417056,0.07341026577,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L5@10y,development,f75,0.9060139288,0.07275968813,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L7@10y,development,1x,0.6739176971,0.09435889047,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L7@10y,development,2x,0.6674493549,0.09381112827,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L7@10y,development,3x,0.6609725076,0.09325997842,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L7@10y,development,f75,0.6739176971,0.09435889047,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6c_L6-63,development,1x,0.7836798088,0.03186345628,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6c_L6-63,development,2x,0.7808492867,0.03132005688,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6c_L6-63,development,3x,0.7780167455,0.03077601802,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6c_L6-63,development,f75,0.7836798088,0.03186345628,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6c_infl,development,1x,0.787301572,-0.04595266871,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6c_infl,development,2x,0.785244347,-0.04669861167,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6c_infl,development,3x,0.7831857992,-0.04744564057,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6c_infl,development,f75,0.787301572,-0.04595266871,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6d_L5_bondtrend,development,1x,0.7233960071,-0.1098582336,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6d_L5_bondtrend,development,2x,0.7196000836,-0.1123428751,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6d_L5_bondtrend,development,3x,0.7158014629,-0.1148299769,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6d_L5_bondtrend,development,f75,0.7233960071,-0.1098582336,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6e_weekly,development,1x,0.5399639542,0.006660775236,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6e_weekly,development,2x,0.5247648199,0.01062253581,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6e_weekly,development,3x,0.5095631659,0.0145829571,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6e_weekly,development,f75,0.5254742491,0.007746105049,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6e_ewma5,development,1x,0.5378856201,0.004582441126,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6e_ewma5,development,2x,0.5238889354,0.009746651259,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6e_ewma5,development,3x,0.5098911295,0.01491092071,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6e_ewma5,development,f75,0.5230319052,0.005303761185,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6f_blend,development,1x,0.661448118,0.1815210047,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6f_blend,development,2x,0.6493857244,0.1694586111,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6f_blend,development,3x,0.6373239903,0.157396877,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6f_blend,development,f75,0.6528741496,0.1729470363,in-sample,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6a_L2_trend,test,1x,0.5584353888,-0.1669526259,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6a_L2_trend,test,2x,0.5364926177,-0.1697246487,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6a_L2_trend,test,3x,0.5145406304,-0.1725025726,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6a_L2_trend,test,f75,0.5475320765,-0.1679503409,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6b_L3@5y,test,1x,0.6136910754,0.1362933429,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L3@5y,test,2x,0.6135671658,0.1363511878,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L3@5y,test,3x,0.6134432528,0.1364090339,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L3@5y,test,f75,0.6136910754,0.1362933429,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L4@5y,test,1x,0.1402884814,-0.0160374211,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L4@5y,test,2x,0.1396141247,-0.01615901674,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L4@5y,test,3x,0.1389397528,-0.0162806199,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L4@5y,test,f75,0.1402884814,-0.0160374211,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L5@5y,test,1x,0.1194757902,0.00335836122,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L5@5y,test,2x,0.1182253455,0.006913469752,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L5@5y,test,3x,0.1169746635,0.01046864912,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L5@5y,test,f75,0.1194757902,0.00335836122,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L7@5y,test,1x,0.4802595702,0.1506570859,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L7@5y,test,2x,0.4705718709,0.1506592228,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L7@5y,test,3x,0.4608647789,0.1506460396,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L7@5y,test,f75,0.4802595702,0.1506570859,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 5y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L3@10y,test,1x,0.5705757403,0.09317800783,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L3@10y,test,2x,0.5704466513,0.09323067337,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L3@10y,test,3x,0.5703175588,0.09328333987,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L3@10y,test,f75,0.5705757403,0.09317800783,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L4@10y,test,1x,0.1515109809,-0.004814921674,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L4@10y,test,2x,0.150967574,-0.004805567434,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L4@10y,test,3x,0.1504241531,-0.004796219595,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L4@10y,test,f75,0.1515109809,-0.004814921674,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L5@10y,test,1x,0.1152643758,-0.0008530532053,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L5@10y,test,2x,0.1127702062,0.001458330463,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L5@10y,test,3x,0.1102758185,0.003769804198,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L5@10y,test,f75,0.1152643758,-0.0008530532053,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L7@10y,test,1x,0.4079993999,0.07839691556,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L7@10y,test,2x,0.3994220492,0.0795094011,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L7@10y,test,3x,0.390835318,0.08061657878,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6b_L7@10y,test,f75,0.4079993999,0.07839691556,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","GSW 10y constant-maturity proxy, not QA'd vs an ETF"
+R6c_L6-63,test,1x,0.1015962842,-0.01553661526,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6c_L6-63,test,2x,0.09477229662,-0.0155628666,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6c_L6-63,test,3x,0.0879487617,-0.01558854255,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6c_L6-63,test,f75,0.1015962842,-0.01553661526,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6c_infl,test,1x,0.5004069921,0.3842895632,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6c_infl,test,2x,0.4950332988,0.3837214231,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6c_infl,test,3x,0.4896581823,0.3831521679,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6c_infl,test,f75,0.5004069921,0.3842895632,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6d_L5_bondtrend,test,1x,0.3642629607,0.2481455317,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6d_L5_bondtrend,test,2x,0.3573833308,0.2460714551,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6d_L5_bondtrend,test,3x,0.3505018251,0.2439958108,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6d_L5_bondtrend,test,f75,0.3642629607,0.2481455317,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6e_weekly,test,1x,0.7025864534,-0.02280156133,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6e_weekly,test,2x,0.6872808638,-0.01893640257,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6e_weekly,test,3x,0.6719704279,-0.01507277513,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6e_weekly,test,f75,0.6937923532,-0.02169006424,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6e_ewma5,test,1x,0.7115914381,-0.01379657666,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6e_ewma5,test,2x,0.6977391927,-0.008478073738,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6e_ewma5,test,3x,0.6838840042,-0.003159198772,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6e_ewma5,test,f75,0.7024394888,-0.01304292867,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6f_blend,test,1x,0.61635877,-0.06577560779,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6f_blend,test,2x,0.6045060828,-0.07762829504,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6f_blend,test,3x,0.592654186,-0.08948019183,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"
+R6f_blend,test,f75,0.6113316376,-0.07080274023,disclosed reuse: ideas inspired by this window,"SPY proxy (KF Hi 20, value-weighted, daily)","TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"

@@ -30,6 +30,7 @@ cmp_ = pd.read_csv(R / "compare.csv")
 m = pd.read_csv(R / "metrics.csv")
 cz = pd.read_csv(R / "crisis.csv")
 costs = pd.read_csv(R / "costs.csv")
+plc = pd.read_csv(R / "placebo.csv")
 dsr = pd.read_csv(R / "dsr.csv")
 facts = json.loads((R / "facts.json").read_text())
 
@@ -48,7 +49,7 @@ NOTE = (f"Development {W['development']['first']} → {W['development']['last']}
         "proxy (KF Hi 20); TLT = " + paths.rules()["bonds"]["label"] + "; 5y/10y legs: GSW constant maturity, not QA'd "
         "vs an ETF.")
 COL = {"better in both periods": fg.BLUE, "better only in the period that inspired it": fg.ORANGE,
-       "better in development only": fg.AQUA, "better in development, worse in the test": fg.YELLOW,
+       "better in development only": fg.AQUA, "worse in development, better in the test": fg.RED, "better in development, worse in the test": fg.YELLOW,
        "no real difference": fg.NEUTRAL, "worse": fg.RED, "worse in both periods": fg.RED}
 
 
@@ -67,7 +68,8 @@ for yi, r in zip(yy, v.itertuples(index=False), strict=True):
     ax.plot(r.development_dsharpe, yi + 0.15, "o", color=fg.AQUA, ms=5)
     ax.plot([r.test_lo, r.test_hi], [yi - 0.15, yi - 0.15], color=fg.ORANGE, lw=2, alpha=0.45)
     ax.plot(r.test_dsharpe, yi - 0.15, "o", color=fg.ORANGE, ms=5)
-    ax.text(1.02, yi, r.verdict, transform=ax.get_yaxis_transform(), fontsize=7, va="center", color=COL[r.verdict])
+    ax.text(1.02, yi + 0.18, r.verdict, transform=ax.get_yaxis_transform(), fontsize=7, va="center", color=COL[r.verdict])
+    ax.text(1.02, yi - 0.2, r.flags, transform=ax.get_yaxis_transform(), fontsize=6, va="center", color=fg.MUTED)
 for xv, ls in ((0, "-"), (0.05, ":"), (-0.05, ":")):
     ax.axvline(xv, color=fg.BASE if xv == 0 else fg.MUTED, lw=1 if xv == 0 else 0.8, ls=ls)
 ax.set_yticks(yy, [f"{LAB[r.candidate]} vs {LAB[r.own_parent]}" for r in v.itertuples(index=False)], fontsize=8)
@@ -76,7 +78,9 @@ ax.set_title("R6: each post-test idea vs the rung it changes, development and te
 ax.plot([], [], "o", color=fg.AQUA, label="development 1990–2019 (in-sample)")
 ax.plot([], [], "o", color=fg.ORANGE, label="test 2020–2026 (inspired the idea)")
 ax.legend(fontsize=7, loc="lower left")
-note(fig)
+note(fig, f"Intervals excluding 0: development {facts['development_words_clearly']} of 15, test "
+     f"{facts['test_words_clearly']} of 15; test power {facts['test_power_range'][0]:.2f}–{facts['test_power_range'][1]:.2f}"
+     " (O6.3). Placebo (D6.6, post-hoc): see r6_placebo_gates.")
 fg.save(fig, OUT, "r6_dsharpe_own_parent_dev_vs_test")
 
 # 2. development vs test scatter: the 'inspired it' quadrant -----------------------------------------------------------------
@@ -194,6 +198,27 @@ axes[0].legend(fontsize=7, ncol=4)
 axes[0].set_title("Costs and financing stress: candidate and parent stressed alike")
 note(fig, y=-0.1)
 fg.save(fig, OUT, "r6_costs_dsharpe_vs_own_parent")
+
+# 9b. D6.6 placebos: each gate vs its shuffled timings and a flat cut ---------------------------------------------------
+fig, axes = plt.subplots(1, 2, figsize=(11, 3.6), sharey=True)
+gates = list(dict.fromkeys(plc.gate))
+for ax, w in zip(axes, ["development", "test"], strict=True):
+    d = plc[plc.window == w].set_index("gate").loc[gates]
+    yy = np.arange(len(gates))[::-1]
+    ax.hlines(yy, d.placebo_p05, d.placebo_p95, color=fg.NEUTRAL, lw=6, alpha=0.35, label="shuffled timing p05–p95")
+    ax.plot(d.placebo_median, yy, "|", color=fg.NEUTRAL, ms=12, label="shuffled median")
+    ax.plot(d.dsharpe_flat_cut, yy, "D", color=fg.ORANGE, ms=5, label="flat cut (same average exposure)")
+    ax.plot(d.dsharpe_real, yy, "o", color=fg.BLUE, ms=7, label="the gate")
+    ax.axvline(0, color=fg.BASE)
+    ax.set_title(f"{w} ({'in-sample' if w == 'development' else 'disclosed reuse'})")
+    ax.set_xlabel("ΔSharpe vs the gate's parent (matched)")
+axes[0].set_yticks(yy, [f"{LAB[g]} (vs {LAB[plc[plc.gate == g].parent.iloc[0]]})" for g in gates], fontsize=8)
+axes[0].legend(fontsize=7, loc="lower left")
+note(fig, "POST-HOC (D6.6, raised by review after results; the reviewer's 40-seed probe was seen first): the gate's month-"
+     "end decisions block-shuffled within the window (12-month blocks, seeds 0–99) and a flat cut, each through the "
+     "candidate's own pipeline. Development decides (beats = above p95 and above the flat cut; none does); the test only "
+     "qualifies (about 7 blocks).", y=-0.08)
+fg.save(fig, OUT, "r6_placebo_gates")
 
 # 9. the inflation gate (public-domain BLS CPI): v vs its 10-year median ---------------------------------------------------
 st = pd.read_parquet(cpi.data_dir() / "cpi_state.parquet") if (cpi.data_dir() / "cpi_state.parquet").exists() else None

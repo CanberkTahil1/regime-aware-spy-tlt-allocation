@@ -620,6 +620,26 @@ runs, fixed before any table was read:
 
 | ID | Expectation (band) | Source | Status |
 |---|---|---|---|
-| E6.14 | placebo (D6.6): on the test, R6c_infl's and R6d's real ΔSharpe vs L5 sit inside their placebo p05–p95, and neither exceeds its flat cut by more than +0.10; in development, no R6 gate has timing_beats_random_and_flat = yes | reviewer probe (seen); author | open |
+| E6.14 | placebo (D6.6): on the test, R6c_infl's and R6d's real ΔSharpe vs L5 sit inside their placebo p05–p95, and neither exceeds its flat cut by more than +0.10; in development, no R6 gate has timing_beats_random_and_flat = yes | reviewer probe (seen); author | **held** — reports/r6/placebo.csv (100 seeds): test R6c_infl +0.384 at percentile 64 (p05–p95 +0.163 … +0.591), +0.059 vs its flat cut; R6d +0.248 at percentile 31 (+0.027 … +0.515), −0.042 vs its flat cut; development timing_beats_random_and_flat False for all four gates. Also: R6c_L6-63 test at percentile 5 (outside p05–p95, below random timing) |
 - **O6.4 applied:** the Makefile was restored from 7cd15b7^ (sha256 2020ab31…, equal to the lock), and the R6 targets
   moved to `Makefile.r6` (`make -f Makefile.r6 all`; `r6-data` once, by hand).
+
+**After the review (2026-10-29; dispositions in reports/reviews/R6.md):**
+- **Rerun.** `scripts/r6.py` reran after the post-hoc addendum. Every pre-existing number is unchanged; the identity
+  checks still pass (41) with 0 carried decisions.
+- **Verdict counts after O6.3** (registered words → post-hoc words): "better only in the period that inspired it"
+  4 → 1, and the new "worse in development, better in the test" 3 (R6b_L3@5y, R6c_infl, R6d). The other counts are
+  unchanged.
+- **E6.11** was judged on the registered words and stays held. Under the post-hoc words its second part (≥ 4 "better
+  only …") would read 1. Shown, not re-scored.
+- **Flags.** Test-window words with an interval excluding 0: 0 of 15. Development: 1 (R6b_L7@5y). Test power
+  0.01–0.29.
+- **Perf after D6.6.** The placebo adds 800 book walks (4 gates × 2 windows × 100 seeds). Warm `scripts/r6.py` is
+  **66 s (budget ≤ 60 s: missed)**, 1,056 MB. Profile: 41 ms per book, almost all in the per-row Python cost call
+  inside the R5-locked `rspy.accounting.run` (quantkit `Proportional`, 10,264 calls). Threads give nothing (GIL-bound,
+  measured 0.68 → 0.65 s on 16 books), and spawned processes break the 1.5 GB budget.
+  - Not fixed: the only fixes edit a locked engine file or re-implement its quantkit cost call, both of which the
+    charter forbids.
+  - Fully cold (vol-zoo cache moved aside) measured **102.7 s, 1,251 MB**, inside the ≤ 120 s / 1.5 GB cold budget;
+    outputs byte-identical to warm.
+- **O6.4.** `make freeze-verify` → "freeze OK"; `make -f Makefile.r6 all` replaces `make r6`.

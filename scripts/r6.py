@@ -2,7 +2,7 @@
 development 1990-01-02 → 2019-12-31 ("in-sample") and test 2020-01-02 → 2026-09-30 ("disclosed reuse: ideas inspired by
 this window"). Reads the R5-locked panel and the BLS CPI files; never writes reports/r5 or anything R5 locked.
 
-Committed (statistics only): reports/r6/{metrics, compare, verdict, crisis, costs, dsr}.csv, facts.json, run.json
+Committed (statistics only): reports/r6/{metrics, compare, verdict, crisis, costs, dsr, placebo}.csv, facts.json, run.json
 (hashes only; timing goes to logs/r6_timing.json).
 Local only (gitignored, KF-derived daily series): data/r6/books.parquet. Refuses if the CPI files fail their manifest,
 if prereg_r6's sha256 differs from the one in reports/ledger.md, or if an identity check misses its tolerance.
@@ -19,7 +19,7 @@ from r6lib import SPEC, books, cpi, data_dir, report, spec
 from rspy import paths
 from rspy.data import build as dbuild
 
-TABLES = ("metrics", "compare", "verdict", "crisis", "costs", "dsr")
+TABLES = ("metrics", "compare", "verdict", "crisis", "costs", "dsr", "placebo")
 
 
 def main() -> None:
@@ -70,6 +70,10 @@ def main() -> None:
             "cpi_missing_months": [str(m) for m in st.index[st.cpi.isna()]]},
         **f,
         "verdict_counts": v.verdict.value_counts().to_dict(),
+        "verdict_counts_flagged": (v.verdict + " [" + v["flags"].str.replace(r"; test power.*", "", regex=True) + "]")
+        .value_counts().to_dict(),
+        "test_words_clearly": int(v.test_clearly.sum()), "development_words_clearly": int(v.development_clearly.sum()),
+        "test_power_range": [float(v.power_at_test_length.min()), float(v.power_at_test_length.max())],
         "prereg_r6_sha256": h, "panel_sha256": paths.sha256(paths.data_dir() / "panel.parquet"),
         "gold": "R6g not run (owner O6.2): no monthly-frequency engine",
         "workers": a.workers,

@@ -306,19 +306,41 @@ def tables_r6(m: pd.DataFrame, cmp_: pd.DataFrame, v: pd.DataFrame, facts: dict)
     return {"summary": summary, "windows": windows}
 
 
-def r6_verdicts(v: pd.DataFrame, facts: dict) -> list[dict]:
+def r6_verdicts(v: pd.DataFrame, facts: dict, plc: pd.DataFrame | None = None) -> list[dict]:
     """The common-sense verdicts (D6.4) and the counts, built from reports/r6/verdict.csv and facts.json."""
     out = [{"id": "R6 summary", "tier": "disclosed-reuse",
             "text": "Ideas tried after the test (owner, 2026-10-29), each vs the rung it changes at matched risk; "
                     "development in-sample, test 2020-01 → 2026-09 disclosed reuse (the ideas came from it); "
                     "promotes nothing. Verdicts: " + ", ".join(f"{k} {n}" for k, n in facts["verdict_counts"].items())
-                    + ". Gold (R6g) not run: no monthly-frequency engine."}]
+                    + f". Intervals excluding 0: development {facts['development_words_clearly']} of 15, test "
+                    f"{facts['test_words_clearly']} of 15; test power {facts['test_power_range'][0]:.2f}–"
+                    f"{facts['test_power_range'][1]:.2f}. Gold (R6g) not run: no monthly-frequency engine."}]
     for r in v.itertuples(index=False):
         out.append({"id": f"R6 {r.candidate}", "tier": "disclosed-reuse",
                     "text": f"{r.candidate} vs {r.own_parent}: {r.verdict}. ΔSharpe development {r.development_dsharpe:+.2f} "
                             f"[{r.development_lo:+.2f}, {r.development_hi:+.2f}] ({r.development_word}, {r.development_leg} "
                             f"leg); test {r.test_dsharpe:+.2f} [{r.test_lo:+.2f}, {r.test_hi:+.2f}] ({r.test_word}, "
-                            f"{r.test_leg} leg)."})
+                            f"{r.test_leg} leg). Flags: {r.flags}."})
+    if plc is not None:
+        q = plc.set_index(["gate", "window"])
+        out.append({"id": "R6 placebos (D6.6, post-hoc)", "tier": "disclosed-reuse",
+                    "text": "Each gate vs its block-shuffled timings (100 seeds) and a flat cut of the same average size, "
+                            "matched ΔSharpe vs the gate's parent: " + "; ".join(
+                                f"{g} development {q.loc[(g, 'development'), 'dsharpe_real']:+.2f} (shuffled median "
+                                f"{q.loc[(g, 'development'), 'placebo_median']:+.2f}, flat "
+                                f"{q.loc[(g, 'development'), 'dsharpe_flat_cut']:+.2f}), test "
+                                f"{q.loc[(g, 'test'), 'dsharpe_real']:+.2f} (shuffled median "
+                                f"{q.loc[(g, 'test'), 'placebo_median']:+.2f}, flat {q.loc[(g, 'test'), 'dsharpe_flat_cut']:+.2f})"
+                                for g in dict.fromkeys(plc.gate))
+                            + ". Development (decides): timing beats random timing and a flat cut for "
+                            + (", ".join(g for g in dict.fromkeys(plc.gate) if q.loc[(g, "development"),
+                                                                                   "timing_beats_random_and_flat"]) or "no gate")
+                            + ". Test (qualifies only): " + "; ".join(
+                                f"{g} at percentile {q.loc[(g, 'test'), 'real_percentile']:.0f} of the shuffles, "
+                                + ("not distinguishable from random timing" if q.loc[(g, "test"), "inside_placebo_p05_p95"]
+                                   else "outside the shuffles' p05-p95")
+                                + f", {q.loc[(g, 'test'), 'real_minus_flat']:+.2f} vs the flat cut"
+                                for g in dict.fromkeys(plc.gate)) + "."})
     return out
 
 
@@ -500,9 +522,9 @@ def bundle() -> qr.Bundle:
         f6 = json.loads((r6p / "facts.json").read_text())
         t6 = tables_r6(rd["metrics"], rd["compare"], rd["verdict"], f6)
         t = {k: pd.concat([t[k], t6[k]], ignore_index=True) if k in t6 else t[k] for k in t}
-        r6 = {"verdicts": r6_verdicts(rd["verdict"], f6)}
+        r6 = {"verdicts": r6_verdicts(rd["verdict"], f6, pd.read_csv(r6p / "placebo.csv"))}
         sources += [{"path": str((r6p / f).relative_to(paths.ROOT)), "sha256": paths.sha256(r6p / f),
                      "licence": "derived statistics only; KF Hi 20 (gitignored), GSW and H.15 (public domain), BLS CPI "
                                 "(public domain)", "ledger_ref": "reports/ledger.md R6"}
-                    for f in ("metrics.csv", "compare.csv", "verdict.csv", "facts.json")]
+                    for f in ("metrics.csv", "compare.csv", "verdict.csv", "placebo.csv", "facts.json")]
     return qr.Bundle(manifest(tab, qa, sources, r2, r3, r4, r5, r6), t)
