@@ -1,5 +1,6 @@
 #!/bin/bash
-# Blocks commits that add data files (data/, legacy/data/, logs/, .cache/, parquet/zip, BUILD_PROMPTS), files > 5 MB, or
+# Blocks commits that add data files (data/, legacy/data/, logs/, .cache/, parquet/zip, BUILD_PROMPTS), the local curve
+# outputs (reports/site_local/, reports/figures_local/; owner O1.1), files > 5 MB, or
 # anything that looks like a secret (private keys, common token formats, or the value of any RSPY_SECRET_* env var).
 # The repo has a PUBLIC remote: what is committed is published once the owner pushes.
 # Adapted from naive-vs-optimal .githooks/pre-commit @ b5f6278 (COPIED.md): no Keychain items are used yet, so the
@@ -7,7 +8,7 @@
 fail=0
 staged=$(git diff --cached --name-only --diff-filter=ACMR)
 for f in $staged; do
-  case "$f" in data/*|legacy/data/*|logs/*|.cache/*|.claude/BUILD_PROMPTS.md|.claude/settings.local.json|*.parquet|*.zip) echo "pre-commit: refusing to commit $f"; fail=1;; esac
+  case "$f" in data/*|legacy/data/*|logs/*|.cache/*|reports/site_local/*|reports/figures_local/*|.claude/BUILD_PROMPTS.md|.claude/settings.local.json|*.parquet|*.zip) echo "pre-commit: refusing to commit $f"; fail=1;; esac
   if [ -f "$f" ] && [ $(wc -c < "$f") -gt 5242880 ]; then echo "pre-commit: $f is larger than 5 MB"; fail=1; fi
 done
 diff=$(git diff --cached -U0 --diff-filter=ACMR | grep '^+' | grep -v '^+++')

@@ -61,3 +61,11 @@ xdist worker; it now takes the `no_yahoo` fixture (assertion unchanged).
 |---|---|---|---|
 | E1.12 | Growth / drawdown charts show the vol-matched SPY + T-bills line (`quantkit.bench.vol_matched`) once L0-line exists | R2 | open |
 | E1.13 | `make all` reproduces every figure from raw PERMITTED data on a machine without v1's file (legacy tests and `reconcile` are local targets, D0.3) | R5 (Definition of done) | open |
+
+**Owner O1.1 applied (2026-10-28):** statistics stay committed (reports/r1/*, the three statistics figures, the
+statistics-only page); the four curve figures (growth + drawdown, exposure, rolling 5-year Sharpe, crisis panels; PNG +
+SVG) are untracked and rebuilt locally by `make report-site-local` into the gitignored reports/figures_local/R1/ and
+reports/site_local/ (one page per evidence tier). `tests/test_site_local.py` fails if those paths stop being ignored
+(checked: removing the rule fails it) or if any curve figure is tracked; the pre-commit hook refuses both paths. The
+untracked files remain in history (b46f998, ae4028b) until the owner's rewrite with data/prices.csv before the next push.
+E1.12 (vol-matched line) now belongs on the local curve charts.

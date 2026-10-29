@@ -20,7 +20,7 @@ def test_pipeline_failure_fails_make(tmp_path):
 def test_required_targets_exist():
     targets = set(re.findall(r"^([a-z][a-z-]*):", MK, flags=re.M))
     assert {"help", "doctor", "test", "test-nolegacy", "lint", "legacy", "fetch", "data", "reconcile", "ladder",
-            "report-site", "all", "pin", "verify-pin"} <= targets
+            "report-site", "report-site-local", "all", "pin", "verify-pin"} <= targets
 
 
 def test_every_recipe_runs_through_uv_frozen_no_sync():

@@ -14,9 +14,9 @@ export PYTHONPYCACHEPREFIX := $(CURDIR)/.cache/pycache
 export NUMBA_CACHE_DIR := $(CURDIR)/.cache/numba
 export MPLBACKEND := Agg
 
-.PHONY: help doctor test test-nolegacy lint legacy fetch data reconcile ladder report-site all pin verify-pin logs
+.PHONY: help doctor test test-nolegacy lint legacy fetch data reconcile ladder report-site report-site-local all pin verify-pin logs
 help:
-	@echo "make doctor | test | test-nolegacy | lint | legacy | data | ladder | report-site | all | pin | verify-pin"
+	@echo "make doctor | test | test-nolegacy | lint | legacy | fetch | data | reconcile | ladder | report-site | report-site-local | all | pin | verify-pin"
 doctor:
 	@$(PY) scripts/doctor.py
 test: logs  # -n auto capped at 4 workers (D0.4: memory budget). Includes the v1 characterization (marker legacy, D0.3): a missing data/prices.csv FAILS
@@ -39,6 +39,8 @@ ladder: logs data  # R2-R4: L0-L8 + zoo (stub until R2)
 	$(RUN) scripts/ladder.py 2>&1 | tee logs/ladder.log | tail -20
 report-site: logs  # every phase with results: reports/site/index.html + reports/figures/Rn/ (stub until R1)
 	$(RUN) scripts/site.py 2>&1 | tee logs/report_site.log | tail -5
+report-site-local: logs  # owner O1.1: curve figures + full page from the gitignored series -> reports/site_local, reports/figures_local (never committed)
+	$(RUN) scripts/site_local.py 2>&1 | tee logs/report_site_local.log | tail -5
 pin:  # owner-approved only: records the installed quantkit tag
 	@$(PY) -m rspy pin
 verify-pin:  # full tree (also run by doctor)

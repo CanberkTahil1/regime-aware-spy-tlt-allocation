@@ -15,3 +15,7 @@ __pycache__/
 .claude/settings.local.json
 *.parquet
 *.zip
+# owner O1.1: curve figures and full local pages built from Yahoo/Cboe/KF-derived series (make report-site-local).
+# Never committed; tests/test_site_local.py fails if these stop being ignored.
+/reports/site_local/
+/reports/figures_local/
