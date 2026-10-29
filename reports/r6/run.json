@@ -1,0 +1,13 @@
+{
+ "cpi_manifest_sha256": "0e38f8ac0513e675d70fc8af318d1b8e485490371410a7a563100a38b7514daa",
+ "outputs_sha256": {
+  "compare.csv": "d5e36212c1e3b7c2fe04ce6cf26cc641a2d90ac7d4e7988f333d540934703074",
+  "costs.csv": "a98f631467f998ad86daed24ef161840b73cea39a377d172dc62d772dfccf396",
+  "crisis.csv": "67eb31fb16fb2064beb3de7f8c4f1e13ceaf12ea7271bac1ac4c12c5980fa693",
+  "dsr.csv": "0292ef3caab0c2361b2f3372dfad7258964912a93bcdcb1315612eb8ec39c67a",
+  "facts.json": "2c147450777e20d0fb8c700e460ca54992d00ef8cd869f5d94b3b980fe2573d5",
+  "metrics.csv": "6eda739aeea698eebd768cb32db21c621f89bb72a8807c0139ccbfee08457396",
+  "verdict.csv": "397b610eedcbdafe9c10aab034f5fc4572195eee19beeaae79d789675418eb53"
+ },
+ "prereg_r6_sha256": "966103ffa6ac7612d68589b062a36b4b2a40455cb9a8f4882ae91bc8eebcfbfd"
+}

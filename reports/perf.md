@@ -118,3 +118,15 @@ Note: the grid test is marked `slow` (runtime recorded above, D0.3 amendment 5) 
 | books: 25y core (cached vol zoo), 10y core (cached from R5), 5y core (one cold vol-zoo series), R6a/c/d/e/f targets | ≤ 90 s cold, ≤ 20 s warm | O(T·N) per book (numba walk); GARCH refits every 21 rows (cold only); R6e recursion O(T) (numba, plain reference); blend O(T·3) |
 | comparisons: 15 candidates × 4 references × 2 windows `ablation_row` (LW 1,000 + 2 dd_ratio_ci 1,000) | ≤ 40 s (process pool over candidates; 1 vs N bit-identical) | O(draws·T) per row |
 | `make r6` total | ≤ 120 s cold, ≤ 60 s warm, peak RSS ≤ 1.5 GB | — |
+
+## R6 measurements (2026-10-29)
+
+| Step | Budget | Measured | Within | Note |
+|---|---|---|---|---|
+| `make r6-data` (6 BLS POSTs) | ≤ 30 s | 2.2 s | yes | — |
+| `scripts/r6.py`, 4 spawned worker processes (first run) | ≤ 1.5 GB | **2,923 MB** summed, 7 processes | **no** | ≈ 520 MB per spawned worker (pandas, numba, quantkit) |
+| `scripts/r6.py` serial | comparisons ≤ 40 s | evaluate **50.8 s** (total 54 s, 818 MB) | **no** (comparisons) | profile: 0.7 s per development pair inside quantkit (2 × dd_ratio_ci 0.39 s + LW 0.19 s), 70 development pairs |
+| fix: thread pool + de-duplicated pairs, 4 threads | — | evaluate 23.4 s, **1,453 MB** | yes, but tight | outputs byte-identical to serial |
+| fix: 2 threads (default) | ≤ 60 s warm, ≤ 1.5 GB | **33 s wall** (evaluate ≈ 28 s), **1,034 MB** | yes | outputs byte-identical to serial and to 4 threads |
+| fully cold (vol-zoo cache moved aside: 25y, 10y, 5y series rebuilt) | ≤ 120 s, ≤ 1.5 GB | **68.2 s** (build 39.4, evaluate 27.6), **1,222 MB** | yes | outputs byte-identical to warm |
+| `make test` (163 tests) | ≤ 60 s | 9.8 s | yes | — |

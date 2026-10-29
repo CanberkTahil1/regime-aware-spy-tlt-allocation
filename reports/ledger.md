@@ -548,19 +548,19 @@ candidates), matched ex post within the window (D6.4).
 
 | ID | Expectation (band) | Source | Status |
 |---|---|---|---|
-| E6.1 | code: R6's reference rungs (L0, L1, L2, L3, L5, L7) reproduce reports/r5/metrics.csv on the test and reports/r2 / r3 metrics.csv on development (every metric ≤ 1e-12); R6c_L6-63 development = R3 L6-63 (≤ 1e-12); R6b 10y development = reports/r4/sensitivity.csv (≤ 1e-9); L5/L7@10y test Sharpe = reports/r5/sens10y.csv (≤ 1e-12) | prereg_r6 checks | open |
-| E6.2 | code: the inflation gate has 0 carried (undefined) scored decisions; `regime.check_coverage` passes on every R6 keep; 1 vs N workers bit-identical; `make r5-replay` byte-identical after the R6 Makefile change; every fast path (R6e recursion, blend) equals its plain reference ≤ 1e-12 | D6.1, D6.2, D6.5; perf contract | open |
-| E6.3 | inflation gate: share of development month-end decisions with v > median in [30%, 70%]; gate high at the 2022-01 … 2022-06 decisions (≥ 4 of 6) | author | open |
-| E6.4 | R6a vs L2: development CDaR-95 ratio ≤ 0.85 and ΔSharpe in [−0.10, +0.20]; test ΔSharpe in [−0.15, +0.40] | author (Faber 2007; 2000–02 / 2008 exits) | open |
-| E6.5 | R6b: L5@5y vs L5 development ΔSharpe in [0, +0.25]; L3@5y vs L3 test ΔSharpe in [0, +0.50]; L7@5y vs L7 test ΔSharpe in [−0.10, +0.40] | author; R4 10y lead | open |
-| E6.6 | R6c_infl vs L5: development ΔSharpe in [−0.25, +0.05] (bonds gated in some hedge years, e.g. 2008 oil swings); test ΔSharpe in [0, +0.60] | author | open |
-| E6.7 | R6c_L6-63 vs L6: development ΔSharpe in [−0.05, +0.10]; test ΔSharpe in [−0.20, +0.40] | R3 (0.784 vs 0.752 unmatched); author | open |
-| E6.8 | R6d vs L5: development ΔSharpe in [−0.15, +0.05]; test ΔSharpe in [0, +0.60] | author (bond bull market in development; 2022 trend exit) | open |
-| E6.9 | R6e_weekly: turnover ≥ 25% below L2's in both windows; ΔSharpe vs L2 in [−0.10, +0.05] (development) and [−0.15, +0.05] (test). R6e_ewma5: turnover cut in [15%, 60%] | author | open |
-| E6.10 | R6f vs the line (L0 matched): development ΔSharpe in [+0.05, +0.35]; test ΔSharpe in [−0.30, +0.10] | author (blend of 0.53 / 0.70 / 0.58 vs L0 0.48 in development; 0.73 / 0.48 / 0.33 vs 0.68 on the test) | open |
-| E6.11 | verdicts: at most 3 of the 15 rows read "better in both periods"; at least 4 read "better only in the period that inspired it" | author | open |
-| E6.12 | DSR: every R6 row's test-window headline DSR (N 20) < 0.95 | R5 E5.14 (max 0.76 at N 5) | open |
-| E6.13 | perf: `make r6` ≤ 120 s cold (one new vol-zoo series: the 5y L4 book) and ≤ 60 s warm, peak RSS ≤ 1.5 GB (rss_peak); `make test` ≤ 60 s | performance contract | open |
+| E6.1 | code: R6's reference rungs (L0, L1, L2, L3, L5, L7) reproduce reports/r5/metrics.csv on the test and reports/r2 / r3 metrics.csv on development (every metric ≤ 1e-12); R6c_L6-63 development = R3 L6-63 (≤ 1e-12); R6b 10y development = reports/r4/sensitivity.csv (≤ 1e-9); L5/L7@10y test Sharpe = reports/r5/sens10y.csv (≤ 1e-12) | prereg_r6 checks | **held** (check restated before reading any table, see below) — 41 identity checks in reports/r6/facts.json `identity`, all within tolerance: the daily net and held weights of every 25y reference (L0–L7) are bit-identical to data/r5/books.parquet (1986 → 2026-09) and to data/r2 / r3 on rows ≤ 2019-12-31; L5/L7@10y nets are bit-identical to data/r5; metrics vs reports/r2, r3, r5 CSVs ≤ 5e-10 relative (their 10-digit rounding); R6c_L6-63 development = R3 L6-63; 10y development vs reports/r4/sensitivity.csv ≤ 1e-9 |
+| E6.2 | code: the inflation gate has 0 carried (undefined) scored decisions; `regime.check_coverage` passes on every R6 keep; 1 vs N workers bit-identical; `make r5-replay` byte-identical after the R6 Makefile change; every fast path (R6e recursion, blend) equals its plain reference ≤ 1e-12 | D6.1, D6.2, D6.5; perf contract | **held** — facts.json infl_gate.carried_scored_decisions 0 and `regime.check_coverage` passed on the R6c_infl keep; serial, 4-thread and 2-thread runs byte-identical on every reports/r6 table (and tests/test_r6.py::test_one_vs_n_workers_identical); `make r5-replay` byte-identical after the Makefile change; R6e recursion = tests/reference/r6_ref.asym_ref ≤ 1e-12 and the blend = the dollar-NAV blend_ref ≤ 1e-12 (hypothesis); five broken-input checks each turned their test red |
+| E6.3 | inflation gate: share of development month-end decisions with v > median in [30%, 70%]; gate high at the 2022-01 … 2022-06 decisions (≥ 4 of 6) | author | **failed (2022 part)** — share of development decisions gated 53.9% (in [30%, 70%]: held); gate high at 3 of the 6 decisions 2022-01 … 2022-06 (2022-04, -05, -06), below ≥ 4 |
+| E6.4 | R6a vs L2: development CDaR-95 ratio ≤ 0.85 and ΔSharpe in [−0.10, +0.20]; test ΔSharpe in [−0.15, +0.40] | author (Faber 2007; 2000–02 / 2008 exits) | **failed (test part)** — development: CDaR-95 ratio 0.585 ≤ 0.85 and ΔSharpe +0.002 in [−0.10, +0.20] (held); test ΔSharpe **−0.167** [−0.478, +0.144], below −0.15 |
+| E6.5 | R6b: L5@5y vs L5 development ΔSharpe in [0, +0.25]; L3@5y vs L3 test ΔSharpe in [0, +0.50]; L7@5y vs L7 test ΔSharpe in [−0.10, +0.40] | author; R4 10y lead | **held** — L5@5y vs L5 development +0.112; L3@5y vs L3 test +0.136; L7@5y vs L7 test +0.151 |
+| E6.6 | R6c_infl vs L5: development ΔSharpe in [−0.25, +0.05] (bonds gated in some hedge years, e.g. 2008 oil swings); test ΔSharpe in [0, +0.60] | author | **held** — R6c_infl vs L5 development −0.046, test +0.384 [−0.029, +0.798] |
+| E6.7 | R6c_L6-63 vs L6: development ΔSharpe in [−0.05, +0.10]; test ΔSharpe in [−0.20, +0.40] | R3 (0.784 vs 0.752 unmatched); author | **held** — R6c_L6-63 vs L6 development +0.032, test −0.016 |
+| E6.8 | R6d vs L5: development ΔSharpe in [−0.15, +0.05]; test ΔSharpe in [0, +0.60] | author (bond bull market in development; 2022 trend exit) | **held** — R6d vs L5 development −0.110, test +0.248 |
+| E6.9 | R6e_weekly: turnover ≥ 25% below L2's in both windows; ΔSharpe vs L2 in [−0.10, +0.05] (development) and [−0.15, +0.05] (test). R6e_ewma5: turnover cut in [15%, 60%] | author | **failed (weekly turnover)** — R6e_weekly turnover −22.7% (development) / −22.4% (test), short of the ≥ 25% cut; held: ΔSharpe vs L2 +0.007 / −0.023 in band; R6e_ewma5 turnover −28.5% / −29.4% in [15%, 60%] |
+| E6.10 | R6f vs the line (L0 matched): development ΔSharpe in [+0.05, +0.35]; test ΔSharpe in [−0.30, +0.10] | author (blend of 0.53 / 0.70 / 0.58 vs L0 0.48 in development; 0.73 / 0.48 / 0.33 vs 0.68 on the test) | **held** — R6f vs the line development +0.182, test −0.066 |
+| E6.11 | verdicts: at most 3 of the 15 rows read "better in both periods"; at least 4 read "better only in the period that inspired it" | author | **held** — "better in both periods" 2 (L7@5y, L7@10y) ≤ 3; "better only in the period that inspired it" 4 (L3@5y, L3@10y, R6c_infl, R6d) ≥ 4 |
+| E6.12 | DSR: every R6 row's test-window headline DSR (N 20) < 0.95 | R5 E5.14 (max 0.76 at N 5) | **held** — test headline DSR (N 20) max 0.478 (R6e_ewma5), every row < 0.95 |
+| E6.13 | perf: `make r6` ≤ 120 s cold (one new vol-zoo series: the 5y L4 book) and ≤ 60 s warm, peak RSS ≤ 1.5 GB (rss_peak); `make test` ≤ 60 s | performance contract | **held** — fully cold (vol-zoo cache moved aside: all three maturities rebuilt) 68.2 s, 1,222 MB, outputs byte-identical to warm; warm `make r6` ≈ 33 s, 1,034 MB at 2 threads (rss_peak); `make test` 163 passed in 9.8 s |
 
 **R6 Makefile change (D6.5, committed on its own before any R6 number):**
 - Targets added: `r6-data` (BLS fetch, not in `all`), `r6`, `r6-figures`, `r6-figures-local` (also hooked into
@@ -571,3 +571,41 @@ candidates), matched ex post within the window (D6.4).
   byte-identical)" and "replay: every reports/r5 table byte-identical" (20.7 s).
 - `make freeze-verify` now reports "locked file changed: Makefile". This is the outcome D5.9 foresaw, not a lock
   breach: the run-once guard is spent (reports/r5/test_run.json exists) and the replay still passes.
+
+**E6.1 tolerance mis-specified (logged on the first R6 run, before reading any R6 table; no R6 number used).** The first
+run stopped at the identity gate. Every reference metric differed from the committed CSVs by 4e-11 to 5e-9, above the
+registered 1e-12. Cause: reports/r2, r3, r5 *.csv are written with `float_format="%.10g"` (10 significant digits), so
+1e-12 against them is unattainable. For example, L1 turnover 26.74 stored to 10 digits carries ≈ 1e-9 of rounding.
+The rule was mis-specified, not the books. The check is replaced by a **stricter** one:
+- (i) bit-for-bit equality of each reference rung's daily net and held weights against the full-precision local books:
+  data/r5/books.parquet (1986 → 2026-09), and data/r2 / r3 books on rows ≤ 2019-12-31. L5/L7@10y nets are checked
+  against data/r5 bit for bit as well.
+- (ii) metrics against the committed CSVs within their own rounding: relative error ≤ 5e-10. The 10y development rows
+  keep their 1e-9 band against reports/r4/sensitivity.csv.
+E6.1 is judged on (i) and (ii).
+
+**R6 run (2026-10-29, `make r6`; prereg_r6 966103ff…, panel 10aeb147…; logged before diagnosis).** Contradicting the
+expectations: E6.3 (2022 part), E6.4 (test part), E6.9 (weekly turnover). Also, two engineering problems on the first
+runs, fixed before any table was read:
+- **E6.1's 1e-12 against the 10-digit CSVs** was restated (above) to a stricter exact-books check.
+- **4 spawned worker processes** summed 2,923 MB against a 1.5 GB budget, and a serial run took 51 s for comparisons
+  (budget 40 s). Profile: ≈ 0.7 s per development pair, all inside quantkit's bootstraps (2 × `dd_ratio_ci` 0.39 s +
+  LW 0.19 s). Fix: a thread pool (no extra memory; ≈ 1.45× faster) and de-duplicated pairs. At 2 threads the
+  comparisons take ≈ 29 s, the total is 33 s, the peak is 1,034 MB, and the outputs are byte-identical to serial.
+
+**Diagnosis (no code change):**
+- **E6.3 — the gate measures inflation *volatility*, not its level.**
+  - Monthly CPI prints were uniformly high through 2021, so the 12-month std of monthly inflation fell below its
+    10-year median from late 2021. The gate was high from the 2020-07 decision (COVID swings) into 2021, off around the
+    turn of 2022, and high again from the 2022-04 decision.
+  - TLT was gated on 57% of test days. The 2022-01 → 2022-10 matched gain vs L5 was +4.6 pp (crisis.csv), smaller
+    than bond-only trend's +10.7 pp.
+  - Tested causal: tests/test_r6.py asserts that each decision reads month M−1 exactly.
+- **E6.4 — whipsaws.** In the test, SPY's 10-month rule was out in seven spells. Five were one-month exits during
+  sharp rebounds: 2022-03 (SPY +5.2%), 2022-12/2023-01 (+4.6%), 2023-11 (+9.6%), 2025-04 (+6.7%), 2026-04 (+12.4%).
+  Those cost more than the 2022-04 → 2022-11 exit saved (SPY −7.0%, against L2's −3.8% after its own vol cut). In
+  COVID, VT SPY + trend lost 3.7% against the matched L2's 8.7% (+5.0 pp). In development the rule cut L2's max DD
+  from −48% to −29% (CDaR 0.59×) at the same Sharpe (+0.002).
+- **E6.9 — L2's raw scale moves both ways almost every day.** The weekly rule still jumps fully to raw every Friday,
+  so it defers most step-ups but does not remove them. The EWMA's partial steps keep the held scale below raw, so it
+  cut more (−28.5%). Sharpe is unchanged in both (|Δ| ≤ 0.023).

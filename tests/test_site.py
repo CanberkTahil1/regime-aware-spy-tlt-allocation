@@ -25,8 +25,23 @@ def test_every_bundle_number_traces_to_the_committed_csv():
     m5 = pd.read_csv(paths.REPORTS / "r5" / "metrics.csv")
     m5 = m5[m5.book == "1x"].set_index("rung")
     fam5 = pd.read_csv(paths.REPORTS / "r5" / "family.csv")
+    m6 = pd.read_csv(paths.REPORTS / "r6" / "metrics.csv").set_index(["row", "window"])
+    c6 = pd.read_csv(paths.REPORTS / "r6" / "compare.csv")
+    w6 = {"R6 development)": ("development", "in-sample"), "R6 test)": ("test", "disclosed-reuse")}
+    n6 = 0
     for r in b.tables["summary"].itertuples(index=False):
         metric, window = r.metric.rsplit(" (", 1)
+        if window in w6:  # R6: copied from reports/r6/*.csv; development in-sample, test disclosed-reuse
+            w, tier = w6[window]
+            if metric.startswith("dsharpe_vs_"):
+                q = c6[(c6.candidate == r.strategy) & (c6.window == w) & (c6.kind == metric[len("dsharpe_vs_"):])]
+                row = q.iloc[0]
+                assert (r.value, r.lo, r.hi) == (row.dsharpe, row.lo, row.hi), (r.strategy, r.metric)
+            else:
+                assert r.value == m6.loc[(r.strategy, w), metric], (r.strategy, r.metric)
+            assert r.tier == tier and r.strategy in site.R6_NAMES
+            n6 += 1
+            continue
         if window == "R5 test)":  # R5: test window, disclosed-reuse, copied from reports/r5/*.csv
             if metric.startswith("dsharpe_vs_"):
                 row = fam5[(fam5.child == r.strategy) & (fam5.kind == metric[len("dsharpe_vs_"):])].iloc[0]
@@ -60,6 +75,7 @@ def test_every_bundle_number_traces_to_the_committed_csv():
         want = tab[(tab.step == r.strategy) & (tab.window == window.rstrip(")"))].iloc[0][metric]
         assert r.value == want, (r.strategy, r.metric)
         assert r.tier == ("disclosed-reuse" if window.startswith("test") else "in-sample")
+    assert n6 == 15 * 2 * (len(site.R6_METRICS) + 4)  # every R6 candidate, both windows, metrics + 4 ΔSharpe rows
     for r in b.tables["loss"].itertuples(index=False):
         if r.strategy in r2 or r.strategy in site.R3_NAMES:
             v = m1.loc[r.strategy] if r.strategy in r2 else m3.loc[r.strategy]

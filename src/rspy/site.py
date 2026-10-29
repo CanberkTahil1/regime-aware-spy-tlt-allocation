@@ -278,8 +278,63 @@ def r5_verdicts(head: dict, fam: pd.DataFrame, cz: pd.DataFrame, plc: pd.DataFra
     ]
 
 
+R6_METRICS = R5_METRICS
+R6_WINDOWS = {"development": ("R6 development", "in-sample"), "test": ("R6 test", "disclosed-reuse")}
+
+
+def tables_r6(m: pd.DataFrame, cmp_: pd.DataFrame, v: pd.DataFrame, facts: dict) -> dict[str, pd.DataFrame]:
+    """R6 rows copied as stored from reports/r6 (spec/prereg_r6.yaml): each candidate's metrics and its matched ΔSharpe
+    vs the own parent, VT SPY (L2), 60/40 (L3) and SPY + bills (L0 matched), per window; development "in-sample", test
+    "disclosed-reuse" (ideas inspired by this window)."""
+    sm, wins = [], []
+    for w, (name, tier) in R6_WINDOWS.items():
+        mw = m[m.window == w].set_index("row")
+        a, z = facts["windows"][w]["first"], facts["windows"][w]["last"]
+        cw = cmp_[cmp_.window == w]
+        for c in v.candidate:
+            for k, unit in R6_METRICS:
+                sm.append((c, f"{k} ({name})", float(mw.loc[c, k]), unit, tier, a, z, np.nan, np.nan))
+            for kind, key in (("own", "own"), ("L2", "L2"), ("L3", "L3"), ("line", "line")):
+                row = cw[(cw.candidate == c) & (cw.kind == kind)].iloc[0]
+                sm.append((c, f"dsharpe_vs_{key} ({name})", float(row.dsharpe),
+                           f"ΔSharpe vs {row.reference} at matched risk (LW 95%)", tier, a, z, float(row.lo),
+                           float(row.hi)))
+        wins.append((name, a, z, tier, False, True, cw.label.iloc[0]))
+    summary = pd.DataFrame(sm, columns=["strategy", "metric", "value", "unit", "tier", "window_start", "window_end", "lo",
+                                        "hi"])
+    windows = pd.DataFrame(wins, columns=["name", "start", "end", "tier", "sealed", "opened", "note"])
+    return {"summary": summary, "windows": windows}
+
+
+def r6_verdicts(v: pd.DataFrame, facts: dict) -> list[dict]:
+    """The common-sense verdicts (D6.4) and the counts, built from reports/r6/verdict.csv and facts.json."""
+    out = [{"id": "R6 summary", "tier": "disclosed-reuse",
+            "text": "Ideas tried after the test (owner, 2026-10-29), each vs the rung it changes at matched risk; "
+                    "development in-sample, test 2020-01 → 2026-09 disclosed reuse (the ideas came from it); "
+                    "promotes nothing. Verdicts: " + ", ".join(f"{k} {n}" for k, n in facts["verdict_counts"].items())
+                    + ". Gold (R6g) not run: no monthly-frequency engine."}]
+    for r in v.itertuples(index=False):
+        out.append({"id": f"R6 {r.candidate}", "tier": "disclosed-reuse",
+                    "text": f"{r.candidate} vs {r.own_parent}: {r.verdict}. ΔSharpe development {r.development_dsharpe:+.2f} "
+                            f"[{r.development_lo:+.2f}, {r.development_hi:+.2f}] ({r.development_word}, {r.development_leg} "
+                            f"leg); test {r.test_dsharpe:+.2f} [{r.test_lo:+.2f}, {r.test_hi:+.2f}] ({r.test_word}, "
+                            f"{r.test_leg} leg)."})
+    return out
+
+
+R6_NAMES = {"R6a_L2_trend": "VT SPY held only above SPY's 10-month SMA", "R6b_L3@5y": "60/40 on a GSW 5y leg",
+            "R6b_L4@5y": "inverse-vol on a GSW 5y leg", "R6b_L5@5y": "inverse-vol + vol target on a GSW 5y leg",
+            "R6b_L7@5y": "+ trend on a GSW 5y leg", "R6b_L3@10y": "60/40 on a GSW 10y leg",
+            "R6b_L4@10y": "inverse-vol on a GSW 10y leg", "R6b_L5@10y": "inverse-vol + vol target on a GSW 10y leg",
+            "R6b_L7@10y": "+ trend on a GSW 10y leg", "R6c_L6-63": "correlation regime, 63-day window",
+            "R6c_infl": "inverse-vol + vol target, TLT to cash when CPI inflation vol > its 10y median",
+            "R6d_L5_bondtrend": "inverse-vol + vol target, trend on TLT only",
+            "R6e_weekly": "VT SPY, cuts daily, increases weekly", "R6e_ewma5": "VT SPY, cuts daily, increases by EWMA span 5",
+            "R6f_blend": "1/3 each VT SPY, 60/40, + trend; reset monthly"}
+
+
 def manifest(tab: pd.DataFrame, qa: pd.DataFrame, sources: list[dict], r2: dict | None = None,
-             r3: dict | None = None, r4: dict | None = None, r5: dict | None = None) -> dict:
+             r3: dict | None = None, r4: dict | None = None, r5: dict | None = None, r6: dict | None = None) -> dict:
     head = git_head()
     t = tab[tab.window == "test"].set_index("step")
     q = qa[qa["sample"] == "2005-2025"].set_index("pair")
@@ -320,10 +375,15 @@ def manifest(tab: pd.DataFrame, qa: pd.DataFrame, sources: list[dict], r2: dict 
         verdicts += r4["verdicts"]
     if r5 is not None:
         verdicts += r5["verdicts"]
+    if r6 is not None:
+        strategies += [{"id": k, "family": "R6 post-test ideas", "variant": v, "frozen": False,
+                        "cost_model": "3/2 bp per side, true turnover; bill + 25 bp financing", "gross_nav": False}
+                       for k, v in R6_NAMES.items()]
+        verdicts += r6["verdicts"]
     return {
         "schema_version": qr.SCHEMA_VERSION,
         "project": {"name": "regime-aware-spy-tlt-allocation", "repo": "regime-aware-spy-tlt-allocation",
-                    "repo_commit": head, "quantkit_tag": "v0.19.2", "phase": "R5" if r5 else ("R4" if r4 else ("R3" if r3 else ("R2" if r2 else "R1"))),
+                    "repo_commit": head, "quantkit_tag": "v0.19.2", "phase": "R6" if r6 else "R5" if r5 else ("R4" if r4 else ("R3" if r3 else ("R2" if r2 else "R1"))),
                     "thesis": "Regime-aware SPY/TLT/cash allocation; R1 swaps v1 onto permitted data and the charter's "
                               "accounting, one correction at a time.",
                     "data_cut": str(tab["end"].max()), "verdicts": verdicts},
@@ -432,4 +492,17 @@ def bundle() -> qr.Bundle:
                      "ledger_ref": "reports/ledger.md R5"} for f in ("metrics.csv", "family.csv", "crisis.csv",
                                                                        "placebo.csv", "dsr.csv", "sens10y.csv",
                                                                        "headline.json", "test_run.json")]
-    return qr.Bundle(manifest(tab, qa, sources, r2, r3, r4, r5), t)
+    r6, r6p = None, paths.REPORTS / "r6"
+    if (r6p / "verdict.csv").exists():
+        import json
+
+        rd = {k: pd.read_csv(r6p / f"{k}.csv") for k in ("metrics", "compare", "verdict")}
+        f6 = json.loads((r6p / "facts.json").read_text())
+        t6 = tables_r6(rd["metrics"], rd["compare"], rd["verdict"], f6)
+        t = {k: pd.concat([t[k], t6[k]], ignore_index=True) if k in t6 else t[k] for k in t}
+        r6 = {"verdicts": r6_verdicts(rd["verdict"], f6)}
+        sources += [{"path": str((r6p / f).relative_to(paths.ROOT)), "sha256": paths.sha256(r6p / f),
+                     "licence": "derived statistics only; KF Hi 20 (gitignored), GSW and H.15 (public domain), BLS CPI "
+                                "(public domain)", "ledger_ref": "reports/ledger.md R6"}
+                    for f in ("metrics.csv", "compare.csv", "verdict.csv", "facts.json")]
+    return qr.Bundle(manifest(tab, qa, sources, r2, r3, r4, r5, r6), t)

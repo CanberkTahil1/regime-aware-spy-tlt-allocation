@@ -32,6 +32,21 @@ outreach; licensed or unclear-terms data never enters git (`data/` is gitignored
   redistributed**, labelled "SPY proxy" everywhere. Same stance as naive-vs-optimal, resid-book and enhanced-60-40.
 - KF's own risk-free series is not used; cash comes from H.15.
 
+### US Bureau of Labor Statistics: CPI-U NSA, series CUUR0000SA0 (R6c inflation gate only) — public domain (R6, owner O6.2)
+- **Terms read 2026-10-29:** https://www.bls.gov/opub/copyright-information.htm (no page date). It says: "everything
+  that we publish, both in hard copy and electronically, is in the public domain"; "You are free to use our public
+  domain material without specific permission"; "we do ask that you cite the Bureau of Labor Statistics as the
+  source". Source: U.S. Bureau of Labor Statistics, Consumer Price Index for All Urban Consumers (CPI-U), U.S. city
+  average, all items, not seasonally adjusted (CUUR0000SA0).
+- **Access:** the BLS public API v1 (`make r6-data`). The flat files at download.bls.gov return 403 to scripts. The
+  raw JSON is kept in gitignored data/r6/raw with a sha256 manifest.
+- **Why not FRED (owner O6.2):** FRED's terms bar storing or caching FRED content without consent. This repo takes
+  each series from its source agency, like naive-vs-optimal.
+- **Release timing** (read 2026-10-29 from https://www.bls.gov/bls/news-release/cpi.htm, 1994 → 2026): every CPI
+  release fell inside the month after its reference month. Before 1994 this is assumed, not checked
+  (spec/prereg_r6.yaml lag_check).
+- **Gold (World Bank Pink Sheet, CC BY 4.0) is not used:** R6g was skipped (O6.2).
+
 ## Excluded sources (v1 used both; v2 removes them)
 
 | Source | URL read [raw] 2026-10-28 | Clause | Page date | Verdict |
