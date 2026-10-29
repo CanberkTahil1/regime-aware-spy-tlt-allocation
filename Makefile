@@ -14,9 +14,9 @@ export PYTHONPYCACHEPREFIX := $(CURDIR)/.cache/pycache
 export NUMBA_CACHE_DIR := $(CURDIR)/.cache/numba
 export MPLBACKEND := Agg
 
-.PHONY: omp help doctor test test-nolegacy lint legacy fetch data reconcile ladder report-site report-site-local all pin verify-pin logs freeze freeze-verify dry-run test-run r5-replay r5-figures
+.PHONY: omp help doctor test test-nolegacy lint legacy fetch data reconcile ladder report-site report-site-local all pin verify-pin logs freeze freeze-verify dry-run test-run r5-replay r5-figures r6-data r6 r6-figures r6-figures-local
 help:
-	@echo "make doctor | test | test-nolegacy | lint | legacy | fetch | data | reconcile | ladder | report-site | report-site-local | all | pin | verify-pin | freeze | freeze-verify | dry-run | test-run | r5-replay"
+	@echo "make doctor | test | test-nolegacy | lint | legacy | fetch | data | reconcile | ladder | report-site | report-site-local | all | pin | verify-pin | freeze | freeze-verify | dry-run | test-run | r5-replay | r6-data | r6 | r6-figures-local"
 doctor:
 	@$(PY) scripts/doctor.py
 test: logs omp  # -n auto capped at 4 workers (D0.4: memory budget). Includes the v1 characterization (marker legacy, D0.3): a missing data/prices.csv FAILS
@@ -24,7 +24,7 @@ test: logs omp  # -n auto capped at 4 workers (D0.4: memory budget). Includes th
 test-nolegacy: logs omp  # explicit deselect for a machine without v1's cached data (D0.3)
 	$(PY) -m pytest -n auto --maxprocesses 4 -m "not legacy" 2>&1 | tee logs/test_nolegacy.log | tail -25
 lint:
-	$(UV) ruff check src tests scripts .claude/hooks
+	$(UV) ruff check src r6lib tests scripts .claude/hooks
 legacy: logs  # R0: frozen v1 reproduces its committed tables on its own cached data (outputs to tmp, never results/)
 	$(PY) -m pytest -p no:xdist -m legacy -v --durations=5 2>&1 | tee logs/legacy.log | tail -20
 fetch: logs  # R1: download KF, GSW, H.15 into data/raw (manifest + sha256); then build
@@ -50,6 +50,7 @@ report-site-local: logs  # owner O1.1: curve figures + full page from the gitign
 	$(RUN) scripts/r3_figures_local.py 2>&1 | tee -a logs/report_site_local.log | tail -2
 	$(RUN) scripts/r4_figures_local.py 2>&1 | tee -a logs/report_site_local.log | tail -2
 	$(RUN) scripts/r5_figures_local.py 2>&1 | tee -a logs/report_site_local.log | tail -2
+	$(RUN) scripts/r6_figures_local.py 2>&1 | tee -a logs/report_site_local.log | tail -2
 pin:  # owner-approved only: records the installed quantkit tag
 	@$(PY) -m rspy pin
 verify-pin:  # full tree (also run by doctor)
@@ -71,5 +72,14 @@ r5-replay: logs data omp  # R5: recompute the test window into a temporary direc
 	$(RUN) scripts/r5.py --mode replay 2>&1 | tee logs/r5_replay.log | tail -5
 r5-figures: logs  # R5 statistics figures (reports/figures/R5, committed) from reports/r5
 	$(RUN) scripts/r5_figures.py 2>&1 | tee logs/r5_figures.log | tail -3
+r6-data: logs  # R6 (owner O6.2): CPI-U NSA (BLS CUUR0000SA0) from the BLS public API into data/r6/raw (manifest + sha256); never in `all` (D6.5)
+	$(RUN) scripts/r6_data.py 2>&1 | tee logs/r6_data.log | tail -5
+r6: logs data omp  # R6 (spec/prereg_r6.yaml): candidates + R5 references on development and test -> reports/r6 (statistics) + data/r6 (local books); refuses missing/altered CPI files
+	$(RUN) scripts/r6.py 2>&1 | tee logs/r6.log | tail -30
+	$(RUN) scripts/r6_figures.py 2>&1 | tee -a logs/r6.log | tail -2
+r6-figures: logs  # R6 statistics figures (reports/figures/R6, committed) from reports/r6
+	$(RUN) scripts/r6_figures.py 2>&1 | tee logs/r6_figures.log | tail -3
+r6-figures-local: logs  # R6 headline (viz.headline) from data/r6 -> reports/figures_local/R6 (gitignored)
+	$(RUN) scripts/r6_figures_local.py 2>&1 | tee logs/r6_figures_local.log | tail -3
 # Raw permitted data to every figure.
-all: data test lint ladder r5-replay r5-figures report-site  # reconcile (R1) is a local legacy target: it needs v1's cached file
+all: data test lint ladder r5-replay r5-figures r6 report-site  # reconcile (R1) is a local legacy target: it needs v1's cached file

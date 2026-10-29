@@ -561,3 +561,13 @@ candidates), matched ex post within the window (D6.4).
 | E6.11 | verdicts: at most 3 of the 15 rows read "better in both periods"; at least 4 read "better only in the period that inspired it" | author | open |
 | E6.12 | DSR: every R6 row's test-window headline DSR (N 20) < 0.95 | R5 E5.14 (max 0.76 at N 5) | open |
 | E6.13 | perf: `make r6` ≤ 120 s cold (one new vol-zoo series: the 5y L4 book) and ≤ 60 s warm, peak RSS ≤ 1.5 GB (rss_peak); `make test` ≤ 60 s | performance contract | open |
+
+**R6 Makefile change (D6.5, committed on its own before any R6 number):**
+- Targets added: `r6-data` (BLS fetch, not in `all`), `r6`, `r6-figures`, `r6-figures-local` (also hooked into
+  `report-site-local`). `all` gains `r6` after `r5-figures`. `lint` gains `r6lib`.
+- Makefile sha256: 2020ab31cf5bcc6975f389be167b1d9648baf9ce5c3bda7c8ab7061a4e1847a3 (R5 lock) →
+  f07219e4e2c205b3c4da979f6b536d2881ec76bafb4602ecd09afb50696816d6.
+- `make r5-replay` after the edit printed "Makefile changed since freeze (orchestration; outputs still required
+  byte-identical)" and "replay: every reports/r5 table byte-identical" (20.7 s).
+- `make freeze-verify` now reports "locked file changed: Makefile". This is the outcome D5.9 foresaw, not a lock
+  breach: the run-once guard is spent (reports/r5/test_run.json exists) and the replay still passes.
