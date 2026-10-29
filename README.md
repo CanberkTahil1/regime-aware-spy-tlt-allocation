@@ -1,313 +1,218 @@
-# Regime-Aware SPY-TLT Allocation
+# Regime-aware SPY/TLT/cash allocation (v2)
 
-This project develops and evaluates a **regime-aware tactical allocation strategy** between **SPY** and **TLT**.
+**Answer: no layer beat plain vol-targeted SPY, a 60/40 mix, or SPY + T-bills at matched risk.**
+- **Development (1990–2019):** adding bonds and risk weighting raised the Sharpe ratio by +0.13 to +0.30 at matched
+  volatility. None of it passed the pre-registered promotion rule.
+- **Test window (2020-01 → 2026-09):** the bond-holding layers lost to all three benchmarks. The 2022 stock–bond sell-off
+  undid the development edge.
+- **The regime layer:** the stock–bond correlation switch that the thesis rests on fired too late in 2022 to matter.
 
-Rather than holding a static mix of equities and long-duration Treasuries, the framework adjusts exposure based on market conditions. It combines regime detection, relative-value signals, and a crash-sensitive overlay within a backtesting pipeline that includes volatility targeting, transaction costs, grid search, and out-of-sample evaluation.
+> **What this shows**
+>
+> - **v1's 1.00 Sharpe was mostly vol-targeted SPY plus same-close trading.** Vol-targeted SPY alone (L2) earns 0.73
+>   on the test window against v1 corrected's 0.74. Trading at the next close instead of the same close cost v1 0.13
+>   Sharpe on its own test (§4).
+> - **Stock–bond mixes won 1990–2019 because rates fell, and 2022 reversed it.** In development, 60/40 beat SPY at matched
+>   volatility by +0.22 Sharpe and inverse-vol beat 60/40 by +0.13. On 2020–2026 both rows turned negative (−0.20,
+>   −0.32), as did every comparison of a bond-holding rung against vol-targeted SPY, 60/40 or the line (§1–2).
+> - **A slow correlation signal can't react to a fast regime change; trend did.** The 126-day stock–bond correlation
+>   first moved bonds to cash at the end of August 2022. The 10-month trend rule had TLT out from January (§3).
 
-The purpose of the project is strictly **research-oriented**. It is designed to study whether simple, interpretable signals can improve risk-adjusted portfolio behavior across different market environments. It should be viewed as a quantitative research exercise rather than a live trading system or investment product.
+This is a research repository. It is not a trading system and not investment advice. It rebuilds an earlier project
+(v1, kept in git history) with correct accounting, storage-permitted data and a pre-registered test. Every number
+below is in a committed file under `reports/`, and every figure is in `reports/figures/`.
 
-**Headline result (out-of-sample, 2020-01-01 to 2025-12-31):** the strategy delivered a **1.00 Sharpe vs. 0.78 for SPY** and roughly **half the maximum drawdown (-17.7% vs. -33.7%)**, while slightly beating SPY's return at lower volatility. This is primarily a **risk-control** result, not a return-alpha claim — see [Results](#results) for full numbers and caveats.
+---
 
-## Research motivation
+## 1. The answer
 
-The central hypothesis is that the relationship between equities and duration is not constant across market regimes.
+The three questions are registered in `spec/prereg.yaml` (`r5_test.family`).
+- In development (1990–2019), "beat" means the pre-registered four-part promotion rule (`promotion_rule`).
+- In the test window (2020-01-02 → 2026-09-30, 1,695 sessions), "beat" means ΔSharpe ≥ +0.05 at matched risk
+  **and** a Holm-adjusted one-sided p < 0.05 across the 24 registered comparisons.
 
-In supportive environments, equity exposure may remain attractive. In weaker or more unstable environments, long-duration Treasuries may become more valuable either as a defensive allocation or as part of a relative-value positioning framework. This project studies whether a small set of transparent rules can adapt to those changes more effectively than a static allocation.
+| Did any layer beat … | Development 1990–2019 | Test 2020-01 → 2026-09 |
+|---|---|---|
+| (a) plain vol-targeted SPY (L2) | No promotion. Point estimates favoured the bond mixes: L5 vs L2 **+0.30** ΔSharpe at matched vol | **Not shown.** Best row L3 vs L2 −0.25; L5 vs L2 −0.61 [−1.20, −0.02] |
+| (b) 60/40 (L3) | No promotion. L5 vs L3 +0.14; L7 vs L3 −0.12 | **Not shown.** Best row L7 vs L3 −0.15; L5 vs L3 −0.36 [−0.68, −0.04] |
+| (c) SPY + T-bills at matched risk (the "line") | No promotion. L3 +0.17 [+0.01, +0.32], L5 +0.26 [−0.04, +0.55] | **Not shown.** Best row L2 +0.11 (p 0.20); L5 −0.58 [−1.13, −0.02] |
 
-The strategy is built around three core components:
+ΔSharpe is the annualised excess-Sharpe difference at matched volatility, with the Ledoit–Wolf 95% interval.
 
-- **Regime detection**
-  Classifies the market using volatility and trend information.
+**What decided it:**
+- **Development.** The parent chains, SPY → 60/40 → inverse-vol → vol target → regime layers, stop at the first step.
+  60/40 beats SPY on Sharpe but loses inside the 1994 and Q4 2018 crisis windows (a registered robustness leg). The
+  pre-registered walk (L1 → L5) stops at L2.
+  - Seat: SPY on the parent chains; v1 on the pre-registered walk.
+  - Sources: `reports/r2/ladder.json`, `ladder_chains.json`.
+- **Test.** The 2020–2026 window holds the worst long-Treasury drawdown in the sample (2022). Every row where bonds or
+  risk weighting helped in development flips sign: only 4 of the 24 comparisons agree in sign with development.
+  - The test window cannot promote or demote anything. It was run once with frozen rules.
+  - It is labelled **"seen by owner in v1, disclosed"**: the owner saw 2020–2025 when v1 was built.
+- **Power.** 6.75 years was never going to confirm an edge. The best development layer, 60/40 vs SPY, needs about 30
+  years of data for 80% power; inverse-vol vs 60/40 needs 87 (`reports/r4/power.csv`). A "not shown" is therefore the
+  expected result even for a real edge. Read it as "the edge did not survive this window", not "proved zero".
 
-- **Base signal generation**
-  Uses spread-based and Bollinger-band signals to identify relative-value opportunities between SPY and TLT.
+![Every registered comparison, test vs development](reports/figures/R5/family_dsharpe_test_vs_development.png)
 
-- **Crash overlay**
-  Reduces SPY exposure during periods of rising market stress using drawdown- and volatility-sensitive logic.
+## 2. The ladder and what each layer added
 
-The final result is a daily portfolio allocation between SPY and TLT.
+Each rung adds one layer to its parent. Parameters are fixed from the literature, not searched (`spec/rules.yaml`).
+Every book trades at the next close, earns T-bills on cash, pays bills + 25 bp on borrowing, and pays 3 / 2 bp per side
+on true traded turnover.
 
-## Project structure
+| Rung | Layer | Dev Sharpe | Dev ΔSharpe vs parent [95%] | Test Sharpe | Test ΔSharpe vs parent [95%] |
+|---|---|---|---|---|---|
+| L0 | SPY proxy | 0.48 | — | 0.68 | — |
+| L1 | v1, corrected (comparison row) | 0.51 | — | 0.74 | — |
+| L2 | vol-targeted SPY (v1's real driver) | 0.53 | +0.05 vs L0 | 0.73 | +0.04 [−0.36, +0.45] |
+| L3 | 60/40 SPY/TLT, monthly, 5 pp band | 0.69 | **+0.22 [+0.05, +0.38]** vs L0 | 0.48 | −0.20 [−0.54, +0.13] |
+| L4 | inverse-vol (63-day) | 0.82 | +0.13 [−0.04, +0.30] | 0.16 | **−0.32 [−0.54, −0.11]** |
+| L5 | + 10% portfolio vol target | 0.83 | +0.01 [−0.04, +0.06] | 0.12 | −0.04 [−0.23, +0.15] |
+| L6 | + correlation regime (TLT → cash when 126-day corr > 0) | 0.75 | −0.08 [−0.23, +0.07] | 0.12 | +0.00 [−0.32, +0.32] |
+| L7 | + per-asset trend (10-month SMA) | 0.58 | −0.17 [−0.42, +0.08] | 0.33 | +0.21 [−0.32, +0.74] |
+| L8 | + crash rule (drawdown brake) | 0.58 | −0.00 [−0.01, +0.00] | 0.32 | −0.01 [−0.03, +0.01] |
 
-```bash
-REGIME-AWARE-SPY-TLT-ALLOCATION/
-│
-├── data/
-│   └── prices.csv
-│
-├── results/
-│   ├── plots/
-│   │   └── strategy_vs_spy.png
-│   └── tables/
-│       ├── grid_search_results.csv
-│       ├── summary_metrics.csv
-│       └── test_metrics.csv
-│
-├── signals/
-│   ├── bollinger.py
-│   ├── regime.py
-│   ├── regime_allocation.py
-│   └── spread.py
-│
-├── backtest.py
-├── config.py
-├── data.py
-├── run.py
-├── utils.py
-├── README.md
-└── requirements.txt
+- Development ΔSharpe is at matched vol (`reports/r3/ablation.csv`, `ablation_context.csv`; L2 from
+  `reports/r2/ablation.csv`). Test numbers are from `reports/r5/family.csv` and `metrics.csv`.
+- Placebos: neither the correlation gate nor the trend gate beat its block-shuffled placebo in development
+  (`reports/r3/placebo.csv`), and the crash rule's judge is off (`reports/r3/crash.json`).
+
+![Ablation, test vs development](reports/figures/R5/ablation_test_vs_development.png)
+
+## 3. Crises at matched risk (COVID and 2022)
+
+The table shows cumulative return inside each window, for the rung and for SPY + T-bills held at the rung's own
+volatility (ex ante). Source: `reports/r5/crisis.csv`.
+
+| Rung | COVID 2020-02 → 03 | its line | 2022-01 → 10 | its line |
+|---|---|---|---|---|
+| SPY (L0) | −18.7% | −18.7% | −18.6% | −18.6% |
+| 60/40 (L3) | −6.4% | −8.6% | **−24.1%** | −11.9% |
+| inverse-vol + vol target (L5) | −3.0% | −7.1% | **−22.4%** | −8.8% |
+| + correlation regime (L6) | −3.0% | −7.1% | −18.8% | −8.9% |
+| + trend (L7) | **+1.3%** | −7.3% | −7.7% | −5.2% |
+| + crash rule (L8) | +1.3% | −7.3% | −7.7% | −5.2% |
+
+- **COVID:** long Treasuries hedged as designed. The trend rule moved SPY to cash at the February 2020 month-end and
+  missed most of March.
+- **2022:** stocks and bonds fell together, the case the correlation regime was meant for.
+  - The 126-day correlation stayed negative at every month-end through July 2022. The gate first moved TLT to cash at
+    the 2022-08-31 decision, after most of the bond loss.
+  - L6's 2022 gain over L5 (+1.1 pp at matched risk) sits at the 25th percentile of 100 test-window shuffles of the same
+    gate, inside their 5–95% range. That is **not distinguishable from holding fewer bonds at random times.**
+  - Trend did the 2022 work: TLT was out from January.
+  - Shuffles are coarse (about 7 blocks), descriptive and one-directional (D5.8).
+
+![COVID and 2022 at matched risk](reports/figures/R5/crisis_covid_2022_matched.png)
+
+## 4. v1 vs v2
+
+v1 reported a 1.00 Sharpe on 2020–2025 (its own definition, without the risk-free rate). R1 replayed v1 exactly, then
+applied the accounting corrections one at a time on v1's own test window (`reports/r1/reconciliation.csv`).
+
+| Step | Correction | CAGR | excess Sharpe | Δ excess Sharpe |
+|---|---|---|---|---|
+| S0 | v1 as committed (Yahoo + Cboe VIX, same-close trading, 0% cash, no financing) | 16.3% | 0.83 | — |
+| S1 | trade at t+1 | 14.0% | 0.70 | −0.13 |
+| S2 | cash at T-bills, financing above 1× | 13.4% | 0.67 | −0.03 |
+| S3 | costs on true traded turnover (incl. vol-scaling trades; 26.7×/yr) | 14.1% | 0.71 | +0.04 |
+| S4 | excess-return Sharpe, standard Sortino (metric only) | 14.1% | 0.71 | 0 |
+| S5 | no shorts | 14.0% | 0.70 | −0.00 |
+| S6 | VIX → realised-vol proxy | 14.0% | 0.70 | −0.01 |
+| S7 | permitted data (KF Hi 20, GSW 25-year, H.15) = **L1** | 15.5% | 0.78 | +0.08 |
+
+On the R5 test window (2020-01 → 2026-09), v1 corrected (L1) earns 14.9% CAGR with an excess Sharpe of 0.74. v2's
+regime-aware mix with trend (L7) earns 5.0% at a Sharpe of 0.33, with a −11% max drawdown against v1's −20% and
+SPY's −33%. v1's edge was mostly vol-targeted SPY: L2 alone has an excess Sharpe of 0.73. Neither v1 nor L2 beats SPY +
+T-bills at matched risk in development (L1 −0.08, L2 −0.06).
+
+![v1 vs v2](reports/figures/R5/v1_vs_v2_side_by_side.png)
+
+## 5. Robustness, costs and multiple testing
+
+- **Costs and financing.** At 3× costs, each layer's test ΔSharpe vs its parent moves by ≤ 0.013, except L2 vs L0
+  (−0.04; it trades 10×/yr). A +75 bp financing stress changes nothing for L3–L8, which never borrow
+  (`reports/r5/costs.csv`; development in `reports/r4/costs.csv`).
+- **Deflated Sharpe.** N comes from the development register (`reports/variants.csv`, `reports/r4/dsr.csv`).
+  - In development, 787 trial series, including v1's 648-config grid, cluster to an effective N of 3 (N used 4).
+  - On the test, with N 5 (one more for the post-hoc 10-year row below), the DSR of every rung is below 0.95:
+    SPY 0.72, v1 0.76, L5 0.19, L7 0.37.
+  - At the raw register count (751), every test DSR is ≤ 0.11.
+- **Post-hoc 10-year bond leg (owner lead from R4).** It cannot change a verdict and is counted in N. On the test the
+  10-year leg leaves L5 unchanged (Sharpe 0.115 vs 0.116) and helps L6 (0.30 vs 0.12) and L7 (0.41 vs 0.33).
+  - Source: `reports/r5/sens10y.csv`.
+  - The 10-year GSW leg is not QA'd against an ETF. The 25-year books are the official ones.
+- **Development robustness** (`reports/r4/`): leave-one-crisis-out, decades, rolling 5-year, band and calendar, the zoo
+  rows (HMM / jump gates, min-CDaR, vol-model zoo, v1's signals as overlays, GBM risk sizing). No zoo row is
+  distinguishable from L5: the largest gains are min-CDaR +0.02 [−0.11, +0.16] and raw GBM sizing +0.01; the rest are
+  negative (`reports/r3/ablation.csv`, `reports/r4/zoo.csv`).
+
+## 6. Method
+
+- **Windows:**
+  - warm-up 1986–1989 (estimation only);
+  - development 1990–2019 (every decision);
+  - test 2020-01 → the last Ken French month at R5 (2026-09), frozen rules run once.
+
+  The ex-ante line is `quantkit.bench.vol_matched`; the test-window comparisons are rescaled once ex post to the
+  child's test-window vol.
+- **Pre-registration:** `spec/prereg.yaml` was hashed into `reports/ledger.md` before every phase's results.
+  Expectations were written before code, and every miss was logged and diagnosed, never hidden: R5 shows 13 held and
+  5 failed.
+- **Freeze:**
+  - `spec/freeze.lock.json` holds content hashes of the spec, the engine, the run inputs and the data.
+  - `reports/r5/test_run.json` was written "started" before any statistic and "completed" after.
+  - `make r5-replay` recomputes every test table byte for byte.
+- **Decisions:** each design choice went to an independent advisor before acting (`reports/decisions.md`; plain
+  language in `learn/decisions.md`). Each phase had one adversarial review (`reports/reviews/`).
+- **Library:** `quantkit` v0.19.2 (statistics, vol models, ladder, bonds, figures), pinned with a per-module hash check.
+
+## 7. Data and licences
+
+v2 uses only sources whose terms permit local storage. See `LICENSES.md` for the quoted clauses.
+
+| Leg | Source | Label |
+|---|---|---|
+| SPY sleeve | Ken French data library, daily "Hi 20" size portfolio (value-weighted total return) | "SPY proxy"; gitignored, never redistributed |
+| TLT sleeve | 25-year constant-maturity Treasury total return from the Fed's GSW yield curve (public domain), via `quantkit.bonds` | "TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr" |
+| Cash, financing | Fed H.15 3-month bill (public domain) | — |
+
+- **Why the switch:** v1 used Yahoo Finance prices and Cboe VIX; both were removed from the repository and its history.
+  Those providers' terms bar automated collection and redistribution. Realised volatility and vol-model forecasts
+  replace VIX.
+- **Committed vs local:** only derived statistics are committed. Daily series and curve figures stay local
+  (`data/`, `reports/figures_local/`, gitignored).
+
+## 8. Reproduce
+
+macOS with Homebrew and [uv](https://docs.astral.sh/uv/). The LightGBM risk-sizing row (R4) links Homebrew's OpenMP
+runtime. `make omp` points scikit-learn's bundled copy at the same runtime inside `.venv` only, so both libraries load
+one copy (quantkit's documented `python -m quantkit.omp --fix`; reversible). Re-run `make omp` after every `uv sync`.
+
+```zsh
+brew install libomp
+uv sync --frozen
+make omp
+make doctor
+make fetch
+make all
+make report-site-local
 ```
 
-## Strategy framework
-
-### 1. Regime detection
-
-The first step is to classify the market environment.
-
-The model uses:
-- **volatility**
-- **trend**
-
-Volatility can be measured either through:
-- VIX relative to its rolling average, or
-- realized SPY volatility relative to its own long-term average
-
-Trend is measured using SPY momentum.
-
-This stage is meant to answer a simple question: **what type of market environment are we currently observing?**
-
-### 2. Relative-value signals
-
-The project uses two base signal engines.
-
-#### Spread signal
-The spread signal looks at the close-to-close return spread between SPY and TLT. When that spread becomes unusually wide relative to recent history, the strategy takes a mean-reversion view. The backtest applies the execution lag centrally when converting signals into returns.
-
-#### Bollinger-band signal
-The Bollinger framework looks at the SPY/TLT price ratio. When the ratio moves too far from its rolling mean, the model adjusts positioning based on that deviation.
-
-These two signals provide a simple and interpretable way to express relative-value views depending on the regime.
-
-### 3. Regime-aware allocation logic
-
-The regime state determines which signal logic is emphasized.
-
-In broad terms:
-- calmer uptrending environments allow stronger SPY exposure
-- calmer but weaker environments can lean more on Bollinger-based positioning
-- more volatile environments can rely more on spread-based positioning
-- stressed environments activate a crash overlay that reduces equity exposure
-
-The goal is not to maximize complexity, but to keep the allocation logic explicit and understandable.
-
-### 4. Crash-sensitive overlay
-
-An important part of the framework is the crash overlay.
-
-Instead of treating all high-volatility periods the same, the model uses a combination of:
-- VIX-relative stress
-- drawdown conditions
-- slow-crash behavior
-
-to scale down SPY exposure when market conditions deteriorate. This allows the strategy to respond not only to sharp stress events but also to slower declines in market conditions.
-
-### 5. Backtest construction
-
-The backtest is designed for research purposes and includes:
-
-- one-day execution lag to avoid lookahead bias
-- volatility targeting
-- transaction costs
-- turnover measurement
-- crisis-period analysis
-- out-of-sample testing
-- performance visualization
-
-The framework evaluates both the strategy and the SPY benchmark over the holdout test period.
-
-## Data
-
-The project uses historical market data for:
-- `SPY`
-- `TLT`
-- `^VIX`
-
-Data is downloaded through `yfinance`, cached locally in `data/prices.csv`, and split into three non-overlapping periods:
-
-- **Train:** start date (`2005-01-01`) to `2015-01-01`
-- **Validation:** `2015-01-01` to `2020-01-01`
-- **Test (out-of-sample):** `2020-01-01` to `2025-12-31`
-
-**Reproducibility — the analysis window is frozen.** The test window has a fixed end date (`test_end_date = 2025-12-31` in `config.py`), and `data.py` truncates the loaded price history at that date (`prices.loc[:TEST_END_DATE]`). This means results do **not** drift as new market data arrives: re-running the pipeline reproduces the same numbers reported below, regardless of when it is run. This structure also keeps model development, parameter selection, and final performance evaluation cleanly separated.
-
-## Grid search and model selection
-
-The full workflow is orchestrated in `run.py`.
-
-When executed, the pipeline:
-1. loads or downloads the data (and freezes it at `test_end_date`)
-2. splits the sample into train, validation, and test periods
-3. precomputes reusable features
-4. runs a grid search on train and validation scoring windows using prior history as warm-up context
-5. uses the train period to shortlist parameters
-6. selects a robust parameter combination using train/validation stability
-7. evaluates the selected strategy on the out-of-sample test period
-8. saves tables and plots for review
-
-The implementation also caches parameter-invariant features to improve efficiency during the search process. Crucially, the **test period is never used for parameter selection** — it is touched only once, for final evaluation.
-
-## Results
-
-All figures below are **out-of-sample** (test period `2020-01-01` to `2025-12-31`). Parameters were selected on the train/validation windows only.
-
-**Selected parameters:** `z_window=10`, `threshold=2.5`, `slow_window=60`, `slow_threshold=-0.03`, `dd_window=50`, `dd_threshold=-0.03`, `crash_weight=0.2`.
-
-| Metric            | Strategy | SPY (benchmark) |
-|-------------------|---------:|----------------:|
-| Annualized return |   16.3%  |      15.0%      |
-| Volatility        |   16.4%  |      20.7%      |
-| Sharpe            |   1.00   |      0.78       |
-| Sortino           |   1.29   |      0.89       |
-| Max drawdown      |  -17.7%  |     -33.7%      |
-| Calmar            |   0.92   |      0.45       |
-| Win rate          |   55.6%  |      55.2%      |
-
-Sharpe across the three windows: **train 0.54 → validation 0.77 → test 1.00**.
-
-### How to read these results (honestly)
-
-- **This is a risk-control story, not an alpha story.** The strategy roughly matched SPY's return while cutting volatility by about 20% and nearly halving the maximum drawdown. The edge is in the *risk-adjusted* profile (Sharpe, Sortino, Calmar), not in outsized returns.
-- **The out-of-sample result is regime-dependent.** Test Sharpe (1.00) exceeds in-sample/train Sharpe (0.54). This is unusual and should be interpreted with care: the test window (2020–2025) contains the 2020 COVID crash and the 2022 equity/duration selloff — exactly the environments a defensive, crash-overlay design is built to handle. The strong test result therefore reflects a favorable sample period, **not** evidence of a stable, persistent edge.
-- **Costs are included, and turnover is high.** Returns are net of transaction costs and use a one-day execution lag with volatility targeting. Annualized turnover is roughly **18.7x**, so the strategy is turnover-heavy and sensitive to the cost assumption.
-
-## Outputs
-
-Running the project generates the following outputs.
-
-### Tables
-- `results/tables/grid_search_results.csv`
-- `results/tables/summary_metrics.csv`
-- `results/tables/test_metrics.csv`
-
-### Plot
-- `results/plots/strategy_vs_spy.png`
-
-These artifacts provide:
-- train and validation results across parameter combinations
-- final selected parameters
-- out-of-sample performance statistics
-- benchmark comparison against SPY
-- cumulative performance visualization
-
-## Installation
-
-Install the required packages with:
-
-```bash
-pip install -r requirements.txt
-```
-
-A minimal `requirements.txt` for this project is:
-
-```txt
-numpy
-pandas
-matplotlib
-yfinance
-```
-
-## How to run
-
-Run the full pipeline with:
-
-```bash
-python run.py
-```
-
-This will execute the full workflow from data loading to final output generation, and reproduce the results reported above.
-
-## Main files
-
-### `config.py`
-Centralized configuration for:
-- filesystem paths
-- dataset boundaries (start, train end, validation end, and the frozen `test_end_date`)
-- default model parameters
-- backtest assumptions
-- grid-search ranges
-- display settings
-
-### `data.py`
-Handles:
-- market data download
-- local caching
-- freezing the analysis window at `test_end_date`
-- return construction
-- train / validation / test splitting
-
-### `signals/regime.py`
-Contains the regime classification logic.
-
-### `signals/spread.py`
-Implements the spread-based mean-reversion signal.
-
-### `signals/bollinger.py`
-Implements the Bollinger-band signal based on the SPY/TLT ratio.
-
-### `signals/regime_allocation.py`
-Combines regime detection, base signal logic, and crash overlay logic into final portfolio weights.
-
-### `utils.py`
-Contains helper logic for conditional normalization.
-
-### `backtest.py`
-Provides:
-- strategy return construction
-- performance metrics
-- turnover analysis
-- crisis-period analysis
-- plotting utilities
-
-### `run.py`
-Acts as the entry point for the end-to-end research pipeline.
-
-## Research characteristics
-
-A few aspects of the project were intentional:
-
-- **Interpretability**
-  Each layer of the decision process is meant to remain understandable.
-
-- **Modularity**
-  Data handling, signals, configuration, and evaluation are separated cleanly.
-
-- **Reproducibility**
-  The workflow is configuration-driven, the analysis window is frozen at a fixed `test_end_date`, and outputs are saved systematically — so reported numbers reproduce exactly.
-
-- **Practicality**
-  The project includes implementation details that matter in realistic backtesting, such as lagging, turnover, transaction costs, and out-of-sample testing.
-
-## Limitations
-
-This project is strictly a **research backtest** and should not be interpreted as a live investment strategy.
-
-Important limitations include:
-- no live execution layer
-- no broker integration
-- simplified transaction cost modeling
-- only two tradable assets
-- high turnover (~18.7x annualized), so results are sensitive to cost assumptions
-- no walk-forward re-optimization
-- a single out-of-sample window, whose result is regime-dependent (see Results)
-- no broader macro feature set yet
-
-As with any backtest, results are sensitive to assumptions, sample period choice, and modeling decisions.
-
-## Possible extensions
-
-A few natural next steps would be:
-- walk-forward validation
-- richer cost and slippage modeling
-- additional macro or rates-based regime inputs
-- a broader multi-asset universe
-- benchmark comparison beyond SPY
+- `make fetch` downloads Ken French, GSW and H.15 into `data/raw/` with a manifest of hashes.
+- `make all` builds the panel, runs the tests, the ladder (R2–R4) and `make r5-replay` (the test window recomputed and
+  checked byte for byte against `reports/r5/`), then draws the figures and `reports/site/index.html`.
+- A fresh Ken French download that adds a month after 2026-09 fails the freeze lock on purpose. The test window is
+  frozen.
+- `make report-site-local` draws the local curve figures (growth of $1, exposure, correlation regime) into the
+  gitignored `reports/figures_local/`.
+
+## 9. Limitations
+
+- The SPY and TLT legs are proxies. Ken French Hi 20 is a value-weighted large-cap portfolio, not the ETF; the 25-year
+  GSW bond is a constructed constant-maturity Treasury, QA'd against TLT only from 2005.
+- One test window of 6.75 years, seen by the owner in v1, and dominated by one regime (the 2022 joint sell-off and the
+  higher-rate years after it). It cannot confirm or reject a modest edge.
+- The regime layers are simple and lagging by design (a 126-day correlation, a 10-month trend). Faster variants were
+  not searched, deliberately: search was the failure the rebuild set out to fix.
