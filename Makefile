@@ -19,10 +19,10 @@ help:
 	@echo "make doctor | test | test-nolegacy | lint | legacy | data | ladder | report-site | all | pin | verify-pin"
 doctor:
 	@$(PY) scripts/doctor.py
-test: logs  # includes the v1 characterization (marker legacy, D0.3): a missing data/prices.csv FAILS
-	$(PY) -m pytest -n auto --durations=10 2>&1 | tee logs/test.log | tail -25
+test: logs  # -n auto capped at 4 workers (D0.4: memory budget). Includes the v1 characterization (marker legacy, D0.3): a missing data/prices.csv FAILS
+	$(PY) -m pytest -n auto --maxprocesses 4 --durations=10 2>&1 | tee logs/test.log | tail -25
 test-nolegacy: logs  # explicit deselect for a machine without v1's cached data (D0.3)
-	$(PY) -m pytest -n auto -m "not legacy" 2>&1 | tee logs/test_nolegacy.log | tail -25
+	$(PY) -m pytest -n auto --maxprocesses 4 -m "not legacy" 2>&1 | tee logs/test_nolegacy.log | tail -25
 lint:
 	$(UV) ruff check src tests scripts .claude/hooks
 legacy: logs  # R0: frozen v1 reproduces its committed tables on its own cached data (outputs to tmp, never results/)

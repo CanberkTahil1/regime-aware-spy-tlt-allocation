@@ -53,5 +53,5 @@ def test_unbuilt_targets_refuse():
 def test_test_target_runs_legacy_and_nolegacy_deselects_explicitly():
     """D0.3: `make test` does not deselect the v1 characterization; only test-nolegacy does, by name."""
     test_recipe = MK.split("\ntest: ")[1].split("\n")[1]
-    assert "-m" not in test_recipe.split("pytest")[1].split("2>&1")[0]
+    assert "-m" not in test_recipe.split("pytest")[1].split("2>&1")[0].split()  # no marker deselect token
     assert '-m "not legacy"' in MK.split("\ntest-nolegacy: ")[1].split("\n")[1]
