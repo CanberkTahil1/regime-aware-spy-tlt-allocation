@@ -34,3 +34,16 @@
    for reference.
 3. **Why does the vol target barely matter here?** The inverse-vol mix already runs below 10% vol on 84% of days, so
    the 1.0× cap binds and the layer acts only in high-vol spells: +0.01 Sharpe and −7% CDaR at matched vol.
+
+## R3 — The regime layer
+
+1. **Your strategy is named after the correlation regime. Does it work?** In 1990–2019 it did what it was built for
+   once: in 1994, when bonds and stocks fell together, it saved 5.9 pp at matched risk. The rest of the time it sat in
+   bills through long positive-correlation spells while bonds rallied, costing −0.08 Sharpe [−0.23, +0.07]. The 2022
+   case for it is in the test window, which isn't opened until R5.
+2. **Trend following cut your GFC loss by 12 points. Why not keep it?** The same rule lost in 1994, 2011, 2015–16 and
+   Q4 2018 by selling dips that recovered or dropping the bond hedge just before it paid. Net −0.17 Sharpe over 30
+   years, and no smaller drawdowns at equal risk. Judging a crash rule by its best crisis is selection.
+3. **How do you know a regime gate isn't just "less risk"?** Compare at matched volatility, and against the same gate
+   with its timing shuffled in 12-month blocks. These gates failed both: no better than the parent at equal risk, and
+   inside the distribution of their shuffled copies.

@@ -12,6 +12,7 @@ from quantkit.stats import sharpe
 
 from rspy import evaluate as ev
 from rspy import regime, rungs
+from tests.reference.regime_ref import corr_ref
 from tests.test_r2 import _inp
 
 
@@ -22,10 +23,8 @@ def _rows(inp):
 def test_corr_equals_reference_and_uses_rows_up_to_t():
     inp = _inp(3, T=400)
     c = regime.corr(inp, 63)
-    for t in (62, 100, 399):
-        ref = np.corrcoef(inp.R[t - 62:t + 1].T)[0, 1]
-        assert abs(c[t] - ref) <= 1e-10
-    assert np.isnan(c[61])
+    assert np.nanmax(np.abs(c - corr_ref(inp.R, 63))) <= 1e-10
+    assert np.isnan(c[61]) and np.isfinite(c[62:]).all()
     R2 = inp.R.copy()
     R2[201:] *= -3.0  # perturb the future
     inp2 = rungs.Inputs(inp.index, R2, inp.bill, inp.mmy, inp.dt)
@@ -169,3 +168,32 @@ def test_coverage_guard_refuses_a_missing_scored_decision():
     k[np.flatnonzero(scored)[5], 1] = np.nan
     with pytest.raises(RuntimeError, match="without a gate state"):
         regime.check_coverage("trend", k, scored)
+
+
+def test_script_wiring_uses_no_future_returns():
+    """Review R3 MATERIAL 1: the targets the script uses (regime.targets: L6, L7, L8 and the descriptive rows) at rows
+    ≤ t, and the holdings through t + 1, do not move when returns after t change. t runs over the session before each
+    decision row and the days of an active drawdown brake; the shock after t (+20% on both sleeves) moves the
+    correlation, the trend and the brake, so a decision or multiplier read one row early is caught."""
+    T_ = 1400
+    inp = _inp(12, T=T_)
+    R = inp.R.copy()
+    R[700:820] = (-0.006, -0.004)  # a joint drawdown so the trend, correlation and drawdown brake all act
+    inp = rungs.Inputs(inp.index, R, inp.bill, inp.mmy, inp.dt)
+    rows = _rows(inp)
+    dev = np.asarray(inp.index >= inp.index[300])
+    l5 = np.tile([0.55, 0.45], (T_, 1))
+    a = regime.targets(inp, rows, dev, l5, band=0.05)
+    assert (a["g"][dev] < 1).any() and (a["keep"]["trend"][rows & dev] == 0).any()
+    books_a = {k: rungs.book(v, inp, band=0.05).held for k, v in a["targets"].items()}
+    d = np.flatnonzero(rows)
+    ts = sorted({*(d[(d > 600) & (d < 1000)] - 1), *np.flatnonzero(a["g"] < 1)[::3]})
+    for t in ts:
+        R2 = R.copy()
+        R2[t + 1:] = 0.2
+        inp2 = rungs.Inputs(inp.index, R2, inp.bill, inp.mmy, inp.dt)
+        b = regime.targets(inp2, rows, dev, l5, band=0.05)
+        assert np.array_equal(a["g"][:t + 1], b["g"][:t + 1]), t
+        for k, v in a["targets"].items():
+            assert np.array_equal(v[:t + 1], b["targets"][k][:t + 1], equal_nan=True), (k, t)
+            assert np.array_equal(books_a[k][:t + 2], rungs.book(b["targets"][k], inp2, band=0.05).held[:t + 2]), (k, t)

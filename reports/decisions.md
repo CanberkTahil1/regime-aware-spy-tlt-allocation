@@ -395,3 +395,15 @@ any R2 code or result. Research: reports/research/R2.md (16791b4).
   GBM target, features, horizon, haircut meaning).
 - **Why the others lost:** (b) four-plus author-chosen definitions in one phase invite an uncounted definition search;
   (c) the gates and min-CDaR are already fully defined by quantkit and the literature.
+
+### O3.1 — D3.6's deferral of three zoo rows to R4 · ESCALATED TO OWNER (advisor vs quant-reviewer) · pending
+- **Why escalated:** R3 review MATERIAL 2: the advisor (D3.6, before results) moved the v1 spread overlay on L5, the v1
+  Bollinger overlay on L5 and the GBM risk-side row (purged CV, 50% haircut) from R3's Do list to R4 without an owner
+  decision; the reviewer holds that cutting the owner's phase scope is the owner's call. Advisor vs reviewer
+  disagreement ⇒ owner (charter "How to work").
+- **Options:** (a) [advisor's choice] accept the deferral: R4 decides the four missing definitions (what "overlay" means
+  for v1's unit-gross, possibly-short weights; GBM target, features, horizon, meaning of the 50% haircut) before any of
+  those rows has a result, in time for R4's PBO/CSCV; R3 is reported as incomplete on these three rows; (b) build them
+  in an R3 amendment before the tag (advisor decides the definitions first, expectations before code); (c) drop them
+  from the zoo (charter change: the zoo list is in CLAUDE.md).
+- **Status:** not acted on; nothing about these rows is built. The ledger lists them as "not tested in R3".

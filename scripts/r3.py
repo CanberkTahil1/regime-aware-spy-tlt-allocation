@@ -54,35 +54,16 @@ def check_keep(name, k):
     regime.check_coverage(name, k, scored_rows)
 
 
-# ---- L6 (D3.1), L7 (D3.2), descriptive rows -------------------------------------------------------------------------
-c6 = R3["L6"]
-keep = {}
-for w in (c6["windows"]["primary"], c6["windows"]["descriptive"]):
-    keep[f"corr{w}"] = regime.l6_keep(inp, rows, w, c6["threshold"])
-for th in c6["sensitivity"]:
-    keep[f"corr126_th{th:+.1f}"] = regime.l6_keep(inp, rows, c6["windows"]["primary"], th)
-keep["trend"] = regime.trend_keep(inp, rows, R3["L7"]["months"])
+# ---- L6 (D3.1), L7 (D3.2), L8 (D3.3) and the descriptive rows: one tested code path (regime.targets) ----------------
+RT = regime.targets(inp, rows, dev, T["L5"], band=B)
+keep, g = RT["keep"], RT["g"]
 for k_, v in keep.items():
     check_keep(k_, v)
-T["L6"] = regime.gate(T["L5"], keep["corr126"])
-T["L6-63"] = regime.gate(T["L5"], keep["corr63"])
-T["L6-th-0.2"] = regime.gate(T["L5"], keep["corr126_th-0.2"])
-T["L6-th+0.2"] = regime.gate(T["L5"], keep["corr126_th+0.2"])
-T["L7"] = regime.gate(T["L6"], keep["trend"])
-T["L7-on-L5"] = regime.gate(T["L5"], keep["trend"])
-T["L7-63"] = regime.gate(T["L6-63"], keep["trend"])
-for r in ("L6", "L6-63", "L6-th-0.2", "L6-th+0.2", "L7", "L7-on-L5", "L7-63"):
+T.update(RT["targets"])
+for r in RT["targets"]:
     band[r] = B
-
-# ---- L8 (D3.3): quantkit dd brake on L7, judged by sizing.judge ------------------------------------------------------
-bk7 = rungs.book(T["L7"], inp, band=B)
 c = inp.bill[dev]
-x7 = bk7.net[dev] - c
-ov = regime.crash_overlay(x7)
-g = np.ones(len(idx))
-g[dev] = ov.mult
-T["L8"] = T["L7"] * g[:, None]
-band["L8"] = B
+x7, ov = RT["x7"], RT["overlay"]
 jd = regime.crash_judge(x7)
 crash = {"on": jd["on"], "sharpe": jd["sharpe"],
          "candidate": {k: jd["candidate"][k] for k in ("p_one_sided", "p", "p_uncentred")},

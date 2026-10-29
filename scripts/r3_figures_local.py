@@ -28,7 +28,7 @@ tab = fg.save_headline(lines, b["bill"], OUT, "headline_growth_and_drawdown", ti
                                 "matched ex ante to +Crash (the full ladder L8)")
 
 # 2. exposure over time (L5, L6, L7) with the trailing 126-day correlation > 0 shaded --------------------------------------
-pos = (b["corr126"] > 0).resample("ME").mean() > 0.5
+pos = (b["corr126_gate"] == 0).resample("ME").mean() > 0.5  # the L6 gate as traded (review R3 MINOR: not raw corr)
 fig, axes = plt.subplots(3, 1, figsize=(10, 7.6), sharex=True)
 for ax, r in zip(axes, ["L5", "L6", "L7"], strict=True):
     w = b[[f"{r}_w_spy", f"{r}_w_tlt"]].resample("ME").mean()
@@ -40,7 +40,7 @@ for ax, r in zip(axes, ["L5", "L6", "L7"], strict=True):
     ax.set_ylabel("weight (monthly mean)")
     ax.set_title(f"{fg.SHORT_R3[r]}: {N[r]}", fontsize=9)
 axes[0].legend(loc="upper left", ncol=3, fontsize=8)
-fig.suptitle("Exposure over time; gray months = trailing 126-day SPY–TLT correlation > 0 (L6 moves TLT to cash)",
+fig.suptitle("Exposure over time; gray months = L6 gate on (126-day SPY–TLT correlation > 0 at the previous month-end)",
              fontsize=10, fontweight="bold", color=fg.INK, y=0.995)
 fig.text(0.01, -0.01, "Development 1990–2019. TLT = " + TLT, fontsize=7, color=fg.INK2)
 fg.save(fig, OUT, "exposure_and_correlation_regime")

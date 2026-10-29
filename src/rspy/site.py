@@ -129,7 +129,9 @@ def r3_verdicts(abl: pd.DataFrame, pl: pd.DataFrame, crash: dict) -> list[dict]:
         {"id": "R3 placebos", "tier": "in-sample",
          "text": "No gate beats its block-shuffled placebo: " + ", ".join(
              f"{g} percentile {p.loc[g, 'percentile_among_100_seeds']:.0f} of 100" for g in p.index)
-                 + f"; crash rule sizing.judge on = {crash['on']}."},
+                 + f"; crash rule sizing.judge on = {crash['on']} — the brake is nearly inert at these pre-registered "
+                   f"thresholds (de-risking from a 10% drawdown on a book whose worst was about 13%): active on "
+                   f"{crash['share_dev_days_g_below_1']:.1%} of days, never below {crash['min_g']:.2f}."},
     ]
 
 
