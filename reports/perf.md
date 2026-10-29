@@ -85,3 +85,15 @@ Note: the grid test is marked `slow` (runtime recorded above, D0.3 amendment 5) 
 | PBO (S = 16, 12,870 splits, N ≤ 60) | ≤ 5 s | block moment sums, chunked |
 | robustness tables (costs, LOCO, decades, rolling, power, waterfall) on 10 rungs | ≤ 40 s | LW 1,000 draws per comparison |
 | whole R4 part, warm | ≤ 150 s; `make ladder` total ≤ 5 min, ≤ 1.5 GB | — |
+
+## R4 measurements (2026-10-29)
+
+| Step | Budget | Measured | Within | Note |
+|---|---|---|---|---|
+| R4 part, first runs, v1 grid in 4 loky workers | ≤ 1.5 GB | **2,264 MB** summed, 8 processes (85 s) | **no** | each loky worker ≈ 500 MB (pandas, numba, v1's code) |
+| v1 grid moved to the start, 4 / 2 workers | ≤ 1.5 GB | 2,364 / 1,775 MB summed | **no** | the pool, not the main process, dominates |
+| v1 grid in-process (fix), grid cold | ≤ 150 s, ≤ 1.5 GB | 107 s, **1,076 MB** (2 processes) | yes | grid ≈ 31 s serial (≤ 90 s budget), then cached by panel + code hash |
+| R4 part, warm (facts.json timing_s) | ≤ 150 s | 72 s: base 0.8, zoo + GBM 8.3, costs + waterfall 25.3, LOCO/decades/rolling/power 0.1, sensitivity 31.9, trial pool 4.5, DSR 0.7, PBO 0.1 | yes | 33 + 41 + 8 matched comparisons with LW 1,000 + 2 dd_ratio_ci |
+| GBM (30 walk-forward fits, 8,213 rows × 8 features) | ≤ 30 s | ≈ 7 s inside the zoo step | yes | threads 1 |
+| `make ladder` (R2 + R3 + R4 + figures), warm | ≤ 5 min, ≤ 1.5 GB | **145 s, 1,122 MB** (rss_peak) | yes | — |
+| `make test` (134 tests, -n auto) | ≤ 60 s | 10.9 s | yes | — |

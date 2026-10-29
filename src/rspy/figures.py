@@ -34,6 +34,13 @@ SHORT.update({NAMES_R3["L6"]: "+CorrReg", NAMES_R3["L7"]: "+Trend", NAMES_R3["L8
 SHORT_R3 = {"L0": "SPY", "L1": "v1", "L3": "60/40", "L5": "InvVol+VT", "L6": "+CorrReg", "L7": "+Trend",
             "L8": "+Crash", "L7-on-L5": "Trend only", "hmm_gate": "HMM gate", "jump_gate": "Jump gate",
             "min_cdar": "Min-CDaR"}
+# R4: the three O3.1 zoo rows (labels kept short for viz.headline, full names in the footer key).
+NAMES_R4 = {"v1_spread_overlay_on_L5": "v1 spread signal as a cash overlay on InvVol+VT",
+            "v1_bollinger_overlay_on_L5": "v1 Bollinger signal as a cash overlay on InvVol+VT",
+            "gbm_risk_sizing": "GBM vol forecast, 50% shrink to the zoo forecast",
+            "gbm_risk_sizing_raw": "GBM vol forecast, no shrink"}
+SHORT.update({NAMES_R4["v1_spread_overlay_on_L5"]: "Spread ovl", NAMES_R4["v1_bollinger_overlay_on_L5"]: "Bollinger ovl",
+              NAMES_R4["gbm_risk_sizing"]: "GBM 50%", NAMES_R4["gbm_risk_sizing_raw"]: "GBM raw"})
 CRISIS_LABELS = {"bonds_1994": "1994 bonds", "dotcom": "Dot-com", "gfc": "GFC", "euro_2011": "Euro 2011",
                  "china_2015": "China 2015", "q4_2018": "Q4 2018", "covid": "Covid", "infl_2022": "2022 inflation"}
 FOOTER = ("SPY = SPY proxy (Ken French Hi 20, value-weighted, daily); TLT = " + paths.rules()["bonds"]["label"]

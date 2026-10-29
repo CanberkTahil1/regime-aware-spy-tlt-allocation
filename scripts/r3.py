@@ -7,14 +7,12 @@ data/r3/books.parquet. Parents L1, L3, L4, L5 are rebuilt with R2's functions (v
 equal R2's books (checked against data/r2/books.parquet when present). The test window 2020+ is not run here (R5).
 """
 
-import hashlib
 import json
 import math
 import time
 
 import numpy as np
 import pandas as pd
-from quantkit import state as qstate
 from quantkit.alloc.risk import max_div
 from quantkit.stats.multitest import adjust_pvalues
 
@@ -75,30 +73,13 @@ crash = {"on": jd["on"], "sharpe": jd["sharpe"],
 t_core = time.perf_counter() - t0
 
 # ---- zoo (D3.6) ---------------------------------------------------------------------------------------------------------
-zc = R3["zoo"]
-gd = zc["gate_defaults"]
-hmm = regime.cached("hmm", lambda r: qstate.hmm_regime(r, **gd), inp.R[:, 0], key=gd)
-jm = regime.cached("jump", lambda r: qstate.jump_regime(r, **gd), inp.R[:, 0], key=gd)
-keep["hmm"] = regime.state_keep(hmm, rows, lambda s: s > 0.5)
-keep["jump"] = regime.state_keep(jm, rows, lambda s: s == 1)
+Z = regime.zoo_targets(inp, rows, T["L5"], band=B, years=years)  # one code path with R4 (moved from here, R4)
+keep.update(Z["keep"])
 check_keep("hmm", keep["hmm"])
 check_keep("jump", keep["jump"])
-T["hmm_gate"] = regime.gate(T["L5"], keep["hmm"])
-T["jump_gate"] = regime.gate(T["L5"], keep["jump"])
-mc = zc["min_cdar"]
-mkw = {"window": mc["window"], "alpha": mc["alpha"], "floor": mc["floor"]}
-Wm = regime.cached("min_cdar", lambda R: regime.min_cdar_weights(R, rows, **mkw), inp.R,
-                   key={**mkw, "rows": hashlib.sha256(rows.tobytes()).hexdigest()})
-rm = rungs.log_book_returns(rungs.book(Wm, inp, band=B))
-Fm = volzoo.forecasts(rm)
-Lm = volzoo.losses(Fm, rm)
-ym = [y for y in years if int(Lm.loc[:f"{y}-12-31"].dropna().shape[0]) >= 252]
-pm = volzoo.select(Fm, rm, ym)
-T["min_cdar"] = rungs.vol_target(Wm, volzoo.stitched(Fm, pm), idx, R2["L5"]["target_vol"], R2["L5"]["cap"])
+T.update(Z["targets"])
 band["hmm_gate"] = band["jump_gate"] = band["min_cdar"] = B
-facts["min_cdar_first_pick_year_end"] = min(pm) if pm else None
-facts["min_cdar_vol_default_until"] = f"{min(pm) + 1}-01-01 (ewma_slow before the first pick; disclosed)" if pm else None
-facts["min_cdar_first_target"] = str(idx[np.isfinite(T["min_cdar"][:, 0])][0].date())
+facts.update(Z["facts"])
 md = 0.0
 for t in np.flatnonzero(rows & np.isfinite(T["L4"][:, 0])):
     win = inp.R[t - 62:t + 1]

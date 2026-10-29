@@ -20,8 +20,19 @@ def test_every_bundle_number_traces_to_the_committed_csv():
     m3 = pd.read_csv(paths.REPORTS / "r3" / "metrics.csv").set_index("rung")
     abl = pd.read_csv(paths.REPORTS / "r3" / "ablation.csv")
     refs = {v: k for k, v in site.R3_REFS.items()}
+    zoo = pd.read_csv(paths.REPORTS / "r4" / "zoo.csv")
+    refs4 = {v: k for k, v in site.R4_REFS.items()}
     for r in b.tables["summary"].itertuples(index=False):
         metric, window = r.metric.rsplit(" (", 1)
+        if r.strategy in site.R4_NAMES:  # R4 zoo rows: development, in-sample, copied from reports/r4/zoo.csv
+            q = zoo[zoo.row == r.strategy]
+            if metric.startswith("dsharpe_vs_"):
+                row = q[q.reference == refs4[metric[len("dsharpe_vs_"):]]].iloc[0]
+                assert (r.value, r.lo, r.hi) == (row.dsharpe, row.lo, row.hi), (r.strategy, r.metric)
+            else:
+                assert r.value == q[metric].iloc[0], (r.strategy, r.metric)
+            assert r.tier == "in-sample"
+            continue
         if r.strategy in site.R3_NAMES:  # R3: development, in-sample, copied from reports/r3/*.csv
             if metric.startswith("dsharpe_vs_"):
                 row = abl[(abl.child == r.strategy) & (abl.reference == refs[metric[len("dsharpe_vs_"):]])].iloc[0]

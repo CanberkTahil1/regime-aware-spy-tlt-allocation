@@ -299,3 +299,26 @@ low-to-medium confidence.
 | E4.15 | Waterfall: the per-day identity holds ≤ 1e-10 for every rung and cost row; cost drag ≤ 0.05%/yr for L3–L8 at 1×; L1 cost drag ≥ 0.5%/yr; financing non-zero only for L1, L2, L5-lev | D4.4 | open |
 | E4.16 | code: after R4 code, every reports/r2 and reports/r3 statistic file is unchanged (except timing); spec/quantkit_pin.json unchanged byte for byte after the `ml` install; `make verify-pin` passes | D4.3 | open |
 | E4.17 | perf: `make ladder` (R2 + R3 + R4) warm ≤ 5 min and peak RSS ≤ 1.5 GB; R4 part warm ≤ 150 s; GBM fits (30 walk-forward fits) ≤ 30 s; v1 grid (648 books) ≤ 90 s with a process pool | performance contract | open |
+
+**R4 first full run (2026-10-29, `scripts/r4.py`; logged before diagnosis).** Contradicting the expectations:
+- **E4.1:** spread overlay turnover is **11.2×/yr**, above the [1, 10] band. The other parts hold: ΔSharpe −0.067, p 0.978,
+  SPY→cash on 2.0% of days and TLT→cash on 2.7%.
+- **E4.2:** Bollinger overlay turnover is **26.2×/yr**, above [1, 10]. The other parts hold: ΔSharpe −0.037, p 0.731,
+  9.5% and 9.1% of days.
+- **E4.5:** L2 vs L0 ΔSharpe moves **−0.038** from 1× to 3×, against a band of ≤ 0.02. L2 trades 6.3×/yr; the other
+  layers move ≤ 0.006.
+- **E4.8:** L5's excess Sharpe in the 2000s is **0.345**, against a band of > 0.4.
+- **E4.11:** **L7 quarterly** Sharpe is 0.447 against 0.580 registered (**−0.133**), outside ±0.05. Every other band
+  and calendar variant is within ±0.04.
+- **E4.12:** n_eff is **3** (k_cut 1 at ρ* 0.5, k_gap 3), so N used = **4**, below the [5, 80] band. The pool has 787
+  series, below the predicted ≥ 800. **L1's DSR is 0.959**, not < 0.95. DSR ≥ 0.95 holds for L4–L6, and L0 is 0.942.
+- **E4.17 (RSS):** v1's grid in 4 loky workers peaks at **2,264 MB summed over 8 processes**, above the 1.5 GB budget.
+  Wall time is 85 s, within budget.
+
+Two defects in my own reporting were found on the same run:
+- `waterfall.vol_drag_pa` = mean·252 − CAGR goes negative for low-vol books (L4/L5: −0.1 pp). It mixes compounding of
+  the mean with vol drag.
+- The PBO secondary pool lists L5 twice, and the dedupe log prints "L5 == L5".
+
+L4b and max_div differ by ~1e-15. The byte-exact dedupe registered in D4.7 therefore keeps both in the primary PBO
+pool, although the advisor's premise was that they are identical.

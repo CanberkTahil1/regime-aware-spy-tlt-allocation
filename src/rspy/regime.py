@@ -40,7 +40,7 @@ from quantkit.signals.trend import faber
 from quantkit.value import rolling_corr
 from quantkit.vol import shuffle_blocks
 
-from rspy import paths, rungs
+from rspy import paths, rungs, volzoo
 
 
 def spec() -> dict:
@@ -187,3 +187,32 @@ def targets(inp: rungs.Inputs, rows: np.ndarray, dev: np.ndarray, l5: np.ndarray
     g[dev] = ov.mult
     T["L8"] = T["L7"] * g[:, None]
     return {"targets": T, "keep": keep, "g": g, "x7": x7, "overlay": ov}
+
+
+def zoo_targets(inp: rungs.Inputs, rows: np.ndarray, l5: np.ndarray, *, band: float, years) -> dict:
+    """The R3 zoo (D3.6) from L5's daily target, one code path for scripts/r3.py and R4's trial pool: HMM / jump gates
+    (SPY to cash while turbulent at the latest month-end decision) and min-CDaR + its own vol layer (zoo pick from
+    the first year-end with 252 realised losses; ewma_slow before, disclosed)."""
+    from quantkit import state as qstate
+
+    zc = spec()["zoo"]
+    r2 = paths.rules()["r2"]
+    gd = zc["gate_defaults"]
+    hmm = cached("hmm", lambda r: qstate.hmm_regime(r, **gd), inp.R[:, 0], key=gd)
+    jm = cached("jump", lambda r: qstate.jump_regime(r, **gd), inp.R[:, 0], key=gd)
+    keep = {"hmm": state_keep(hmm, rows, lambda s: s > 0.5), "jump": state_keep(jm, rows, lambda s: s == 1)}
+    T = {"hmm_gate": gate(l5, keep["hmm"]), "jump_gate": gate(l5, keep["jump"])}
+    mc = zc["min_cdar"]
+    mkw = {"window": mc["window"], "alpha": mc["alpha"], "floor": mc["floor"]}
+    Wm = cached("min_cdar", lambda R: min_cdar_weights(R, rows, **mkw), inp.R,
+                key={**mkw, "rows": hashlib.sha256(rows.tobytes()).hexdigest()})
+    rm = rungs.log_book_returns(rungs.book(Wm, inp, band=band))
+    Fm = volzoo.forecasts(rm)
+    Lm = volzoo.losses(Fm, rm)
+    ym = [y for y in years if int(Lm.loc[:f"{y}-12-31"].dropna().shape[0]) >= 252]
+    pm = volzoo.select(Fm, rm, ym)
+    T["min_cdar"] = rungs.vol_target(Wm, volzoo.stitched(Fm, pm), inp.index, r2["L5"]["target_vol"], r2["L5"]["cap"])
+    facts = {"min_cdar_first_pick_year_end": min(pm) if pm else None,
+             "min_cdar_vol_default_until": f"{min(pm) + 1}-01-01 (ewma_slow before the first pick; disclosed)" if pm else None,
+             "min_cdar_first_target": str(inp.index[np.isfinite(T["min_cdar"][:, 0])][0].date())}
+    return {"targets": T, "keep": keep, "facts": facts}

@@ -135,8 +135,66 @@ def r3_verdicts(abl: pd.DataFrame, pl: pd.DataFrame, crash: dict) -> list[dict]:
     ]
 
 
+R4_NAMES = {"v1_spread_overlay_on_L5": "v1 spread overlay on L5 (zoo)", "v1_bollinger_overlay_on_L5": "v1 Bollinger overlay on L5 (zoo)",
+            "gbm_risk_sizing": "GBM risk sizing, 50% haircut (zoo)", "gbm_risk_sizing_raw": "GBM risk sizing, raw (zoo)"}
+R4_REFS = {"L5 (parent)": "L5", "SPY+T-bills line": "line"}
+
+
+def tables_r4(zoo: pd.DataFrame) -> dict[str, pd.DataFrame]:
+    """R4 zoo rows copied as stored from reports/r4/zoo.csv: development Sharpe and ΔSharpe vs L5 and vs the line at
+    matched vol (LW 95%). Robustness, DSR and PBO enter the page as verdict text (their strategies are R2/R3 rows)."""
+    a, z = (str(d) for d in paths.rules()["r4"]["scored"])
+    sm = []
+    for r in R4_NAMES:
+        q = zoo[zoo.row == r]
+        sm.append((r, "sharpe (development)", float(q.sharpe.iloc[0]), "excess Sharpe", "in-sample", a, z, np.nan, np.nan))
+        for ref, key in R4_REFS.items():
+            row = q[q.reference == ref].iloc[0]
+            sm.append((r, f"dsharpe_vs_{key} (development)", float(row.dsharpe), f"ΔSharpe vs {ref} at matched vol (LW 95%)",
+                       "in-sample", a, z, float(row.lo), float(row.hi)))
+    return {"summary": pd.DataFrame(sm, columns=["strategy", "metric", "value", "unit", "tier", "window_start", "window_end",
+                                                 "lo", "hi"])}
+
+
+def r4_verdicts(zoo: pd.DataFrame, costs: pd.DataFrame, loco: pd.DataFrame, sens: pd.DataFrame, dsr: pd.DataFrame,
+                pbo: pd.DataFrame, facts: dict) -> list[dict]:
+    pe = paths.prereg()["r4_evaluation"]
+    par = pe["parents"]
+    z = zoo[zoo.reference == "L5 (parent)"].set_index("row")
+    c = costs[costs.apply(lambda x: par.get(x.rung) == x.reference, axis=1)].pivot(index="rung", columns="book", values="dsharpe")
+    lp = loco[loco.apply(lambda x: par.get(x.rung) == x.reference, axis=1)]
+    worst = lp.loc[lp.groupby("rung").change.idxmin()].set_index("rung")
+    h = dsr[dsr.pool.str.startswith("headline")].set_index("rung")
+    p = pbo[pbo.role == "primary"].iloc[0]
+    q = sens.loc[(sens.vs_registered_dsharpe.abs()).idxmax()]
+    d = facts["dsr_pool"]
+    return [
+        {"id": "R4 zoo (O3.1)", "tier": "in-sample",
+         "text": pe["label"] + ". The three deferred zoo rows vs L5 at matched vol, ΔSharpe [LW 95%]: " + ", ".join(
+             f"{k} {z.loc[k, 'dsharpe']:+.3f} [{z.loc[k, 'lo']:+.2f}, {z.loc[k, 'hi']:+.2f}]" for k in R4_NAMES)
+                 + f"; overlay turnover {z.loc['v1_spread_overlay_on_L5', 'turnover_pa']:.1f}× and "
+                   f"{z.loc['v1_bollinger_overlay_on_L5', 'turnover_pa']:.1f}× per year (one-day exits)."},
+        {"id": "R4 costs and financing", "tier": "in-sample",
+         "text": "Each layer's ΔSharpe vs its parent at 1× / 3× costs / +75 bp: " + ", ".join(
+             f"{r} {c.loc[r, '1x']:+.2f} / {c.loc[r, '3x']:+.2f} / {c.loc[r, 'f75']:+.2f}" for r in par)
+                 + ". Only L1, L2 and L5-lev borrow; the other books are unchanged by the financing stress bit for bit."},
+        {"id": "R4 leave-one-crisis-out", "tier": "in-sample",
+         "text": "The window each layer's result leans on most (ΔSharpe change when dropped): " + ", ".join(
+             f"{r} {worst.loc[r, 'dropped']} {worst.loc[r, 'change']:+.2f}" for r in par if r in worst.index) + "."},
+        {"id": "R4 sensitivity", "tier": "in-sample",
+         "text": f"{len(sens)} one-factor books (maturity 10/20/30y, band 0/2.5/10 pp, quarterly). Largest move vs the "
+                 f"registered rung: {q.variant} {q.vs_registered_dsharpe:+.3f} ΔSharpe; 10/20/30y legs are GSW proxies not "
+                 "QA'd vs an ETF."},
+        {"id": "R4 DSR / PBO", "tier": "in-sample",
+         "text": f"{d['n_raw_columns']} trial series (incl. v1's 648-config grid on permitted data) cluster to n_eff "
+                 f"{d['n_eff']} at ρ* 0.5 (N used {d['n_used_headline']}). DSR (headline): " + ", ".join(
+                     f"{r} {h.loc[r, 'dsr']:.3f}" for r in pe["rungs"]) + f". PBO, zoo pool, S = 16: {p.pbo:.2f}. "
+                 "DSR tests a Sharpe above the expected best null trial, not an edge over SPY."},
+    ]
+
+
 def manifest(tab: pd.DataFrame, qa: pd.DataFrame, sources: list[dict], r2: dict | None = None,
-             r3: dict | None = None) -> dict:
+             r3: dict | None = None, r4: dict | None = None) -> dict:
     head = git_head()
     t = tab[tab.window == "test"].set_index("step")
     q = qa[qa["sample"] == "2005-2025"].set_index("pair")
@@ -170,10 +228,15 @@ def manifest(tab: pd.DataFrame, qa: pd.DataFrame, sources: list[dict], r2: dict 
                         "cost_model": "3/2 bp per side, true turnover; bill + 25 bp financing", "gross_nav": False}
                        for k, v in R3_NAMES.items()]
         verdicts += r3["verdicts"]
+    if r4 is not None:
+        strategies += [{"id": k, "family": "R4 zoo", "variant": v, "frozen": False,
+                        "cost_model": "3/2 bp per side, true turnover; bill + 25 bp financing", "gross_nav": False}
+                       for k, v in R4_NAMES.items()]
+        verdicts += r4["verdicts"]
     return {
         "schema_version": qr.SCHEMA_VERSION,
         "project": {"name": "regime-aware-spy-tlt-allocation", "repo": "regime-aware-spy-tlt-allocation",
-                    "repo_commit": head, "quantkit_tag": "v0.19.2", "phase": "R3" if r3 else ("R2" if r2 else "R1"),
+                    "repo_commit": head, "quantkit_tag": "v0.19.2", "phase": "R4" if r4 else ("R3" if r3 else ("R2" if r2 else "R1")),
                     "thesis": "Regime-aware SPY/TLT/cash allocation; R1 swaps v1 onto permitted data and the charter's "
                               "accounting, one correction at a time.",
                     "data_cut": str(tab["end"].max()), "verdicts": verdicts},
@@ -253,4 +316,17 @@ def bundle() -> qr.Bundle:
                      "licence": "derived statistics only; KF Hi 20 (gitignored), GSW and H.15 (public domain)",
                      "ledger_ref": "reports/ledger.md R3"} for f in ("metrics.csv", "ablation.csv", "placebo.csv",
                                                                        "crash.json")]
-    return qr.Bundle(manifest(tab, qa, sources, r2, r3), t)
+    r4, r4p = None, paths.REPORTS / "r4"
+    if (r4p / "zoo.csv").exists():
+        import json
+
+        rd = {k: pd.read_csv(r4p / f"{k}.csv") for k in ("zoo", "costs", "loco", "sensitivity", "dsr", "pbo")}
+        t4 = tables_r4(rd["zoo"])
+        t = {k: pd.concat([t[k], t4[k]], ignore_index=True) if k in t4 else t[k] for k in t}
+        r4 = {"verdicts": r4_verdicts(rd["zoo"], rd["costs"], rd["loco"], rd["sensitivity"], rd["dsr"], rd["pbo"],
+                                      json.loads((r4p / "facts.json").read_text()))}
+        sources += [{"path": str((r4p / f).relative_to(paths.ROOT)), "sha256": paths.sha256(r4p / f),
+                     "licence": "derived statistics only; KF Hi 20 (gitignored), GSW and H.15 (public domain)",
+                     "ledger_ref": "reports/ledger.md R4"} for f in ("zoo.csv", "costs.csv", "loco.csv", "sensitivity.csv",
+                                                                       "dsr.csv", "pbo.csv", "facts.json")]
+    return qr.Bundle(manifest(tab, qa, sources, r2, r3, r4), t)
