@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/protect_siblings.py\"",
+            "timeout": 10,
+            "statusMessage": "Checking the sibling-repo guard"
+          }
+        ]
+      }
+    ]
+  }
+}

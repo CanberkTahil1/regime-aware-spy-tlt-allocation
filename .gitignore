@@ -1,0 +1,17 @@
+# Data never enters git (licences; LICENSES.md). data/prices.csv (v1, Yahoo + Cboe) is still TRACKED until the owner
+# decides (R0 escalation); this rule does not untrack it.
+/data/
+/legacy/data/
+/logs/
+.cache/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.hypothesis/
+.DS_Store
+.claude/BUILD_PROMPTS.md
+.claude/settings.local.json
+*.parquet
+*.zip
