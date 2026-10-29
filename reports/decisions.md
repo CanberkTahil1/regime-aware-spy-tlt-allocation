@@ -155,3 +155,14 @@ Research for R0: `reports/research/R0.md`.
   S0–S6 and the QA local-only (remove them from git: a delete, owner-only); (c) keep everything as committed (the
   advisor's reading: BUILD_PROMPTS prescribed these rows and only derived statistics are published).
 - **Status:** not acted on. Whatever is chosen happens before the owner's next push (with the O0.1 history rewrite).
+- **Owner decision (2026-10-28): "Other".** (1) Keep committed: all statistics tables (S0–S7 rows, QA corr/TE).
+  (2) Stop tracking every committed curve figure (SVG and PNG) that traces a wealth/return path derived from Yahoo, Cboe
+  or Ken French data. (3) Add `make report-site-local`: curves (equity + drawdown, exposure, rolling Sharpe, crisis
+  panels) rendered from the gitignored series into gitignored `reports/site_local/` and `reports/figures_local/Rn/`,
+  with a test that fails if those directories stop being ignored (as naive-vs-optimal O4.2). (4) The committed page
+  shows statistics only. (5) Nothing after r0-done has been pushed; the owner removes these files and data/prices.csv
+  from history in one rewrite before the next push. (6) Tag r1-done after this; do not push.
+- **Applied as:** untracked (`git rm --cached`, files moved into the ignored `reports/figures_local/R1/`):
+  growth_and_drawdown, rolling_5y_excess_sharpe, crisis_small_multiples, exposure_l1 (.png/.svg). Kept committed
+  (statistics only): reconciliation_by_step, cagr_waterfall_test, data_qa (.png/.svg), reports/r1/*, reports/site/
+  (summary/loss/windows tables, no series).

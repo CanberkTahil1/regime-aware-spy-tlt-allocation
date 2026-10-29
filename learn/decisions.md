@@ -30,6 +30,7 @@
 - **D1.5 (advisor): VIX is replaced by 20-day realised volatility**, the same substitute v1 already used elsewhere.
 - **D1.6 (advisor): the proxies are checked against the real ETFs with pass marks fixed in advance**: monthly
   correlation ≥ 0.98, tracking error ≤ 1.5%/yr (stocks) and ≤ 3%/yr (bonds).
-- **O1.1 (owner, pending): may the R1 outputs built from v1's Yahoo/Cboe file stay in the public repo?** The tables
-  are statistics only, but the curve SVGs trace near-daily paths. The session recommends PNG-only monthly curves and has
-  changed nothing yet.
+- **O1.1 (owner): statistics stay public, curves stay on your machine.** Tables of numbers (every reconciliation row,
+  the proxy checks) remain in git. Any chart that traces a return or wealth path built from Yahoo, Cboe or Ken French
+  data is no longer tracked; `make report-site-local` draws those charts into ignored folders, and a test fails if the
+  folders ever stop being ignored. You will scrub the old copies from history with the price file before pushing.
