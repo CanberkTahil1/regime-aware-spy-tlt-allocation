@@ -177,3 +177,82 @@ r4_evaluation:
     descriptive_blocks: [8, 12]
     secondary_pool: "every selectable rung and sensitivity variant (L0, L1, L2, L2-u, L3, L4, L5, L5-lev, L6 + L6-63 / th -0.2 / th +0.2, L7 + L7-on-L5 / L7-63, L8, the R4 sensitivity books) + the deduped zoo; no placebos, no tranche offsets, no line; descriptive"
     inputs: "development daily excess returns, record offset, 1x costs"
+
+# R5 (2026-10-29, owner instructions + advisor D5.1-D5.7, before any v2 test-window number; hashed in the ledger and
+# then locked in spec/freeze.lock.json). The test run cannot change any development verdict (R2 walk seats L1, post-hoc
+# chains seat L0, R3/R4 descriptive). Parameters: rules.yaml r5.
+r5_test:
+  label: "test window 2020-01 -> 2026-09, frozen rules run once; seen by owner in v1, disclosed"
+  window: {start: 2020-01-02, end: 2026-09-30, last_kf_month: 2026-09, sessions: 1695,
+           kf_fetch_utc: "2026-10-29T02:44:34Z", note: "a later KF refetch fails the freeze lock; it never extends the test"}
+  continuation:   # D5.1
+    rule: "registered procedures run on unchanged over 1986-01-02 -> 2026-09-30; books continuous (positions carried from 2019-12-31); test rows scored"
+    vol_zoo_selection_years: [1989, 2025]     # year-end y picks year y+1 (registered causal rule, extended; was 1989..2018)
+    vol_zoo_guard: "a pick must exist for every year 2020..2026 (no silent default on scored rows)"
+    l8: "dd brake path on L7 net - bill from 1990-01-02 (unchanged)"
+    dev_identity: "every extended book's rows <= 2019-12-31 equal the R2/R3 books (data/r2, data/r3) bit for bit, picks 1989..2018 identical; a mismatch stops the run (owner's call)"
+  scope:   # D5.6
+    official: [L0, L1, L2, L3, L4, L5, L6, L7, L8]   # tranche offset 0 only; L1 = comparison row
+    comparison_rows: [L1]
+    descriptive: [L5-lev, L2-u]
+    benchmarks: ["L0-line per rung (quantkit bench.vol_matched, ex ante, window 63, lag 1)", "60/40 (L3)"]
+    costs: {official: 1x, re_scored: [2x, 3x, f75], rungs: [L0, L1, L2, L3, L4, L5, L6, L7, L8, L5-lev],
+            label: "frozen rule re-scored (robustness_legs, counted no)"}
+    excluded: [L4b, max_div, min_cdar, hmm_gate, jump_model_gate, L5_vol_ewma_slow, L5_vol_ewma_fast, L5_vol_har,
+               L5_vol_gjr_garch_t, L5_vol_egarch_t, v1_spread_overlay_on_L5, v1_bollinger_overlay_on_L5, gbm_risk_sizing,
+               gbm_risk_sizing_raw, L6-63, L6-th-0.2, L6-th+0.2, L7-on-L5, L7-63, "tranche offsets 1-20", placebos,
+               "leave-one-crisis-out / decades / rolling 5y on the test", "R4 band / calendar / 20y / 30y sensitivity books"]
+  sensitivity_10y:   # owner instruction (1), 2026-10-29: POST-HOC lead from R4, registered before the freeze
+    label: "POST-HOC (owner, lead from R4): L5-L7 on a GSW 10-year constant-maturity bond leg instead of 25-year; not QA'd vs an ETF; cannot change any verdict; counted in DSR N"
+    rungs: [L5, L6, L7]
+    maturity_years: 10
+    build: "robust.build_core(maturity=10) over the same window and rules; every parameter as the 25-year book"
+    report: "test-window metrics; matched dSharpe vs the same 25-year rung and vs its own line; COVID / 2022 returns"
+    official: false                           # the 25-year books remain the frozen, official ones
+    in_family: false
+  match:   # D5.2
+    rule: "reference rescaled once ex post to the child's TEST-window excess vol (2020-01-02 -> 2026-09-30 rows only; evaluate.rescale, bill + 25 bp above 1x)"
+    print: [k, share_rows_financed_above_1x]
+    label: "matched ex post on the test window (one scalar), descriptive"
+    crisis_note: "k uses the whole test window's vol, crises included; in-crisis vols are not matched (as in development)"
+  family:   # D5.3: matched dSharpe, LW 95% (block 21, 1,000 draws, seed 0), one-sided p; Holm over every row below
+    rows:
+      L2: [parent L0, line]
+      L3: [parent L0, L2, line]
+      L4: [parent L3, L2, line]
+      L5: [parent L4, L2, L3, line]
+      L6: [parent L5, L2, L3, line]
+      L7: [parent L6, L2, L3, line]
+      L8: [parent L7, L2, L3, line]
+    n_rows: 24
+    beat_per_row: "point dSharpe >= +0.05 AND one-sided LW p < 0.05 (raw)"
+    headline: {questions: {"beat plain vol-targeted SPY (L2)": "L3..L8 vs L2", "beat 60/40 (L3)": "L4..L8 vs L3",
+                           "beat SPY + T-bills at matched risk (line)": "L2..L8 vs line"},
+               yes_if: "some row of the question has point >= +0.05 AND Holm-adjusted p < 0.05 (Holm over all 24 rows)",
+               else: "not shown in the test window (raw flags beside)"}
+    one_directional: "a test beat seats or promotes nothing; a test no demotes nothing"
+    power: "quantkit stats.power.power at the test length with the development point Sharpes and correlation of each pair (optimistic iid planning)"
+    sign_agreement: "descriptive: sign(test dSharpe) == sign(development dSharpe of the same pair, matched on development)"
+    descriptive_outside_family: ["CDaR-95 / max-DD ratios (dd_ratio_ci)", "COVID / 2022 panels", "L1 vs every rung", "L5-lev", "L2-u", "the 10-year row"]
+  crisis:
+    windows: [covid, infl_2022]
+    rows: "each official rung: cumulative in-window return vs its ex-ante line and vs its parent matched (D5.2); in-window mean weights SPY / TLT / cash"
+  dsr:   # D5.4
+    impl: "quantkit.stats.dsr_effective (headline) and quantkit.stats.dsr (raw-N companion) on each official rung's test-window daily excess returns"
+    n_headline: 5          # R4 n_eff 3 + selection-only 1 (O2.3 chains) + 1 (the owner's post-hoc 10-year row)
+    n_raw: 751             # variants.csv counted total 748 + 3 (sensitivity_10y_test)
+    trial_var: "V = max(V_dev, 1/(T_test - 1)), both printed"
+    v_dev: 5.379623993123816e-05      # reports/r4/facts.json dsr_pool.sr_pp_var_ddof1 (development pool, b422016)
+    t_test: 1695
+    label: "descriptive; seen by owner in v1, disclosed; cannot change any verdict; development DSR (reports/r4/dsr.csv) beside"
+    double_count: "maturity_sensitivity (R4) already counts L5-L7 at 10y on development; counted again (conservative, owner)"
+  v1_vs_v2:
+    rows: ["v1 as committed (S0: own Yahoo/Cboe data, own accounting, v1 test 2020-01 -> 2025-12; reports/r1, seen)",
+           "v1 corrected (L1 = S7) on the test window", L0, L3, L5, L6, L7, L8, "L5's line"]
+    corrections: "R1 reconciliation S0 -> S7 itemised (reports/r1), one correction at a time"
+  freeze:   # D5.5
+    lock: spec/freeze.lock.json
+    decides: "content hashes (spec, pin, uv.lock, Makefile, engine modules, raw-data and panel bytes, test window); commit sha is a label only (owner's history rewrite pending)"
+    run_guard: "RSPY_TEST_RUN=run-once; lock verified; locked files clean in git; reports/r5/test_run.json absent; it is written with status started before any test statistic"
+    dry_run: "seeded synthetic panel, temporary RSPY_DATA and output dir; refuses RSPY_TEST_RUN and the repo's data/; never writes reports/r5; code check, not evidence"
+  forward: "optional, not built in R5 (D5.7); from 2026-10 behind this lock, append-only, labelled forward, unseen"

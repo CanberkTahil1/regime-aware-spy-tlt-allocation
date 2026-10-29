@@ -187,3 +187,13 @@ r4:   # R4 robustness + the three O3.1 zoo rows (D4.1-D4.7, advisor; definitions
   dsr: {rho_star: 0.5, seed: 0}
   pbo: {blocks: 16, descriptive_blocks: [8, 12]}
   power: {alpha: 0.05, target: 0.8}
+
+r5:   # R5 test run (D5.1-D5.7, advisor; definitions in spec/prereg.yaml r5_test), fixed before any test number
+  scored: [2020-01-02, 2026-09-30]          # test window; development 1990-01-02 .. 2019-12-31 kept for identity checks only
+  start: 1986-01-02                         # every book from the warm-up start, continuous (D5.1)
+  vol_zoo_years: [1989, 2025]               # year-end y picks year y+1 (D5.1)
+  crisis: [covid, infl_2022]
+  maturity_10y: 10                          # owner's post-hoc sensitivity row, L5-L7
+  dsr: {n_headline: 5, n_raw: 751, v_dev: 5.379623993123816e-05}
+  guard: {env: RSPY_TEST_RUN, value: run-once, record: reports/r5/test_run.json, lock: spec/freeze.lock.json}
+  dry_run: {seed: 0, out: "temporary directory (never reports/r5)"}

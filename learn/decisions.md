@@ -115,3 +115,24 @@
 - **D4.4 amendment (after results, reporting only):** the "volatility drag" bar was mislabelled. Mean × 252 minus the
   compound growth rate also counts the compounding of the mean, so it went negative. It is now the compounded mean
   minus the compound growth rate, which can't go negative.
+
+## R5 (advisor decisions, before any v2 number for 2020+)
+
+- **D5.1 (advisor): the test window runs the same rules, not a frozen snapshot of them.** Each year-end the
+  volatility model is re-picked exactly as in development, and the books carry their positions from 2019 into 2020. As a
+  check, every 1990–2019 number must come out identical to the bit.
+- **D5.2 (advisor): "at matched risk" on 2020+ means the same thing it meant in development.** The comparison book is
+  scaled once so it has the same volatility as the tested book over the test window. The SPY + T-bills line, which is
+  matched ahead of time, sits beside it.
+- **D5.3 (advisor): the test cannot change a verdict.** It answers "did a layer beat X?" with a rule fixed in advance:
+  a Sharpe gain of at least 0.05 and a significant test, adjusted for the number of comparisons. Six and three-quarter
+  years is far too short to confirm even the best layer, so a "no" is expected.
+- **D5.4 (advisor): the luck adjustment (deflated Sharpe) counts the trials where they were chosen, in development,**
+  plus one for the owner's new 10-year row. It never assumes less noise than six years of data imply.
+- **D5.5 (advisor): the freeze is a file of fingerprints** for every rule, code file and data file. The test runner
+  refuses to start if any fingerprint changed, and it writes a "started" record before computing anything, so a second
+  run would be visible.
+- **D5.6 (advisor): only the official ladder, its benchmarks, its cost stress and the owner's 10-year row run on 2020+.**
+  The exploratory rows stay in development, so there is nothing to cherry-pick.
+- **D5.7 (advisor): the monthly forward log waits.** No forward month exists yet; it can start once Ken French publishes
+  October 2026.

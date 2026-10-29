@@ -343,3 +343,51 @@ costs and +75 bp change no layer's sign except L1 vs L0 (+0.03 → −0.06 at 3�
 1994 (dropping it lowers L6 vs L5 by 0.04), trend's is the GFC and dot-com; 10-year bonds would have helped every
 bond-holding rung (+0.07 to +0.10 Sharpe; a GSW proxy not QA'd vs an ETF); a 30-year sample is too short to confirm
 any layer's measured edge (L4 vs L3 needs 87 years).
+
+## R5 — freeze, test, write-up (expectations committed before any R5 code or v2 test-window number)
+
+**Owner instruction (1) met first:** the post-hoc 10-year sensitivity row (L5–L7 on a GSW 10-year leg instead of
+25-year, test window, labelled, cannot change any verdict, counted in DSR N; the 25-year books stay official) is written
+in `spec/prereg.yaml` `r5_test.sensitivity_10y` and registered in `reports/variants.csv` (`sensitivity_10y_test`,
+n_configs 3, counted yes) **before the freeze**, together with the whole test-run definition (`r5_test`, D5.1–D5.7).
+Pre-registration hashes: `spec/prereg.yaml` sha256 **9fc98fc81344a49a6a4230f4d2c88eb7726f211b5539525d214e11f4d6e3f10d**;
+`spec/rules.yaml` sha256 **a3daa5837ae85b5e2c1f07f47b83bcefe5c2b9911a2178bf7953a5844f580c1b** (adds `r5`).
+`make data` after the rules change rebuilt data/panel.parquet byte-identical (sha256 10aeb147…f771e).
+Decisions D5.1–D5.7: advisor, none escalated (reports/decisions.md).
+
+**Scope:** test window 2020-01-02 → 2026-09-30 (1,695 sessions; KF fetched 2026-10-29), labelled "seen by owner in v1,
+disclosed". The run cannot change any development verdict (R2 walk seats L1, post-hoc chains seat L0, R3/R4
+descriptive).
+
+**Disclosed priors:**
+- v1's own test 2020–2025: S0 CAGR 16.3%, Sharpe 1.00.
+- L1 (= S7) excess Sharpe 0.78 on 2020–2025 (R1).
+- Data QA 2005–2025.
+- The author's general knowledge of public 2020–2025 market history (2020 COVID crash and the bond rally; 2022 joint
+  stock–bond loss; higher bill rates from 2023).
+
+No v2 rung has been computed on any 2020+ row. Predictions are the author's, low-to-medium confidence. "Matched" =
+D5.2 (test-window ex post, one scalar).
+
+| ID | Expectation (band) | Source | Status |
+|---|---|---|---|
+| E5.1 | code (D5.1): every extended book (L0–L8, L5-lev, L2-u at 1×) equals data/r2, data/r3 bit for bit on rows ≤ 2019-12-31; vol-zoo picks 1989..2018 equal reports/r2/volzoo.json; a pick exists for every year 2019..2025 | D5.1 | open |
+| E5.2 | code (D5.5): `python -m rspy freeze verify` OK after the lock commit; the runner refuses (non-zero exit, nothing written) without `RSPY_TEST_RUN=run-once`, with reports/r5/test_run.json present, with a changed or uncommitted locked file, with a changed panel; the synthetic dry run completes, writes nothing under reports/r5, and refuses `RSPY_TEST_RUN` or the repo's data/ | D5.5 | open |
+| E5.3 | code (D5.2): the matched reference's test-window excess vol equals the child's ≤ 1e-10 for every family row; every scored series has exactly 1,695 rows | D5.2 | open |
+| E5.4 | L0 (SPY proxy), test: CAGR in [11%, 17%]; excess Sharpe in [0.45, 0.95]; max DD in [−37%, −28%] | author | open |
+| E5.5 | Bonds hurt on the test: L3 vs matched L0 ΔSharpe in [−0.45, +0.05] (development +0.215, sign likely disagrees); L3 Sharpe < L0 Sharpe | author | open |
+| E5.6 | L5 vs its line ΔSharpe in [−0.70, +0.05]; L5 test excess Sharpe in [−0.10, 0.60] | author | open |
+| E5.7 | Correlation layer: L6 − matched L5 cumulative return in infl_2022 ≥ +3 pp; L6 vs L5 test ΔSharpe in [−0.10, +0.50] | author; thesis | open |
+| E5.8 | Trend layer: L7 − matched L6 in infl_2022 ≥ 0 pp; in covid ≤ +1 pp (10-month SMA exits late); L7 vs L6 test ΔSharpe in [−0.40, +0.40] | author | open |
+| E5.9 | Crash rule: \|L8 vs L7 ΔSharpe\| ≤ 0.10 | author (development −0.002) | open |
+| E5.10 | Headline (D5.3): all three questions — beat L2, beat 60/40, beat the line — answer "not shown in the test window" (no row with point ≥ +0.05 and Holm p < 0.05) | D5.3; R4 power | open |
+| E5.11 | Crisis panels: in covid, L5 − its line ≥ +2 pp (the bond leg rallied); in infl_2022, L5 − its line ≤ −2 pp | author | open |
+| E5.12 | L1 (v1 corrected) test excess Sharpe in [0.45, 1.05] (R1's 2020–2025 0.78, seen) | R1 | open |
+| E5.13 | 10-year row (post-hoc): L5@10y − L5@25y test Sharpe in [0, +0.40]; L5@10y loses less than L5@25y in infl_2022 | owner lead; author | open |
+| E5.14 | DSR (D5.4): the raw-N companion's V = 1/(T−1) = 5.90e-4 (> V_dev 5.38e-5); headline test DSR (N 5) < 0.95 for every official rung | D5.4; author | open |
+| E5.15 | Costs on the test: at 3×, every parent-row ΔSharpe moves ≤ 0.03 from 1× except L2 vs L0 (≤ 0.08); at +75 bp, L3–L8 excess Sharpe equal to 1× within 1e-8 | R4 E4.5 / E4.6 | open |
+| E5.16 | Sign agreement (descriptive): 30%–80% of the 24 family rows have the same ΔSharpe sign as in development | author | open |
+| E5.17 | perf: dry run ≤ 120 s; the test run ≤ 120 s cold (three new vol-zoo series) and peak RSS ≤ 1.5 GB; `make test` ≤ 60 s | performance contract | open |
+
+**Forward (optional, not built in R5; D5.7):** the prereg `windows.forward` entry stands as "after R5, optional
+monthly log". It would start at 2026-10, available about 2026-12, behind the R5 freeze lock.

@@ -573,3 +573,123 @@ any R2 code or result. Research: reports/research/R2.md (16791b4).
   6. No quantkit edit.
 - **Why the others lost:** (b) needs a quantkit change or re-pin and is fragile on import order. (c) is a charter-level
   change for an environment problem with a documented, reversible fix.
+
+## R5 (research: reports/research/R5.md, 2ed4aa3; all decider = advisor, before any v2 test-window number; none escalated)
+
+Owner instructions (2026-10-29, not D-items): register the post-hoc 10-year sensitivity row (L5–L7 on GSW 10y, test
+window, labelled, cannot change a verdict, counted in DSR N; the 25-year books stay official) in spec/prereg.yaml with
+its hash in the ledger **before** the freeze; freeze; synthetic dry run; one test run labelled "seen by owner in v1,
+disclosed"; headline figures into the gitignored reports/figures_local/R5/; README drafted, committed only with the
+owner's approval; never push.
+
+### D5.1 — How the frozen rules continue into 2020+ · confidence high · decider = advisor
+- **Options:** (a) [rec] the registered procedures run on unchanged: vol-zoo MCS re-selected at each year-end 2019–2025,
+  L8 brake path from 1990-01-02, continuous books (positions carried from 2019-12-31), rolling estimators roll on;
+  (b) freeze the fitted state at 2019-12-31 (2019 pick for every test year); (c) restart every book at 2020-01-02 from cash.
+- **Choice:** (a), amended:
+  1. Every year-end list is extended in the one prereg commit before the freeze (vol-zoo selection 1989..2025). The GBM
+     refit years are not extended because the GBM row is out of the test scope (D5.6). Every `range(1989, end_year)` call
+     takes the test end explicitly, not the development `scored` end.
+  2. Hard guard: a vol-zoo pick must exist for every year 2020–2026; `volzoo.stitched`'s silent default fallback is
+     refused on scored test rows.
+  3. Rows ≤ 2019-12-31 of every extended book (and the picks 1989..2018, the L8 multiplier, the trend keep) must equal
+     the R2/R3 books bit for bit on the same data vintage; a mismatch stops the run and is the owner's call (never a
+     wider tolerance).
+  4. The trend fallback now sits at 2026-09; the bit-for-bit check is what proves development rows were not moved.
+  5. The 2020–2025 picks are labelled "re-selected by the registered causal rule (losses ≤ prior year-end)"; the frozen
+     2019 pick is shown only as a descriptive footnote.
+- **Why the others lost:** (b) changes the registered rule at R5 (the rule, not the fitted state, is what is frozen).
+  (c) discards the warm-up the estimators need (1,000-day GARCH windows, 126-day correlation, 10-month SMA, the L8 path),
+  adds an artificial entry trade, and breaks the continuity check.
+
+### D5.2 — "At matched risk" on the test window · confidence high · decider = advisor
+- **Options:** (a) [rec] R3/R4's procedure on the scored window: each reference rescaled once ex post to the child's
+  test-window excess vol (bill + 25 bp above 1×), LW 95% + one-sided p, paired-bootstrap CDaR / max-DD ratios; the
+  ex-ante L0-line beside it; (b) scale constants fixed from development; (c) both.
+- **Choice:** (a), amended:
+  1. The test-window match text is written into spec/prereg.yaml `r5_test` before the freeze.
+  2. Inputs are sliced to test rows before `rescale` / `ablation_row` / `crisis_matched`; a unit test checks that the
+     matched reference's test-window excess vol equals the child's to ≤ 1e-10. Docstrings say "scored-window" vol.
+  3. k and the share of rows financed above 1× are printed per pair. Every matched number is labelled "matched ex post on
+     the test window (one scalar), descriptive", with the ex-ante line in the same table.
+  4. Crisis panels carry a footnote: k uses the whole test window's vol, crises included (as in development).
+- **Why the others lost:** (b) is not matched on 2020+ (development vol moves by decade: L0 14/22/15%) and mixes leverage
+  with skill; the line already gives the ex-ante comparison. (c) adds a reported variant that invites column-picking.
+
+### D5.3 — What the test run can conclude · confidence high · decider = advisor
+- **Options:** (a) [rec] no development verdict changes; matched ΔSharpe + LW 95% + one-sided p for each layer vs its
+  parent, vs L2, vs L3 and vs the line; "beat" = point ≥ +0.05 and p < 0.05; Holm and power printed; (b) re-run the
+  four-part walk on the test; (c) point estimates only.
+- **Choice:** (a), amended:
+  1. The comparison family is listed by name in prereg `r5_test` before the freeze.
+  2. Two levels: the per-comparison "beat" flag (raw one-sided p < 0.05, the R3 gate-rule precedent) and the README's
+     headline "did any layer beat L2 / 60/40 / the line": yes only if the point estimate is ≥ +0.05 **and** the Holm-adjusted p < 0.05 within the
+     family; otherwise "not shown in the test window", with the raw flags beside.
+  3. One-directional: a test "beat" seats or promotes nothing; a test "no" demotes nothing. Written next to the numbers
+     with the R4 power (optimistic iid planning) at 6.75 years.
+  4. CDaR / max-DD ratios and the COVID / 2022 panels are descriptive, outside the beat rule.
+  5. A descriptive column says whether each test ΔSharpe agrees in sign with development.
+- **Why the others lost:** (b) is a second decision process on owner-seen data, and the MCS / leave-one-crisis-out parts
+  have no calibration on 6.75 years. (c) leaves the README's yes/no to a threshold chosen after the numbers.
+
+### D5.4 — DSR on the test window · confidence medium-high · decider = advisor
+- **Options:** (a) [rec] test-window DSR per official rung with N from the development register (headline n_eff 3 +
+  selection-only 1 + the owner's 10-year row 1 = 5; companion raw N 748 + 3 = 751); (b) re-estimate n_eff on test copies
+  of the 787-series pool; (c) no test DSR.
+- **Choice:** (a), amended:
+  1. The raw-N companion's trial-Sharpe variance is V = max(V_dev, 1/(T_test − 1)), both printed. V_dev is the
+     ddof-1 variance of the development pool's per-period Sharpe ratios, recomputed from development data only
+     (b422016: reports/r4/facts.json dsr_pool.sr_pp_var_ddof1 = 5.379623993123816e-05) and written into prereg
+     before the freeze. 1/(T_test − 1) is quantkit's null variance and needs only the session count. Not the variance
+     across the test rungs: they are not trials of one selection, and it would use test numbers.
+  2. The headline row (dsr_effective, one development cluster) already falls back to 1/(T − 1); stated beside the table.
+  3. Double counting disclosed: maturity_sensitivity (R4, 21 configs, counted) already holds L5–L7 at 10y in
+     development (L5@10y was the development best_in_pool); the +1 / +3 counts them again, erring conservative as the
+     owner instructed. Written in the variants.csv note.
+  4. Labelled "descriptive; seen by owner in v1, disclosed; cannot change any verdict", with the development DSR
+     (reports/r4/dsr.csv) beside it.
+  5. The variants.csv row and the prereg hash precede any test number.
+- **Why the others lost:** (b) adds test exposure for no decision value (trials are counted where the selection
+  happened). (c) drops the deflation of the window being reported.
+
+### D5.5 — Freeze contents and the run-once guard · confidence high · decider = advisor
+- **Options:** (a) [rec] lean lock (spec, pin, uv.lock, engine files, data hashes, rules commit), `rspy freeze verify`,
+  runner refuses unless hashes match, locked files clean, `RSPY_TEST_RUN=run-once`, no reports/r5/test_run.json; no tag;
+  (b) dispersion-reversal's full guard with tags; (c) specs only.
+- **Choice:** (a), amended:
+  1. Content hashes decide; the commit sha is a label only ("sha before the owner's history rewrite; re-point after").
+  2. data/panel.parquet's own SHA-256 is locked beside the build key.
+  3. The test window is locked explicitly: 2020-01 → 2026-09 (last KF session 2026-09-30); a later refetch fails the
+     lock instead of silently extending the test.
+  4. The engine set also covers the Makefile and every repo module the runner actually loads (checked at run time, the
+     pin.py pattern), not only a glob.
+  5. The runner writes reports/r5/test_run.json atomically with status "started" and the lock hashes **before** any test
+     statistic, and completes it at the end; a rerun needs a visible deletion logged here as a post-hoc event.
+  6. The dry run refuses if RSPY_TEST_RUN is set or RSPY_DATA resolves to the repo's data/; a pytest asserts it never
+     writes reports/r5/test_run.json; its output is "code check, not evidence", with no ledger result row.
+- **Why the others lost:** (b) depends on tags (owner-only) and is more machinery than one run needs. (c) leaves the
+  engine and data unguarded.
+
+### D5.6 — Scope of the test run · confidence high · decider = advisor
+- **Options:** (a) [rec] L0–L8 (L1 comparison row), L5-lev and L2-u descriptive, the line per rung, the owner's 10-year
+  L5–L7, 1× official plus 2× / 3× / +75 bp, crisis panels, ablation, v1 vs v2, test DSR; no zoo, no R3 descriptive rows,
+  no tranche offsets, no placebos; (b) (a) + zoo + R3 descriptive rows; (c) official rungs at 1× only.
+- **Choice:** (a), amended:
+  1. L4b (ERC, `role: zoo`) is excluded by name.
+  2. The official book is tranche offset 0; offsets 1–20 are not run, and no tranche average stands in for it.
+  3. Robustness on the test is 2×, 3×, +75 bp on L0–L8 and L5-lev, labelled "frozen rule re-scored (robustness_legs,
+     counted no)"; leave-one-crisis-out, decades and rolling 5y are not run on 6.75 years.
+  4. The 10-year row is registered in prereg and variants.csv (n_configs 3, counted yes, descriptive) before the freeze,
+     labelled "post-hoc (owner), not QA'd vs an ETF"; never in a verdict or the ablation chain.
+  5. The excluded list is written into prereg before the freeze hash.
+- **Why the others lost:** (b) adds 20+ never-promotable rows to cherry-pick from and undercuts D5.4. (c) fails the
+  definition of done (costs, v1 vs v2) and drops the owner's row and the benchmarks.
+
+### D5.7 — The optional monthly forward log · confidence high · decider = advisor
+- **Options:** (a) [rec] not built in R5, offered in the handoff; (b) build `make forward` now.
+- **Choice:** (a), amended:
+  1. The handoff states the forward window: from 2026-10 (available around 2026-12 given KF's lag).
+  2. Conditions for a later `make forward`: runs behind the R5 lock's hash check, append-only, each row with the KF
+     manifest sha256 and fetch date, labelled "forward, unseen", no ladder decisions, windows unchanged.
+  3. A "Forward (optional, not built in R5)" line in the ledger next to the prereg `forward` entry.
+- **Why the other lost:** no forward month exists at R5; an untested harness in the run-once phase goes beyond scope.
