@@ -40,3 +40,23 @@ Note: the grid test is marked `slow` (runtime recorded above, D0.3 amendment 5) 
 | 2026-10-28 | `make test` (69 tests, -n auto, max 4) | ≤ 60 s, ≤ 1.5 GB | 9.4 s | 1,140 MB | yes | — |
 | 2026-10-28 | `make report-site` | — | ~3 s | — | — | vl-convert SVG per chart × 2 themes |
 | 2026-10-28 | `make test` after the R1 review fixes (71 tests) | ≤ 60 s, ≤ 1.5 GB | 11.6 s | 1,219 MB | yes (headroom shrinking: numba + quantkit imports per worker) | — |
+
+## R2 budgets (set before the first `make ladder` run)
+
+| Step | Time budget | Peak RSS budget | Complexity note |
+|---|---|---|---|
+| rung targets (L0–L5, L4b, L2-u) on 1986–2019 | ≤ 3 s | ≤ 600 MB | O(T) rolling σ; ERC 2×2 per month-end; L1/L2 via v1's pandas code |
+| vol zoo, 2 series × 5 models, first run / cached | ≤ 30 s / ≤ 1 s | ≤ 800 MB | GJR/EGARCH refits every 21 days (≈ 400 fits per series); Parquet cache keyed by series + config + quantkit + code hashes |
+| one rung full evaluation (4 books, line, LW 1,000 draws, 21 offsets) | ≤ 10 s | ≤ 600 MB | numba walk O(T·N) per book; LW O(draws·T) ≈ 0.2 s |
+| promotion walk L1→L5 (prefix MCS + LW, 1,000 reps) | ≤ 30 s | ≤ 800 MB | MCS O(reps·T·k) per prefix |
+| whole `make ladder` | ≤ 5 min | ≤ 1.5 GB | single process |
+
+## R2 measurements
+
+| Date | Step | Wall | Peak RSS | Within budget |
+|---|---|---|---|---|
+| 2026-10-28 | `make ladder`, first run | 29.6 s | **2,227 MB** summed | **no** (RSS; E2.11) |
+| 2026-10-28 | `make ladder` after the E2.11 fix, forecast cache cleared | 28.2 s | 957 MB | yes |
+| 2026-10-28 | `make ladder`, warm cache | 15.6 s | 914 MB | yes |
+| 2026-10-28 | parts (facts.json timing_s, warm): targets + zoo selection 5.7 s; 56 books 1.5 s; metrics + 14 lines (LW 1,000) + walk 4.7 s; timing luck 3 rungs × 21 offsets 2.3 s | — | — | yes (per rung < 2 s ≤ 10 s) |
+| 2026-10-28 | `make test` (94 tests, -n auto, 4 workers) | 9.3 s | — | yes |

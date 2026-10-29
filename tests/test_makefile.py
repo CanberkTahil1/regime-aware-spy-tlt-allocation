@@ -40,14 +40,12 @@ def test_caches_exported_in_repo():
     assert "export NUMBA_CACHE_DIR := $(CURDIR)/.cache/numba" in MK
 
 
-def test_unbuilt_targets_refuse():
-    """Every step not built yet says so and exits non-zero (R1 built data and report-site; ladder arrives at R2)."""
-    import sys
-
-    for s in ("ladder",):
-        f = ROOT / "scripts" / f"{s}.py"
-        assert "not built yet" in f.read_text(), s
-        assert subprocess.run([sys.executable, str(f)], capture_output=True).returncode != 0, s
+def test_no_stub_left_and_ladder_draws_its_figures():
+    """R0-R1 kept unbuilt targets as refusing stubs; R2 built the last one (ladder). No script may still be a stub, and
+    `make ladder` chains its statistics figures (charter "Charts every phase")."""
+    assert not [f.name for f in (ROOT / "scripts").glob("*.py") if "not built yet" in f.read_text()]
+    recipe = MK.split("\nladder: ")[1].split("\nreport-site:")[0]
+    assert "scripts/ladder.py" in recipe and "scripts/r2_figures.py" in recipe
 
 
 def test_test_target_runs_legacy_and_nolegacy_deselects_explicitly():

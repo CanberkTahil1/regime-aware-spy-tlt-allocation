@@ -79,17 +79,17 @@ Scored window: development 1990-01-02 → 2019-12-31, daily; test 2020+ is not r
 
 | ID | Expectation (band) | Source | Status |
 |---|---|---|---|
-| E2.1 | L4 excess Sharpe > L1's and > L2's (ΔSharpe > 0, point estimates, development) | BUILD_PROMPTS R2 | open |
-| E2.2 | L5 excess Sharpe > L1's and > L2's (ΔSharpe > 0, development) | BUILD_PROMPTS R2 | open |
-| E2.3 | L4 and L5 max drawdown shallower than both L1's and L2's (|max DD| smaller, development) | BUILD_PROMPTS R2 | open |
-| E2.4 | L5 traded turnover (one-way Σ\|Δw\| incl. drift and vol-scaling trades) < 2.0×/yr, development | BUILD_PROMPTS R2 | open |
-| E2.5 | `rspy.accounting` with the drift-aware band = plain reference loop ≤ 1e-10; band 0 = the unbanded book bit-identically; planted "band vs last target" (quantkit convention, no drift) fails the test | D2.1 | open |
-| E2.6 | L2 decision = v1's mirror on an all-SPY signal: v1 `compute_strategy_returns` (own data, own accounting) ≤ 1e-12 | D2.3 | open |
-| E2.7 | L4 fast σ = `quantkit.alloc.cov.sample_cov` reference ≤ 1e-10; L4b (quantkit erc) weights = L4 weights ≤ 1e-10 at every 1990–2019 month-end; property test on random SPD 2×2 | D2.6, D2.7 | open |
-| E2.8 | Record book = `quantkit.trade.tranche(...)["books"][0]` bit-identically; all 21 offset books built; short-month collisions counted | D2.5 | open |
-| E2.9 | L0-line: every weight input dated < t (planted future value cannot change w_t); line finite from 1990-01-02 | D2.8 | open |
-| E2.10 | Vol zoo: quantkit `vol_forecast` audit passes for all five models; the year-end pick uses rows ≤ that year-end only (planted post-year-end loss cannot change it) | D2.2 | open |
-| E2.11 | perf: one rung full evaluation ≤ 10 s; whole R2 ladder + zoo ≤ 5 min; peak RSS ≤ 1.5 GB (rss_peak); worker count 1 vs N bit-identical where a pool is used | performance contract | open |
+| E2.1 | L4 excess Sharpe > L1's and > L2's (ΔSharpe > 0, point estimates, development) | BUILD_PROMPTS R2 | **held** — `make ladder` → reports/r2/metrics.csv (1× books, 1990-01-02 → 2019-12-31): excess Sharpe L4 **0.822** vs L1 0.512, L2 0.533 |
+| E2.2 | L5 excess Sharpe > L1's and > L2's (ΔSharpe > 0, development) | BUILD_PROMPTS R2 | **held** — L5 excess Sharpe **0.833** vs L1 0.512, L2 0.533 (same file) |
+| E2.3 | L4 and L5 max drawdown shallower than both L1's and L2's (|max DD| smaller, development) | BUILD_PROMPTS R2 | **held** — max DD L4 **−18.2%**, L5 **−13.0%** vs L1 −43.3%, L2 −47.7% (same file) |
+| E2.4 | L5 traded turnover (one-way Σ\|Δw\| incl. drift and vol-scaling trades) < 2.0×/yr, development | BUILD_PROMPTS R2 | **held** — L5 traded turnover **0.43×/yr** (same file; vol-scaling and drift trades included) |
+| E2.5 | `rspy.accounting` with the drift-aware band = plain reference loop ≤ 1e-10; band 0 = the unbanded book bit-identically; planted "band vs last target" (quantkit convention, no drift) fails the test | D2.1 | **held** — `tests/test_band.py`: fast = reference ≤ 1e-10 (4 cases incl. per-sleeve widths); band 0 bit-identical; edge test. Broken-input check: replacing the edge clip with "trade to target" in accounting.py fails tests/test_band.py (restored, suite green) |
+| E2.6 | L2 decision = v1's mirror on an all-SPY signal: v1 `compute_strategy_returns` (own data, own accounting) ≤ 1e-12 | D2.3 | **held** — `tests/test_r2_legacy.py`: mirror on an all-SPY signal = v1 `compute_strategy_returns` ≤ 1e-12 on v1's cached data |
+| E2.7 | L4 fast σ = `quantkit.alloc.cov.sample_cov` reference ≤ 1e-10; L4b (quantkit erc) weights = L4 weights ≤ 1e-10 at every 1990–2019 month-end; property test on random SPD 2×2 | D2.6, D2.7 | **held** — `tests/test_r2.py`: σ = `sample_cov` ≤ 1e-10 (all 63 required; planted min_periods=2 fails); ERC = inverse vol (hypothesis, 60 draws, ρ ∈ [−0.99, 0.99]); real data: max \|L4b − L4\| = **8.8e-15** (reports/r2/facts.json) |
+| E2.8 | Record book = `quantkit.trade.tranche(...)["books"][0]` bit-identically; all 21 offset books built; short-month collisions counted | D2.5 | **held** — facts.json L3/L4/L5_record_equals_offset0_book = true (`np.array_equal` against `tranche(...)["books"][0]`); `test_record_book_is_tranche_offset_zero`; collisions counted in timing_luck.csv (offsets 19/20) |
+| E2.9 | L0-line: every weight input dated < t (planted future value cannot change w_t); line finite from 1990-01-02 | D2.8 | **held** — `test_ex_ante_line_never_uses_row_t_or_later` (planted ×5 from row t changes no weight ≤ t); facts.json line_first_finite_scored = 1990-01-02 |
+| E2.10 | Vol zoo: quantkit `vol_forecast` audit passes for all five models; the year-end pick uses rows ≤ that year-end only (planted post-year-end loss cannot change it) | D2.2 | **held** — every zoo model ran `vol_forecast(..., audit=8)` (raises LeakageError on a mismatch; none); `test_zoo_pick_ignores_losses_after_the_year_end`; planting `Ly = L` (all rows) fails it |
+| E2.11 | perf: one rung full evaluation ≤ 10 s; whole R2 ladder + zoo ≤ 5 min; peak RSS ≤ 1.5 GB (rss_peak); worker count 1 vs N bit-identical where a pool is used | performance contract | **failed** (first run, logged before diagnosis): 2,227 MB summed peak > 1.5 GB. Time parts held: cold `make ladder` 28.2 s ≤ 5 min; one rung's evaluation < 2 s ≤ 10 s (facts.json timing_s: 14 rungs' books 1.5 s, metrics + lines + walk 4.7 s, 21-offset timing luck 2.3 s for 3 rungs). 1 vs N workers: not tested (no pool used) |
 
 Notes before code: (1) the dev feasibility check (research R2 header) has L4's ex-ante vol below 10% at 85% of
 month-ends, so the author expects L5 to equal L4 most days and the L5 − L4 effect to be small; E2.2 is kept as
@@ -97,3 +97,28 @@ pre-registered. (2) D2.4: rescaling a rung's excess returns by one constant impl
 financed rescale (bill + 25 bp) is used only inside the CDaR and LOCO legs. (3) D2.2 limitation: the L4 book's
 returns mix past weights; the gap vs EWMA on current weights × past sleeve returns is reported, never used.
 (4) D2.3 disclosed prior: the owner's v1 audit (legacy, 2005–19, free leverage) found vol-targeted SPY beat v1.
+
+**E2.11 miss logged before diagnosis (2026-10-28, first `make ladder` run):** `python scripts/rss_peak.py make ladder`:
+**2,227 MB** summed peak RSS over 6 processes (budget ≤ 1.5 GB); wall 29.6 s (≤ 5 min: within). Diagnosis follows.
+
+**E2.11 diagnosis:** the peak came from `volzoo.select`: each yearly MCS draws (1,000, T) bootstrap arrays
+(quantkit `stationary_bootstrap_index`: ≈ 190 MB of temporaries at T 7,500); macOS keeps freed pages charged to the
+process (current RSS did not fall after `del`), and T grows every year, so no freed block was reused (30 years → 2.2 GB).
+Fix (no quantkit change): compute the years latest first; each year is independent and seeded, so the picks are
+byte-identical (reports/r2/volzoo.json compared before/after).
+
+| ID | Expectation (band) | Source | Status |
+|---|---|---|---|
+| E2.11-fix | same band after the fix: whole `make ladder` ≤ 5 min, peak RSS ≤ 1.5 GB (rss_peak) | E2.11 (post-hoc fix, band unchanged) | **held** — cold (forecast cache cleared): 957 MB, 28.2 s; warm: 914 MB, 15.6 s |
+
+**R2 walk (development, D2.4):** stopped at its first step. L2 vs L1: quantkit effect +0.021 < 0.05, LW one-sided p 0.23,
+and L2 loses Sharpe inside five of six development crises (1994, dot-com, GFC, 2011, 2015); the rspy Sharpe-route legs
+pass, the CDaR route does not apply (L2's CDaR-95 is higher than L1's matched). **Seat holder: L1**; L3, L4, L5 are
+"not tested (sequence stopped)" under the owner's fixed-sequence rule (reports/r2/ladder.json). Descriptive only (not
+promotion evidence): vs the SPY + T-bills line at matched vol (ex ante), ΔSharpe L3 +0.17 [0.01, 0.32] (p 0.017), L4
++0.24 [−0.06, 0.54] (p 0.055), L5 +0.26 [−0.04, 0.55] (p 0.038), L1 −0.08, L2 −0.06 (reports/r2/lines.csv); ablation at
+matched vol: bonds (L3 vs L0) +0.21 Sharpe / −23% CDaR, risk weighting (L4 vs L3) +0.13 / −31%, portfolio vol target
+(L5 vs L4) +0.01 / −7% (reports/r2/ablation.csv). L5's cap 1.0 binds on 84% of days (facts.json), as noted before code.
+Vol zoo (pick made at year-end y, used in y+1): EWMA-slow at 1989–2002 and 2004–2006 year-ends, GJR-GARCH-t at 2003 and 2007–2018 (reports/r2/volzoo.json). D2.2 limitation
+diagnostic: EWMA-60 vol of the L4 book / of current weights × past sleeve returns: median 1.00 (5–95%: 0.95–1.08).
+Not in R2: DSR / PBO with the effective number of trials (R4–R5), the 2020+ test window (R5).

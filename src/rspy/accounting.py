@@ -13,6 +13,10 @@ Timing, one line per transform (value at t uses data ≤ t):
 - cash: max(1 − Σw_held, 0) earns bill_t; financing: `quantkit.costs.financing.accrual` on the held weights at the
   row-t rate mmy_t + spread (+ stress), dt_t (borrowed = Σmax(w,0) − 1 > 0 only);
 - net_t = wᵀR_t + cash_t − financing_t − cost_t.
+- band (R2, D2.1; optional, per sleeve b ≥ 0): at a decision row a sleeve whose DRIFTED weight is within ±b of its
+  target is not traded; outside it trades to the band edge (the quantkit `trade.rules.band` convention, but on drifted
+  weights: quantkit's band compares to the previous target and takes no returns). b = 0 is the unbanded book bit for
+  bit; cash is the residual and never banded; a first build from cash also stops at the edge (target − b). The edge rule: de Lataillade et al. (2012) [quantkit docstring].
 No shorts: a negative target raises unless `allow_shorts=True` (only the R1 legacy reconciliation rows S3–S4, D1.4).
 Metrics: Sharpe = quantkit.stats.sharpe(net − bill) (rf=None, D1.3), Sortino = √252·mean(e)/√mean(min(e, 0)²).
 Complexity: O(T·N) time, O(T·N) memory; the path loop is numba-compiled (charter performance contract).
@@ -57,7 +61,7 @@ class Book:
 
 
 @numba.njit(cache=True)
-def _walk(target, R, bill):  # pragma: no cover - compiled; equivalence-tested against the reference loop
+def _walk(target, R, bill, band):  # pragma: no cover - compiled; equivalence-tested against the reference loop
     T, N = R.shape
     held = np.zeros((T, N))
     dw = np.zeros((T, N))
@@ -78,8 +82,11 @@ def _walk(target, R, bill):  # pragma: no cover - compiled; equivalence-tested a
             nxt[i] = h[i] * (1.0 + R[t, i]) / (1.0 + r_pre)
         if t >= 1 and not np.isnan(target[t - 1, 0]):
             for i in range(N):
-                dw[t, i] = target[t - 1, i] - nxt[i]
-                nxt[i] = target[t - 1, i]
+                g = target[t - 1, i]
+                if band[i] > 0.0:
+                    g = min(max(nxt[i], g - band[i]), g + band[i])
+                dw[t, i] = g - nxt[i]
+                nxt[i] = g
             traded[t] = True
         h = nxt
     return held, dw, traded
@@ -95,7 +102,7 @@ def _check(name, a, shape):
 
 
 def run(target, R, bill, mmy, dt, *, cost_rates, spread: float, stress_spread: float = 0.0, cost_mult: float = 1.0,
-        allow_shorts: bool = False, index=None) -> Book:
+        allow_shorts: bool = False, band=None, index=None) -> Book:
     """See module docstring. Inputs are positional arrays (or DataFrames/Series, read by position)."""
     R = np.asarray(R, np.float64)
     T, N = R.shape
@@ -109,7 +116,10 @@ def run(target, R, bill, mmy, dt, *, cost_rates, spread: float, stress_spread: f
         raise ValueError("a decision row must be finite in every column (NaN row = no decision)")
     if not allow_shorts and (tg[rows] < 0).any():
         raise ValueError("negative target: shorts are forbidden (charter)")
-    held, dw, traded = _walk(tg, R, bill)
+    b = np.zeros(N) if band is None else np.broadcast_to(np.asarray(band, np.float64), (N,)).copy()
+    if (b < 0).any() or not np.isfinite(b).all():
+        raise ValueError("band must be finite and >= 0")
+    held, dw, traded = _walk(tg, R, bill, b)
     gross = (held * R).sum(axis=1)
     cash = np.maximum(1.0 - held.sum(axis=1), 0.0) * bill
     model = qcosts.Proportional(np.asarray(cost_rates, np.float64) * cost_mult)

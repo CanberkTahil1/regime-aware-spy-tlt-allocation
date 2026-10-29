@@ -14,7 +14,7 @@ from rspy import paths, site_local
 out = qr.export(site_local.bundle(), paths.data_dir() / "site_local" / "R1", seals=[Seal.none()], source_root=paths.ROOT)
 back = qr.read(out)
 for tier, sub in (("in-sample", ""), ("disclosed-reuse", "test")):  # quantkit draws one evidence tier per chart
-    opts = {k: {"tier": tier} for k in ("equity", "rolling_sharpe")}
+    opts = {k: {"tier": tier} for k in ("equity", "rolling_sharpe", "loss_waterfall", "ladder", "rung_compare")}
     idx = viz.report(back, paths.REPORTS / "site_local" / sub, options=opts)
     print(f"R1 local page ({tier}) {idx} ({idx.stat().st_size / 1e6:.2f} MB)")
 runpy.run_path(str(paths.ROOT / "scripts" / "r1_figures_local.py"), run_name="__main__")

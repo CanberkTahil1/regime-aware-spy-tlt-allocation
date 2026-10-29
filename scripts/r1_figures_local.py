@@ -9,8 +9,10 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import pandas as pd  # noqa: E402
+from quantkit import bench as qbench  # noqa: E402
 
-from rspy import paths, site_local  # noqa: E402
+from rspy import figures, paths, site_local  # noqa: E402
+from rspy.data import build  # noqa: E402
 
 BLUE, ORANGE, AQUA, YELLOW, RED = "#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e34948"
 INK, INK2, MUTED, GRID, BASE, SURF, NEUTRAL = "#0b0b0b", "#52514e", "#898781", "#e1e0d9", "#c3c2b7", "#fcfcfb", "#52514e"
@@ -33,36 +35,28 @@ def save(fig, name):
 
 
 books = pd.read_parquet(paths.data_dir() / "r1" / "books.parquet")
+panel_bills = build.load()[["mmy", "dt"]]
 W = {k: [str(a), str(z)] for k, (a, z) in paths.rules()["legacy"]["windows"].items()}
 wins = {k: (pd.Timestamp(a), pd.Timestamp(z)) for k, (a, z) in W.items()}
 
-# 3. growth of $1 with drawdown underneath --------------------------------------------------------------------------------
-g = books[["S0_net", "S7_net", "spy_proxy"]].dropna()
-wealth = (1 + g).cumprod()
-dd = wealth / wealth.cummax() - 1
-fig, (a1, a2) = plt.subplots(2, 1, figsize=(10, 6), sharex=True, gridspec_kw={"height_ratios": [3, 1.3]})
-for col, c, lab in [("S0_net", BLUE, "v1 as committed (S0, Yahoo/VIX, same-close, free leverage)"),
-                    ("S7_net", ORANGE, "L1: v1 on permitted data + charter accounting (S7)"),
-                    ("spy_proxy", NEUTRAL, "SPY proxy (KF Hi 20)")]:
-    a1.plot(wealth.index, wealth[col], color=c, lw=2 if col != "spy_proxy" else 1.4, label=lab)
-    if col != "spy_proxy":
-        a2.plot(dd.index, dd[col], color=c, lw=1.4)
-ends = wealth.iloc[-1].sort_values(ascending=False)
-for k, (_col, v) in enumerate(ends.items()):  # end values, stacked so they never collide
-    a1.annotate(f"${v:.1f}", (wealth.index[-1], v), xytext=(6, 10 - 11 * k), textcoords="offset points", fontsize=8,
-                va="center", color=INK, arrowprops={"arrowstyle": "-", "color": BASE, "lw": 0.6})
-a1.set_yscale("log")
-a1.set_ylabel("growth of $1 (log)")
-a2.set_ylabel("drawdown")
-a2.yaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(1.0, decimals=0))
-for k, (a, z) in wins.items():
-    for ax in (a1, a2):
-        ax.axvspan(a, z, color=GRID if k != "validation" else SURF, alpha=0.35, lw=0)
-    a1.text(a, a1.get_ylim()[1], f" {k}", color=MUTED, fontsize=8, va="top")
-a1.legend(loc="upper left", fontsize=8)
-a1.set_title("Growth of $1, 2005–2025 (test 2020+ seen by owner in v1, disclosed)")
-fig.text(0.01, -0.02, "L1 holds the " + TLT_LABEL + ".", color=INK2, fontsize=7)
-save(fig, "growth_and_drawdown")
+# 3. headline: growth of $1 with drawdown underneath (owner O2.1: quantkit viz.headline) ---------------------------------
+# L1's SPY + T-bills line at matched vol (D2.8): bench.vol_matched ex ante, 63 rows, lag 1, financed above w = 1 at the
+# lagged H.15 money-market yield + 25 bp, dt = calendar days / 360 (one bill series, spec/rules.yaml). Closes E1.12.
+g = books[["S7_net", "S0_net", "spy_proxy", "bill_new"]].dropna()
+pan = panel_bills.reindex(g.index)
+acc = paths.rules()["accounting"]
+line = qbench.vol_matched(g["S7_net"], g["spy_proxy"], g["bill_new"], mode="ex_ante", window=63, lag=1,
+                          financing={"rate": pan["mmy"].to_numpy(), "spread": acc["financing_spread_bp"] * 1e-4,
+                                     "dt": pan["dt"].to_numpy()})
+g["line"] = line["returns"]
+g = g.dropna()
+lines = {figures.NAMES["L1"]: g["S7_net"], "v1 as committed": g["S0_net"], figures.NAMES["L0"]: g["spy_proxy"],
+         figures.NAMES["L0-line"]: g["line"]}
+figures.save_headline(lines, g["bill_new"], OUT, "headline_growth_and_drawdown", tier="in-sample",
+                      title="v1 legacy vs v1 as committed vs SPY, 2005–2025",
+                      subtitle="2005–19: v1 chose its parameters here; 2020–25: test seen by owner in v1 (disclosed)",
+                      footer=figures.FOOTER + " v1 as committed = S0 (Yahoo prices + Cboe VIX, same-close, free leverage);"
+                      " v1 legacy = S7 (= L1); the SPY+T-bills line is matched to v1 legacy (ex ante, 63 days).")
 
 # 4. exposure over time (L1) ----------------------------------------------------------------------------------------------
 w = books[["S7_w_SPY", "S7_w_TLT"]].dropna().resample("ME").mean()
