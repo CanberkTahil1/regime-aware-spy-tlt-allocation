@@ -162,3 +162,10 @@
   in 2020–26, the table says "better only in the period that inspired it". Every row counts in the multiple-testing N.
 - **D6.5 (advisor): `make all` runs R6 too.** The Makefile change is the kind R5's lock planned for; the R5 replay
   still proves its tables byte for byte.
+- **After the review (post-hoc, logged before acting):**
+  - **O6.3 (owner):** a gain only in 2020–26 after a development loss now reads "worse in development, better in the
+    test". Every verdict shows whether its interval excludes zero and how much power the test had.
+  - **O6.4 (owner):** R5's Makefile is restored byte for byte, and R6 gets its own `Makefile.r6`. The R5 lock check
+    passes again, and a test keeps it that way.
+  - **D6.6 (advisor):** each R6 switch is compared with the same switch at random times (100 shuffles) and with a flat,
+    always-on cut of the same average size. If random timing or a flat cut does as well, the gain is just "fewer bonds".

@@ -609,3 +609,17 @@ runs, fixed before any table was read:
 - **E6.9 — L2's raw scale moves both ways almost every day.** The weekly rule still jumps fully to raw every Friday,
   so it defers most step-ups but does not remove them. The EWMA's partial steps keep the held scale below raw, so it
   cut more (−28.5%). Sharpe is unchanged in both (|Δ| ≤ 0.023).
+
+### R6 post-review addendum (POST-HOC, 2026-10-29; logged before acting)
+- **Decisions:** O6.3 (owner: a 10th verdict phrase, plus clearly/not-clearly flags and test power everywhere), O6.4
+  (owner: the R5-locked Makefile restored byte for byte, R6 moved to `Makefile.r6`, and a test that
+  `make freeze-verify` exits 0), D6.6 (advisor: a D5.8 placebo plus a flat cut for every R6 gate).
+- **spec/prereg_r6.yaml** gains `post_hoc`. New sha256 **b2f06b2cee0aef9a3154e5fe788db0f7c9176292c87e2c19dc6b4cd67b670f99** (the original 966103ff… governs every pre-results
+  choice). variants.csv adds `r6_placebo` (counted no). The reviewer's 40-seed probe was seen first.
+- **New expectation, written before the 100-seed run:**
+
+| ID | Expectation (band) | Source | Status |
+|---|---|---|---|
+| E6.14 | placebo (D6.6): on the test, R6c_infl's and R6d's real ΔSharpe vs L5 sit inside their placebo p05–p95, and neither exceeds its flat cut by more than +0.10; in development, no R6 gate has timing_beats_random_and_flat = yes | reviewer probe (seen); author | open |
+- **O6.4 applied:** the Makefile was restored from 7cd15b7^ (sha256 2020ab31…, equal to the lock), and the R6 targets
+  moved to `Makefile.r6` (`make -f Makefile.r6 all`; `r6-data` once, by hand).

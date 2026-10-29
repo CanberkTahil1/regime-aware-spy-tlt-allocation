@@ -862,3 +862,50 @@ this window" and development 1990–2019 "in-sample". No R6 verdict promotes or 
   5. freeze.py, the lock and prereg.yaml are not edited. `make r5-replay` runs once after the edit and must print the
      D5.9 line and stay byte-identical; logged.
 - **Why the other lost:** (b) breaks the charter's "make all reproduces every figure".
+
+### R6 review (reports/reviews/R6.md) — decisions after the R6 results (post-hoc, logged before acting)
+
+### O6.3 — Verdict wording (review MATERIAL 2: reviewer vs advisor D6.4) · ESCALATED TO OWNER · OWNER 2026-10-29
+- **Finding:** 3 of the 4 rows worded "better only in the period that inspired it" were worse in development, while
+  the mirror case had its own phrase. 0 of 15 test words have an interval excluding 0 (test power 0.01–0.29).
+- **Options:** (a) [rec] add a 10th phrase and the flags; (b) flags only; (c) keep D6.4.
+- **Owner's choice:** (a).
+  - (worse, better) now reads "worse in development, better in the test". (same, better) keeps "better only in the
+    period that inspired it".
+  - "clearly / not clearly" (per window) and the test power go beside every verdict and every count, in the tables,
+    figures and README draft.
+  - Logged post-hoc with the new spec hash (spec/prereg_r6.yaml `post_hoc.words`).
+
+### O6.4 — The R6 Makefile targets vs R5's lock (review MINOR 5; reverses advisor D6.5) · ESCALATED TO OWNER · OWNER 2026-10-29
+- **Finding:** the R6 targets changed a locked file, so `make freeze-verify` exits 1 for good. freeze.py is locked
+  too, so it cannot learn the exemption.
+- **Options:** (a) [rec] keep the change (D6.5); (b) revert the Makefile and run R6 by documented commands.
+- **Owner's choice (other):**
+  - Restore the R5-locked Makefile byte for byte (sha256 2020ab31…), so `make freeze-verify` passes again.
+  - Move the R6 targets into a separate `Makefile.r6`, run as `make -f Makefile.r6 all`, and document it in the
+    README draft's Reproduce section and in the ledger.
+  - Add a test that `make freeze-verify` exits 0.
+
+### D6.6 — Placebos for the R6 gates (review MATERIAL 1) · confidence high · decider = advisor · POST-HOC
+- **Finding (reviewer's 40-seed probe, seen before this decision):** on the test window, the inflation gate's +0.384
+  equals the median of shuffled timings (50% ≥ real), with a flat cut at +0.325. Bond-only trend's +0.248 is below the
+  shuffle median of +0.293 and the flat cut's +0.290.
+- **Options:** (a) [rec] the D5.8 placebo (seeds 0–99, 12-month blocks) plus a flat-cut row for every R6 gate;
+  (b) shuffle only; (c) disclosure only.
+- **Choice:** (a), amended:
+  1. **Same pipeline, only the timing differs.** The flat cut multiplies the gated sleeve by the gate's mean kept share
+     in that window, at the exact point where the gate acts (same vol layer, band, costs, financing, t+1 execution).
+     The shuffled keep goes through the same code path.
+  2. **R6c_L6-63's placebo and flat cut are judged against L5,** the layer its gate adds to (as D5.8 for L6). The
+     own-parent ΔSharpe vs L6 is kept beside it.
+  3. **Development binds; the test only qualifies.** In development (≈ 30 blocks), "timing beats random and flat cut?"
+     = real ΔSharpe above the placebo p95 AND above the flat cut, yes/no. On the test (≈ 7 blocks): the percentile and
+     inside-p05–p95 only, with no "beats" word and no p-value. Inside → the README says "not distinguishable from
+     holding fewer bonds (stocks) at random times / a flat cut".
+  4. **The verdict words are not edited by the placebo;** it adds qualifier columns only (one-directional).
+  5. **Seeds 0–99 are fixed in the prereg_r6 addendum before the run.** The addendum states that the reviewer's 40-seed
+     probe overlaps them and was seen first. Registered in variants.csv as controls (counted no), with a perf budget.
+     Block-6 sensitivity is excluded (as D5.8).
+  6. **Windows are shuffled separately** (each window's own decision rows, never mixed). The warm-up is never scored.
+- **Why the others lost:** (b) cannot show that R6d's test gain is a flat-cut effect; (c) lets a verdict stand that
+  random timings matched.

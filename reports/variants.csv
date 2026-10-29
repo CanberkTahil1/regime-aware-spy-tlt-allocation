@@ -52,3 +52,4 @@ R6d_L5_bondtrend,R6,r6_post_test,"L5 with the 10-month trend keep on TLT only (p
 R6e_asym_vt,R6,r6_post_test,"L2 with immediate cuts and weekly step-ups (row of record) + EWMA span-5 step-ups (sensitivity) (prereg_r6 R6e)",2,"post-test idea (disclosed reuse)",yes,yes,"D6.1; Friday anchor disclosed, not swept"
 R6f_blend,R6,r6_post_test,"fund of L2, L3, L7 at 1/3 each, reset monthly (prereg_r6 R6f)",1,"post-test idea (disclosed reuse)",yes,yes,"D6.3"
 R6g_gold,R6,r6_post_test,"L5 + Pink Sheet gold leg",0,"not run (O6.2)",yes,no,"skipped: no monthly-frequency engine"
+r6_placebo,R6,placebo,"R6a, R6c_infl, R6d, R6c_L6-63 keeps shuffled in 12-month blocks within each window, seeds 0-99, + flat cut (prereg_r6 post_hoc.placebo; D6.6)",0,"placebo, descriptive (post-hoc)",yes,no,"controls, not strategies; raised by review after results; reviewer's 40-seed probe seen first"

@@ -1,0 +1,34 @@
+# R6 (spec/prereg_r6.yaml): improvements suggested by R5. Owner O6.4: the main Makefile is locked by R5's
+# spec/freeze.lock.json and stays byte-identical, so R6's targets live here. Run `make -f Makefile.r6 all` after `make all`
+# (which builds the panel R6 reads). Same contract as the main Makefile: pipefail rides in SHELL, every command through
+# `uv run --frozen --no-sync`, caches kept in-repo, logs tee'd (tests/test_r6.py checks it).
+SHELL := /bin/bash -o pipefail
+.SHELLFLAGS := -o pipefail -c
+unexport VIRTUAL_ENV
+UV := uv run --frozen --no-sync
+PY := $(UV) python
+RUN := $(PY) -m rspy run
+export PYTHONPYCACHEPREFIX := $(CURDIR)/.cache/pycache
+export NUMBA_CACHE_DIR := $(CURDIR)/.cache/numba
+export MPLBACKEND := Agg
+
+.PHONY: help all r6-data r6 r6-figures r6-figures-local lint-r6 logs omp
+help:
+	@echo "make -f Makefile.r6 r6-data (once) | r6 | r6-figures | r6-figures-local | lint-r6 | all"
+logs:
+	mkdir -p logs
+r6-data: logs  # owner O6.2: CPI-U NSA (BLS CUUR0000SA0) from the BLS public API into data/r6/raw (manifest + sha256); never in `all`
+	$(RUN) scripts/r6_data.py 2>&1 | tee logs/r6_data.log | tail -5
+r6: logs omp  # candidates + R5 references on development and test -> reports/r6 (statistics) + data/r6 (local books); refuses missing/altered CPI files or a stale panel
+	$(RUN) scripts/r6.py 2>&1 | tee logs/r6.log | tail -30
+	$(RUN) scripts/r6_figures.py 2>&1 | tee -a logs/r6.log | tail -2
+r6-figures: logs  # R6 statistics figures (reports/figures/R6, committed) from reports/r6
+	$(RUN) scripts/r6_figures.py 2>&1 | tee logs/r6_figures.log | tail -3
+r6-figures-local: logs  # R6 headline (viz.headline) from data/r6 -> reports/figures_local/R6 (gitignored)
+	$(RUN) scripts/r6_figures_local.py 2>&1 | tee logs/r6_figures_local.log | tail -3
+lint-r6:
+	$(UV) ruff check r6lib
+omp:
+	@$(MAKE) --no-print-directory -f Makefile omp
+all: lint-r6 r6  # then the report page (rspy.site reads reports/r6)
+	$(MAKE) -f Makefile report-site

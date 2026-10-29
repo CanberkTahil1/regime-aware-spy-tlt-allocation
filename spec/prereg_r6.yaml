@@ -141,3 +141,25 @@ outputs:
   committed: "reports/r6/{metrics, compare, verdict, crisis, costs, dsr}.csv, facts.json, run.json (statistics only); reports/figures/R6/ (statistics figures)"
   local: "data/r6/books.parquet; reports/figures_local/R6/ (viz.headline; gitignored)"
   readme: "section 'Improvements tried after the test (R6)' drafted; committed only with the owner's approval"
+
+# ---- POST-HOC ADDENDUM (2026-10-29, after the R6 results at 2901243 and the quant-reviewer's round; owner O6.3/O6.4,
+# advisor D6.6; reports/decisions.md). Logged before acting; the new sha256 is in reports/ledger.md. The reviewer's
+# 40-seed placebo probe (seeds 0-39, overlapping the seeds below) was seen before this addendum.
+post_hoc:
+  words:   # O6.3: overrides verdict.words for this key only
+    "worse,better": "worse in development, better in the test"
+  flags: "every verdict and every count carries 'clearly' / 'not clearly' per window (verdict.per_window.clearly) and the test power (comparisons.power)"
+  placebo:   # D6.6 (descriptive controls; counted no; one-directional: qualifier columns only, never edits a verdict word)
+    gates:
+      R6a_L2_trend: {keep: "SPY trend keep (column 0)", parent: L2, sleeve: spy}
+      R6c_infl: {keep: "inflation keep (column 1)", parent: L5, sleeve: tlt}
+      R6d_L5_bondtrend: {keep: "TLT trend keep (column 1)", parent: L5, sleeve: tlt}
+      R6c_L6-63: {keep: "corr63 keep (column 1)", parent: L5, sleeve: tlt, own_parent_beside: L6}
+    shuffle: "regime.shuffle_decisions on the window's own month-end decision rows only (each window separately), blocks of 12 decisions, one permutation for both columns, then the candidate's own pipeline"
+    seeds: [0, 99]
+    flat_cut: "the parent's target with the gated sleeve multiplied by the window mean of the carried keep (window rows), same pipeline (band, vol layer, costs, financing, t+1)"
+    stats: "matched point dSharpe vs the gate's parent (evaluate.pair) for the real gate, every seed and the flat cut, per window; real percentile among seeds; placebo median / p05 / p95"
+    development_rule: "timing_beats_random_and_flat = real > placebo p95 AND real > flat cut (yes / no)"
+    test_rule: "percentile and inside_p05_p95 only; no beats word, no p-value (about 7 blocks); inside => 'not distinguishable from holding fewer bonds (stocks) at random times / a flat cut'"
+    excluded: "block-6 sensitivity, seeds beyond 0-99"
+  orchestration: "O6.4: the R5-locked Makefile restored byte for byte (sha256 2020ab31...); R6 targets in Makefile.r6 (`make -f Makefile.r6 all`); a test requires `make freeze-verify` to exit 0"
