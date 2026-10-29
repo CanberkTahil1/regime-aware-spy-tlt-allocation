@@ -98,3 +98,21 @@ r1_expectations:   # BUILD_PROMPTS R1 "Pre-registered"
 data_qa:   # D1.6; 2005-01 -> 2025-12, monthly, local Yahoo file as comparison only
   hi20_vs_spy: {corr_min: 0.98, te_max_annual: 0.015}
   gsw25_vs_tlt: {corr_min: 0.98, te_max_annual: 0.030, prior_disclosed: "sibling 2.06% (2019-10 -> 2026-08) seen before the band was set"}
+
+# R3 (2026-10-29, owner O2.4 + advisor D3.1-D3.6, before any R3 result). L6-L8 are NOT walked; the walk verdict of R2
+# stands (nothing promoted past SPY). Every R3 number is descriptive. Parameters: spec/rules.yaml `r3`.
+r3_evaluation:
+  walk: none                                   # owner O2.4; walk_chains stay cut at L5 in R3
+  ablation:
+    rows: {L6: L5, L7: L6, L8: L7}             # child: parent (one layer each)
+    references: [parent, L3, L1, line]         # line = SPY + T-bills at the child's vol (R2 D2.8)
+    match: "reference rescaled ex post to the child's development excess vol"
+    intervals: {dsharpe: "LW 95%, one-sided p", drawdown: "dd_ratio_ci 95% (cdar-95, max_dd)"}
+    holm_family: "every dSharpe p in reports/r3/ablation.csv"
+  descriptive_rows: [L6-63, L6-126-th-0.2, L6-126-th+0.2, L7-on-L5, L7-63]
+  crisis_owner: [bonds_1994, gfc, q4_2018]     # reported for L6 and L7 at matched risk (all six computed)
+  gate_rule: "beats = gate vs parent one-sided LW p < 0.05 AND seed-0 block-shuffled placebo vs parent p >= 0.05 (matched vol)"
+  placebo: {block_months: 12, seed: 0, seeds: "0-99 descriptive", sensitivity_block_months: 6}
+  crash_judge: {impl: quantkit.sizing.judge, rule: dd, target: 0.10, sigma: 0.10, cap: 1.0, block: 21, seed: 0, draws: 1000}
+  zoo_built: [hmm_gate, jump_model_gate, min_cdar, max_div]
+  zoo_deferred_R4: [v1_spread_overlay_on_L5, v1_bollinger_overlay_on_L5, gbm_risk_sizing]

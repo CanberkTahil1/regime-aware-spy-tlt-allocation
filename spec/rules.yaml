@@ -45,6 +45,7 @@ accounting:   # D1.3; charter "Accounting (binding, R1)"
   financing_stress_extra_bp: 75
   cash: "max(1 - sum(w_held), 0) earns the bill return r_s"
   shorts: forbidden                # a negative target raises
+  band_zero_target: "a sleeve whose target is exactly 0 trades to 0; the band applies otherwise (R3 D3.1; re-entry from 0 still stops at the band edge)"
   sharpe: "quantkit.stats.sharpe(net - bill, rf=None), ann 252, ddof 1"
   sortino: "sqrt(252) * mean(e) / sqrt(mean(min(e, 0)^2)), e = net - bill"
   turnover: "annualised one-way sum |dw| (drift and vol-scaling trades included)"
@@ -106,3 +107,52 @@ r2:   # R2 core mix (D2.1-D2.8, advisor; reports/decisions.md), fixed before any
     offsets: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
     record: 0
     rungs: [L3, L4, L5]
+
+r3:   # R3 regime layer (D3.1-D3.6, advisor; reports/decisions.md), fixed before any R3 result. Owner O2.4: no walk.
+  scored: [1990-01-01, 2019-12-31]          # development only; test 2020+ is R5
+  L6:                                       # D3.1
+    corr: "Pearson correlation of the two sleeves' daily simple returns over the `window` sessions ending at the decision close (all required)"
+    windows: {primary: 126, descriptive: 63}
+    threshold: 0.0
+    sensitivity: [-0.2, 0.2]                # descriptive rows on L6-126
+    decision: month_end                     # the L4 decision rows (offset 0), carried to the daily L5 target
+    action: "L5 daily target with the TLT column set to 0 while the latest decision says corr > threshold; vol scale stays L5's"
+  L7:                                       # D3.2
+    impl: quantkit.signals.trend.faber
+    months: 10
+    long_only: true
+    level: "total-return level of each sleeve (cumprod(1 + r) from 1986-01-02)"
+    action: "L6 daily target with each sleeve below its SMA set to 0 (decision of month-end e = faber's position from e + 2)"
+    descriptive: [L7-on-L5, L7-63]          # trend without the correlation layer; trend on L6-63
+  L8:                                       # D3.3
+    rule: dd                                # quantkit.sizing.dd_mult defaults
+    target: 0.10
+    d1: 1.0
+    d2: 2.5
+    e_min: 0.25
+    cap: 1.0
+    sigma: 0.10                             # constant: the vol-target base is exactly 1, so "vol targeting alone" = L7
+    judge: {block: 21, seed: 0, draws: 1000, mean_block: 21, returns: "L7 net - bill, development rows"}
+    book: "L7 daily target x g_t, g_t = sizing.overlay(L7 net - bill from 1990-01-02, rule dd).mult stamped t, traded t+1"
+  placebo:                                  # D3.4
+    impl: quantkit.vol.shuffle_blocks
+    grid: "the 360 development month-end decisions (1990-01 .. 2019-12) of the gate under test only; one permutation shared by both sleeves"
+    block_months: 12                        # reasoned choice (>= longest median real spell, 8 months), not a literature value
+    seed: 0
+    seeds_distribution: [0, 99]             # descriptive percentile of the gate's matched dSharpe
+    sensitivity_block_months: 6             # descriptive
+    beats: "gate vs parent one-sided LW p < 0.05 AND seed-0 placebo vs parent p >= 0.05 (alloc.gate / sizing.judge rule), both at matched vol"
+  ablation:                                 # D3.5
+    match: "reference rescaled ex post to the child's development excess vol (evaluate.rescale, bill + 25 bp above 1x), once"
+    references: [parent, L3, L1, line]
+    dsharpe: {impl: quantkit.stats.sharpe_diff_lw, block: 21, draws: 1000, seed: 0, level: 0.95}
+    drawdown: {impl: quantkit.stats.drawdown.dd_ratio_ci, stats: [cdar, max_dd], alpha: 0.95, draws: 1000, mean_block: 21, seed: 0, level: 0.95}
+    holm_family: "every dSharpe p in reports/r3/ablation.csv (rows x references)"
+    crisis: "evaluate.crisis_matched on all six development windows; 1994, GFC, Q4 2018 highlighted (owner)"
+  zoo:                                      # D3.6
+    gates: {hmm_gate: "state.hmm_regime(SPY proxy) > 0.5", jump_gate: "state.jump_regime(SPY proxy) == 1"}
+    gate_defaults: {window: 2000, every: 126, anchor: 500}
+    gate_action: "L5 daily target with the SPY column set to 0 while the latest month-end decision says turbulent"
+    min_cdar: {impl: quantkit.alloc.min_cdar, alpha: 0.95, window: 756, floor: null, decision: month_end, then: "L5's vol layer (zoo forecast of the min-CDaR book)"}
+    max_div: {impl: quantkit.alloc.risk.max_div, cov: "63-row sample covariance, ddof 1 (explicit)", identity: "equals L4 (two assets)"}
+    deferred_to_R4: [v1_spread_overlay_on_L5, v1_bollinger_overlay_on_L5, gbm_risk_sizing]

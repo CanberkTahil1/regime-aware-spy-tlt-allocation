@@ -180,3 +180,42 @@ matched vol, so its verdict would not change either. The limitation stands as re
 registered leg is unchanged. For R3 (owner O2.4): the walk verdict stands (nothing promoted past SPY); L6–L8 are tested
 through the charter's ablation table (each layer vs its own parent, vs 60/40 and vs v1, 95% intervals, descriptive),
 not through the walk.
+
+## R3 — the regime layer L6–L8 (expectations committed before any R3 code or number)
+
+Owner O2.4: the R2 walk verdict stands (nothing promoted past SPY); **no promotion walk for L6–L8**. Every R3 number is
+descriptive: the ablation table (each layer vs its parent, vs 60/40 = L3, vs v1 = L1, vs the SPY + T-bills line, at
+matched vol, 95% intervals). Decisions D3.1–D3.6 (advisor, reports/decisions.md). Pre-registration hashes (before any
+R3 code or result): `spec/prereg.yaml` sha256 **fd05c7a468f0fb15cb94c71d669c7785e4d05f581a2bb91132f2a0ff792f8541**
+(adds `r3_evaluation`); `spec/rules.yaml` sha256 **0014da1b5ab383e8b6dcc0ce07a69e82410af792e3a83cd551395ce386d11579**
+(adds `accounting.band_zero_target`, `r3`). Scored: development 1990-01-02 → 2019-12-31; 2020+ is R5.
+Disclosed priors: every R2 number (incl. L5 development vol 8.1%, max DD −12.99%, crisis.csv, crisis_matched.csv) and
+the R3 signal-state table (reports/research/R3.md: corr126 > 0 at every 1994 month-end, < 0 throughout the GFC and Q4
+2018; SPY in trend 23% of GFC days; TLT in trend 10% of 1994, 23% of Q4 2018). No R3 return has been computed.
+Disclosed choices (D3.4 amendment 6): the 12-month placebo block is a reasoned choice, not a literature value.
+Disclosures (D3.3): `sizing.judge` overlays are same-close (e_t earns r_{t+1}); the L8 book adds the charter's one
+session and costs; the drawdown brake reads the excess-return NAV. D3.1: a zero target exits fully, but re-entry from
+0 in a banded book stops at the band edge (target − 5 pp).
+Not tested in R3 (D3.6, deferred to R4 with their D-items): v1 spread overlay, v1 Bollinger overlay (need a definition
+of "overlay" for v1's unit-gross weights), GBM risk-side sizing (target, features, horizon, meaning of the 50%
+haircut). Tranche offsets for L6/L7 (D3.2 amendment 1) are not built in R3 (record offset 0 only).
+
+Predictions are the author's, low-to-medium confidence; "at matched vol" = reference rescaled to the child's
+development excess vol (D3.5). Δ = child − matched reference.
+
+| ID | Expectation (band) | Source | Status |
+|---|---|---|---|
+| E3.1 | L6 vs L5 (parent), development: ΔSharpe in [−0.25, +0.05] (bonds earned well in the 1990s positive-correlation spells L6 removes); LW one-sided p > 0.05 | BUILD_PROMPTS R3; author | open |
+| E3.2 | L6 matters mainly in 1994: matched in-crisis return L6 − L5 ≥ +2 pp in bonds_1994; \|L6 − L5\| ≤ 2 pp in GFC and in Q4 2018 (gate off throughout: same holdings up to scale) | BUILD_PROMPTS R3 ("1994 and 2022-type"); research facts | open |
+| E3.3 | L7 vs L6 (parent): ΔSharpe in [−0.20, +0.15]; CDaR-95 ratio (L7 / matched L6) < 1 (point) | BUILD_PROMPTS R3 ("cuts drawdowns at some whipsaw cost") | open |
+| E3.4 | L7 cuts the 2000–02 and 2008 drawdowns: matched in-crisis return L7 − L6 > 0 in dotcom and in GFC; Q4 2018 L7 − L6 < 0 (TLT out ~3/4 of days, SPY mostly in: the hedge is removed when it worked); 1994 L7 − L6 ≥ −0.5 pp | BUILD_PROMPTS R3; research facts | open |
+| E3.5 | L8 fails `judge`: on = False (candidate one-sided LW p ≥ 0.05); L8 vs L7 matched ΔSharpe in [−0.05, +0.03]; g < 1 on < 10% of development days | BUILD_PROMPTS R3 ("most crash rules do"); D3.3 | open |
+| E3.6 | Gate rule (D3.4): neither L6 nor L7 "beats placebo" (each fails the gate-vs-parent p < 0.05 part); 100-seed percentile of L6's matched ΔSharpe < 95 | author | open |
+| E3.7 | vs 60/40 (L3) at matched vol: L6 and L7 ΔSharpe in [−0.10, +0.30] (L5 vs matched L3 ≈ +0.14 in R2's ablation chain) | owner O2.4; author | open |
+| E3.8 | vs v1 (L1) at matched vol: L6 and L7 ΔSharpe in [0.00, +0.50] (L5 +0.32 in R2) | owner O2.4; author | open |
+| E3.9 | vs the SPY + T-bills line (ex ante, L0-line): L6 and L7 ΔSharpe in [−0.10, +0.40] (L5 +0.26 in R2) | charter; author | open |
+| E3.10 | L6 realised development vol below L5's by ≥ 0.5 pp (vol scale kept while TLT goes to cash, D3.1) | D3.1 amendment 4 | open |
+| E3.11 | Zoo (descriptive): HMM and jump gates vs L5 matched ΔSharpe in [−0.20, +0.10], neither beats placebo; min-CDaR (+ vol layer) vs L5 in [−0.15, +0.10]; max-div = L4 weights ≤ 1e-10 at every decision row | D3.6; author | open |
+| E3.12 | code: the zero-target exemption leaves every R2 output unchanged — reports/r2/*.{csv,json} `cmp`-identical after `make ladder`, data/r2/books.parquet columns equal bit for bit; ladder_chains.json still cut at L5 (no R3 walk) | D3.1 amendment 1; O2.4 | open |
+| E3.13 | code: tests — gate decided ≤ t (perturbing rows > t leaves the decision unchanged); correlation = np.corrcoef reference ≤ 1e-10; faber read-back = SMA at decision rows (exact); no NaN gate/trend/zoo state at any development decision row; L8 g path = judge's candidate (Sharpe equal ≤ 1e-12); placebo = block permutation of the monthly vector, shared across sleeves; zero target exits fully under the band | D3.1–D3.6 | open |
+| E3.14 | perf: `make ladder` (R2 + R3) ≤ 5 min and peak RSS ≤ 1.5 GB (rss_peak); R3 per-rung evaluation (books, 4 references, LW + 2 dd_ratio_ci, crisis) ≤ 10 s | performance contract; D3.5 amendment 6 | open |

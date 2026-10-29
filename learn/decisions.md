@@ -68,3 +68,19 @@
   inside a crisis can penalise the calmer portfolio when both lose money. A descriptive row now shows each crisis's
   return with the parent scaled to the same risk; it cannot change any verdict. For R3, the new layers are judged in the
   ablation table (each vs its parent, vs 60/40 and vs v1, with intervals), not by the walk, whose verdict stands.
+- **D3.1 (advisor): the correlation layer does one thing**: when the trailing 6-month stock-bond correlation is above
+  zero at a month-end, the bond slice goes to T-bills next day; stocks are not topped up. A slice told to go to zero
+  now leaves completely (before, the 5-point trading band would have left a small stub).
+- **D3.2 (advisor): the trend layer is Faber's 10-month moving-average rule from quantkit**, on the same total-return
+  series we trade; a slice below its trend goes to T-bills. A "trend only" row shows its effect without the
+  correlation layer.
+- **D3.3 (advisor): the crash rule is quantkit's off-the-shelf drawdown brake** (cut exposure from a 10% loss, down to
+  a quarter at 25%), tested against the same book without it and against a copy with the brake's timing shuffled.
+- **D3.4 (advisor): each on/off rule is tested against a fake version with its timing scrambled** in one-year blocks,
+  so it keeps how often and how long it is on; a rule only counts as working if it beats the real parent and the fake
+  does not. We also show where it ranks among 100 fakes.
+- **D3.5 (advisor): every layer is compared at the same risk** with its parent, 60/40, v1 and SPY + T-bills, with 95%
+  intervals on both the Sharpe difference and the drawdown ratio (quantkit's paired bootstrap).
+- **D3.6 (advisor): the "zoo" rows quantkit already defines are built now** (two market-state switches, a
+  minimum-drawdown mix, and max-diversification, which equals inverse-vol for two assets); v1's spread/Bollinger
+  overlays and the machine-learning row need definitions of their own and move to R4.

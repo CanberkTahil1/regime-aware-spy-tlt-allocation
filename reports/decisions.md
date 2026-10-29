@@ -314,3 +314,84 @@ any R2 code or result. Research: reports/research/R2.md (16791b4).
 - **Finding (author + R2-amendment review MATERIAL, 2026-10-29):** the owner's example does not survive matching: at
   matched vol 60/40 loses Q4 2018 too (−7.69% vs −7.43%) and 1994 (−6.9% vs −0.3%). The limitation itself is real
   (L2 vs L0, GFC: −27.4% vs matched SPY −41.4%, yet a lower in-window Sharpe); no verdict changes.
+
+## R3 (research: reports/research/R3.md, f86e90e; all decider = advisor, before any R3 result; owner O2.4 scope: no walk, ablation table)
+
+### D3.1 — L6 mechanics (correlation regime → TLT to cash) · confidence high
+- **Options:** (a) [rec] Pearson 126 (63) daily-return correlation at the month-end decision close, L6 = L5's daily
+  target with TLT set to 0 while gated (vol scale stays L5's), a zero target exits fully; (b) re-run the vol target on
+  the gated book; (c) daily gate decisions; (d) keep the band on a zero target (5 pp stub).
+- **Choice:** (a), amended: (1) zero-target exemption written into spec/rules.yaml as a mechanical accounting rule for
+  every rung ("a sleeve whose target is exactly 0 trades to 0; the band applies otherwise") before any L6 number, with
+  a bit-identity check on every R2 book; (2) disclose the asymmetry: re-entry from 0 in a banded book still stops at
+  the edge (target − 5 pp); (3) the gate reads the decision rows of the offset being built and reaches the daily target
+  via `carry` (decided ≤ t), tested like R2's vol_target wiring; (4) report L6's realised development vol overall and
+  in gated months beside the matched row; (5) L6-126 at 0 is the rung; L6-63 and ±0.2 descriptive; each a variants row.
+- **Why the others lost:** (b) one layer making two changes (adds SPY), contradicts prereg "TLT weight to cash";
+  (c) unregistered cadence, flips on noise (SE ≈ 0.09); (d) a 5 pp stub is not cash and keeps TLT through 1994.
+
+### D3.2 — L7 mechanics (per-asset trend) · confidence medium-high
+- **Options:** (a) [rec] `signals.trend.faber(months=10)` on each sleeve's total-return level, decision read back to
+  the month-end row, below-SMA sleeve target 0 (exits fully), no re-scaling, plus a descriptive "trend on L5" row;
+  (b) price-only levels; (c) daily `trend.sma(210)`.
+- **Choice:** (a), amended: (1) tranche offsets o > 0 need the same SMA rule at that offset's decision rows (one code
+  path, tested equal to faber at o = 0) — R3 builds only the record offset 0 (no R3 timing-luck item), so this binds
+  when L6/L7 offsets are built (R4); (2) coverage guard: faber is fed the full 1986-onward panel; no NaN trend state at
+  any scored decision row (asserted); the final month-end (e + 2 past the sample) is read from the tested SMA path,
+  never filled; (3) "trend on L5 (no corr layer)" and "L7 on L6-63" registered as descriptive variants before the
+  build; (4) zero-target exit per D3.1.
+- **Why the others lost:** (b) no price-only 25y Treasury proxy; mixed definitions across sleeves; (c) unregistered
+  variant, more whipsaw, breaks the monthly grid.
+
+### D3.3 — L8 crash rule · confidence high (choice), medium (wiring)
+- **Options:** (a) [rec] quantkit `sizing` rule "dd" with its defaults (d1 1, d2 2.5 × target 0.10, e_min 0.25),
+  tested by `sizing.judge(L7 net − bill, 0.10, "dd", sigma = 0.10 constant, cap 1.0)` (base exposure ≡ 1, so "vol
+  targeting alone" = L7), book = L7 target × g_t traded t+1; (b) cppi α 0.8; (c) vol-spike trigger.
+- **Choice:** (a), amended: (1) `judge` on development rows only; the book's g path from one `sizing.overlay(rule="dd",
+  sigma const, cap 1, target 0.10)` run from 1990-01, tested equal to judge's candidate (same arguments; judge does not
+  return the path); (2) target, d1, d2, e_min, block 21, seed 0, cap, σ written into spec before L7/L8 runs; thresholds
+  not rescaled to L7's realised vol; (3) ledger disclosures: judge is same-close (book adds the lag and costs), DD read
+  on the excess-return NAV, expectation "rarely fires, judge on = False, L8 − L7 ≈ 0" (L5 dev max DD −12.99% ⇒ g ≈ 0.85
+  at worst); (4) turnover includes g changes; report the share of development days with g < 1.
+- **Why the others lost:** (b) cash lock after −20%, never re-risks; (c) duplicates the daily vol target already in the
+  book, and `judge` does not test it (would re-implement quantkit).
+
+### D3.4 — Gate placebo · confidence medium
+- **Options:** (a) [rec] shuffle the gate's monthly decision vector with `vol.shuffle_blocks`, 12-month blocks, seed 0;
+  "beats placebo" = gate vs parent one-sided LW p < 0.05 AND placebo vs parent p ≥ 0.05; 100-seed percentile
+  descriptive; (b) quantkit's daily block 21 read at month-ends; (c) 6-month blocks.
+- **Choice:** (a), amended: (1) shuffle only the layer tested (L7: trend states shuffled, L6's real gate kept; zoo
+  gates on real L5); (2) one permutation per gate shared by both sleeves; (3) shuffle the 360 development month-ends
+  only (test window separately, if ever); (4) placebo compared at matched vol with the same costs and exit rule;
+  (5) block 12, seed 0, seeds 0–99 and the definition in spec before any R3 return; seed-0 placebos registered (phase
+  ":placebo"), the 100-seed set one null-distribution procedure; (6) the ledger says block 12 is a reasoned choice,
+  not a literature value; block 6 a descriptive sensitivity row.
+- **Why the others lost:** (b) a near month-level permutation: persistence lost, placebo a straw man; (c) cuts spells at
+  the median length; kept as sensitivity.
+
+### D3.5 — Ablation statistics · confidence high
+- **Options:** (a) [rec] reference rescaled to the child's development excess vol; ΔSharpe LW 95% + one-sided p;
+  paired-bootstrap intervals on drawdown; in-crisis matched rows; Holm printed; (b) LW on ΔSharpe only, CDaR point;
+  (c) raw unmatched differences.
+- **Choice:** (a), amended: (1) drawdown intervals via `quantkit.stats.drawdown.dd_ratio_ci(child, matched_ref,
+  stat="cdar", alpha=0.95)` and `stat="max_dd"` (1,000 draws, mean block 21, seed 0, 95%), as ratios and ratio − 1,
+  n_nan printed — no hand-rolled bootstrap; (2) match once on the realised series, then bootstrap the pair; (3) footnote
+  the interval as a sampling interval with 21-session blocks (likely too narrow for long drawdowns), bootstrap median
+  shown; block pinned; (4) Holm family fixed now: every ΔSharpe p in the R3 ablation table (rows × 4 references);
+  (5) crisis-matched rows for all six development windows, 1994 / GFC / Q4 2018 highlighted, O2.4 in-window ΔSharpe
+  kept beside them; (6) calls sequential at fixed T; RSS checked with rss_peak.py against 1.5 GB as an expectation.
+- **Why the others lost:** (b) no interval on the thesis metric (drawdown); (c) confounds the layer with its risk.
+
+### D3.6 — Zoo scope in R3 · confidence high
+- **Options:** (a) [rec] build HMM gate, jump-model gate, min-CDaR (756 sessions) and max-div (identity) now; defer v1
+  spread/Bollinger overlays and the GBM risk row to R4; (b) build every row now; (c) defer the whole zoo.
+- **Choice:** (a), amended: (1) zoo gates mirror D3.1: L5's SPY target set to 0 on turbulent months (hmm_p > 0.5 /
+  jm_regime = 1 at the month-end close), L5's vol scale kept, D3.4 placebo; (2) quantkit state defaults (window 2000,
+  every 126, anchor 500) on SPY-proxy returns from 1986; test: no NaN state at any development month-end; (3) max-div
+  given the 63-row sample covariance explicitly (quantkit's Ledoit-Wolf default would break the identity), tested equal
+  to L4 at every decision row, counted; (4) min-CDaR α 0.95, 756 sessions only, floor None; both additive and
+  compounded CDaR reported; (5) all four rows registered in variants.csv in the expectation commit; ledger "not tested
+  in R3" for spread/Bollinger overlays and GBM, naming the R4 D-items (overlay definition for unit-gross v1 weights;
+  GBM target, features, horizon, haircut meaning).
+- **Why the others lost:** (b) four-plus author-chosen definitions in one phase invite an uncounted definition search;
+  (c) the gates and min-CDaR are already fully defined by quantkit and the literature.
