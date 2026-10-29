@@ -302,3 +302,12 @@ any R2 code or result. Research: reports/research/R2.md (16791b4).
   R3). Prereg re-hashed, the chains walked with the same promotion rule, the new walk counted in the DSR trial count
   (variants.csv), shown beside the pre-registered walk, which stays as recorded (L2 did not beat L1). Every rung is
   still compared descriptively with L1. **Resolved.**
+
+### O2.4 — In-crisis Sharpe pathology: known limitation + descriptive matched-vol row · OWNER 2026-10-29
+- **Owner:** record as a known limitation that comparing in-window Sharpe when both books lose money can favour the more
+  volatile book (Q4 2018: 60/40 −7.7% vs SPY −12.9%, yet "fails"). Add a labelled POST-HOC descriptive row beside the
+  registered crisis leg: in-window cumulative return at matched vol (parent scaled to the child's development vol with
+  T-bills, `evaluate.rescale`, financed above 1× at bill + 25 bp). It cannot change any verdict; report whether 60/40
+  still fails 1994 under it.
+- **Owner, for R3:** the walk verdict stands (nothing promoted past SPY). R3 tests L6–L8 through the charter's ablation
+  table (each layer vs its own parent, plus vs 60/40 and vs v1, with 95% intervals, descriptive), not through the walk.

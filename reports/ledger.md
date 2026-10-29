@@ -156,3 +156,17 @@ so a lower-vol rung that loses less can still "lose" a window (Q4 2018 above); 1
 Every rung vs L1 (comparison row, reports/r2/vs_l1.csv, LW 95%): L2 +0.02 [−0.03, +0.08], L3 +0.18 [−0.05, +0.41],
 L4 +0.31 [−0.01, +0.63], L5 +0.32 [+0.01, +0.63] (p 0.022), L5-lev +0.37 [+0.06, +0.68]; CDaR vs matched L1: L4 −44%,
 L5 −47%. Chart: reports/figures/R2/promotion_walks.png. DSR N: one extra trial (variants.csv `walk_chains_O2.3`).
+
+### R2 amendment 2 — in-crisis matched-vol return (POST-HOC descriptive, owner O2.4, 2026-10-29; expectations before code)
+
+Known limitation (owner O2.4): quantkit's robustness leg compares in-window Sharpe; when both books lose money in a
+window, the more volatile book can "win" (Q4 2018: L3 −7.7% vs L0 −12.9%, yet L3 fails). Descriptive row added beside it
+(reports/r2/crisis_matched.csv): for every walk step, in-window cumulative return of the child vs the parent scaled
+ex post to the child's development excess vol with T-bills (`evaluate.rescale`, financed above 1× at bill + 25 bp — the
+same matching as the rspy legs). Cannot change any verdict; not in the promotion rule; no variants.csv row (no
+selection).
+
+| ID | Expectation (band) | Source | Status |
+|---|---|---|---|
+| E2.16 | L3 vs L0 at matched vol (k ≈ 0.60 from development vols 10.3% / 17.3%): 1994 still a loss for L3 (L3 −6.9% vs matched SPY ≈ −0.5%); Q4 2018 close to a tie (matched SPY ≈ −7.5% vs L3 −7.7%, sign uncertain) | O2.4 | open |
+| E2.17 | code: the verdict files (ladder.json, ladder_chains.json) unchanged byte for byte; the row's matched parent = `evaluate.rescale` exactly (test) | O2.4 | open |

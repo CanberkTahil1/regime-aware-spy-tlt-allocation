@@ -64,3 +64,7 @@
   v1 becomes a yardstick every rung is compared with, not a step. Two chains: SPY → vol-targeted SPY, and SPY → 60/40 →
   inverse-vol → + vol target (→ R3's layers). The original walk's result stays on record next to the new one, and the
   new walk counts as an extra trial when the deflated Sharpe is computed.
+- **O2.4 (yours): a known flaw in the crisis check is written down, with a fairer side-view.** Comparing Sharpe ratios
+  inside a crisis can penalise the calmer portfolio when both lose money. A descriptive row now shows each crisis's
+  return with the parent scaled to the same risk; it cannot change any verdict. For R3, the new layers are judged in the
+  ablation table (each vs its parent, vs 60/40 and vs v1, with intervals), not by the walk, whose verdict stands.
