@@ -643,3 +643,9 @@ runs, fixed before any table was read:
   - Fully cold (vol-zoo cache moved aside) measured **102.7 s, 1,251 MB**, inside the ≤ 120 s / 1.5 GB cold budget;
     outputs byte-identical to warm.
 - **O6.4.** `make freeze-verify` → "freeze OK"; `make -f Makefile.r6 all` replaces `make r6`.
+- **Owner O6.5 (2026-10-29):** the warm-run perf miss (66 s against ≤ 60 s) is accepted as logged. Fixing it would edit
+  a locked file (`rspy.accounting`).
+- **README (owner, 2026-10-29):** §6 "Improvements tried after the test (R6)" approved, with two bullets added to the
+  "What this shows" box (R6 exploration; vol-targeted SPY on the test window). Every number was checked against
+  reports/r5/metrics.csv and family.csv; all match: L2 14.7% / 16.8% / −20.2%, L0 15.9% / 20.5% / −33.0%, L2 vs the
+  line +0.107 (one-sided p 0.19).

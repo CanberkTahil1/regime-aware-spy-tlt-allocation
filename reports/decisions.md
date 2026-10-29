@@ -909,3 +909,8 @@ this window" and development 1990–2019 "in-sample". No R6 verdict promotes or 
   6. **Windows are shuffled separately** (each window's own decision rows, never mixed). The warm-up is never scored.
 - **Why the others lost:** (b) cannot show that R6d's test gain is a flat-cut effect; (c) lets a verdict stand that
   random timings matched.
+
+### O6.5 — The R6 warm-run perf miss · OWNER 2026-10-29
+- **Choice:** accept as logged. Warm `scripts/r6.py` takes 66 s against ≤ 60 s. The time is in the per-row cost call
+  inside the R5-locked `rspy.accounting.run`, and fixing it would edit a locked engine file. Cold 102.7 s and peak RSS
+  1,251 MB stay within budget.

@@ -17,6 +17,12 @@
 >   −0.32), as did every comparison of a bond-holding rung against vol-targeted SPY, 60/40 or the line (§1–2).
 > - **A slow correlation signal can't react to a fast regime change; trend did.** The 126-day stock–bond correlation
 >   first moved bonds to cash at the end of August 2022. The 10-month trend rule had TLT out from January (§3).
+> - **Ideas tried after the test (R6, exploration) didn't beat vol-targeted SPY.** The bond switches built for 2022 (an
+>   inflation-volatility gate, bond-only trend) did no better than random timing or simply holding fewer bonds; only
+>   trend on a shorter bond leg improved its parent in both periods (§6).
+> - **The simplest risk control held up.** On 2020-01 → 2026-09, vol-targeted SPY earned 14.7%/yr against SPY's 15.9%,
+>   with 16.8% vs 20.5% volatility and a −20.2% vs −33.0% max drawdown; its edge over SPY + T-bills at matched risk
+>   (+0.11 Sharpe) is not statistically significant (§1–2).
 
 This is a research repository. It is not a trading system and not investment advice. It rebuilds an earlier project
 (v1, kept in git history) with correct accounting, storage-permitted data and a pre-registered test. Every number
@@ -148,7 +154,85 @@ T-bills at matched risk in development (L1 −0.08, L2 −0.06).
   distinguishable from L5: the largest gains are min-CDaR +0.02 [−0.11, +0.16] and raw GBM sizing +0.01; the rest are
   negative (`reports/r3/ablation.csv`, `reports/r4/zoo.csv`).
 
-## 6. Method
+## 6. Improvements tried after the test (R6)
+
+**Answer: none of the 15 ideas beat vol-targeted SPY or SPY + T-bills on 2020–2026, the period that suggested them.**
+- **Better than their own parent in both periods:** only the trend rung on a shorter (5- or 10-year) bond leg. Even
+  then, only the 5-year version's development interval excludes zero, and both still trail vol-targeted SPY on
+  2020–2026.
+- **The 2022-inspired bond switches:** the inflation-volatility gate and bond-only trend did no better than switching
+  bonds out at random times, or than simply holding fewer bonds all the time.
+
+Every idea came from looking at R5's test results, so treat these numbers as exploration, not evidence:
+- the test window (2020-01 → 2026-09) is **disclosed reuse: ideas inspired by this window**;
+- development (1990–2019) is **in-sample**;
+- nothing here promotes, demotes or re-seats any rung.
+
+Each idea is compared with the one rung it changes (its "own parent"), at the same volatility. "Better" means Sharpe up
+by at least 0.05, or CDaR-95 at least 15% lower without a Sharpe loss of 0.05 or more. The rules, parameters and verdict
+words were registered in `spec/prereg_r6.yaml` (sha256 in `reports/ledger.md`) before any number.
+
+After the review, the owner added two things, logged as post-hoc:
+- the phrase "worse in development, better in the test";
+- the "interval excludes 0?" and "test power" columns.
+
+Every row counts in the multiple-testing N.
+
+| Idea | Own parent | ΔSharpe 1990–2019 [95%] | ΔSharpe 2020–2026 [95%] | Verdict | Interval excludes 0? (dev / test) | Test power |
+|---|---|---|---|---|---|---|
+| VT SPY + SPY trend (10-month SMA) | VT SPY (L2) | +0.00 [−0.16, +0.16] (CDaR 0.59×) | −0.17 [−0.48, +0.14] | better in development, worse in the test | no / no | 0.05 |
+| 60/40, 5-year bond leg | 60/40 (L3) | −0.07 [−0.19, +0.05] | +0.14 [−0.13, +0.40] | worse in development, better in the test | no / no | 0.02 |
+| Inverse-vol, 5-year leg | inverse-vol (L4) | +0.12 [−0.06, +0.31] | −0.02 [−0.38, +0.35] | better in development only | no / no | 0.18 |
+| Inverse-vol + vol target, 5-year leg | InvVol + VT (L5) | +0.11 [−0.06, +0.29] | +0.00 [−0.37, +0.38] | better in development only | no / no | 0.16 |
+| + trend (L7), 5-year leg | + trend (L7) | +0.23 [+0.02, +0.45] | +0.15 [−0.32, +0.62] | better in both periods | yes / no | 0.29 |
+| 60/40, 10-year leg | 60/40 (L3) | −0.02 [−0.10, +0.05] | +0.09 [−0.09, +0.27] | better only in the period that inspired it | no / no | 0.03 |
+| Inverse-vol, 10-year leg | inverse-vol (L4) | +0.08 [−0.02, +0.19] | −0.00 [−0.21, +0.20] | better in development only | no / no | 0.19 |
+| Inverse-vol + vol target, 10-year leg | InvVol + VT (L5) | +0.07 [−0.03, +0.18] | −0.00 [−0.23, +0.23] | better in development only | no / no | 0.17 |
+| + trend (L7), 10-year leg | + trend (L7) | +0.09 [−0.06, +0.24] | +0.08 [−0.23, +0.39] | better in both periods | no / no | 0.16 |
+| Correlation gate, 63-day window | corr. gate (L6) | +0.03 [−0.05, +0.12] | −0.02 [−0.25, +0.22] | no real difference | no / no | 0.10 |
+| Inflation-volatility gate (BLS CPI) | InvVol + VT (L5) | −0.05 [−0.27, +0.18] (CDaR 1.59×) | +0.38 [−0.03, +0.80] | worse in development, better in the test | no / no | 0.03 |
+| Trend on bonds only | InvVol + VT (L5) | −0.11 [−0.25, +0.03] | +0.25 [−0.15, +0.65] | worse in development, better in the test | no / no | 0.01 |
+| Asymmetric vol target, weekly step-ups | VT SPY (L2) | +0.01 [−0.02, +0.03] | −0.02 [−0.07, +0.02] | no real difference | no / no | 0.09 |
+| Asymmetric vol target, EWMA step-ups | VT SPY (L2) | +0.00 [−0.01, +0.02] | −0.01 [−0.04, +0.02] | no real difference | no / no | 0.10 |
+| ⅓ each VT SPY, 60/40, + trend | SPY + T-bills | +0.18 [−0.01, +0.38] | −0.07 [−0.46, +0.33] | better in development, worse in the test | no / no | 0.22 |
+
+Counts: better in both periods 2 (1 with a development interval excluding 0), better in development only 4, better in
+development / worse in the test 2, worse in development / better in the test 3, better only in the period that inspired
+it 1, no real difference 3. **No test-window interval excludes 0; test power is 0.01–0.29.**
+
+**What this shows**
+- **The bond switches built for 2022 are "fewer bonds", not timing.**
+  - The inflation-volatility gate added +0.38 Sharpe on 2020–2026, and bond-only trend +0.25.
+  - Shuffling each switch's monthly decisions at random (100 times) gave a median of +0.34 and +0.30. Holding a flat,
+    always-on share of bonds of the same average size gave +0.32 and +0.29.
+  - In 1990–2019 both switches lost to their parent. The inflation gate even pulled bonds out during the 2008–09
+    crisis, when they hedged (CDaR 1.59×).
+  - No switch's timing beat random timing and a flat cut in development (post-hoc placebo, `reports/r6/placebo.csv`).
+- **A shorter bond leg helps only next to the trend rule.**
+  - Swapping the 25-year leg for a 5- or 10-year one helped the + trend rung in both periods: +0.23 / +0.15 and
+    +0.09 / +0.08.
+  - It did nothing for inverse-vol or vol-targeted rungs on the test.
+  - Even the better trend rung trails vol-targeted SPY on 2020–2026 at matched risk (−0.25 at 5 years).
+- **Trend on vol-targeted SPY trades drawdown for whipsaws.**
+  - In 1990–2019 it cut the drawdown risk of vol-targeted SPY (max DD −48% → −29%) at the same Sharpe.
+  - On 2020–2026, five one-month exits during sharp rebounds cost more than the 2022 exit saved.
+- **Slower step-ups cut vol-targeting turnover by 22–29% without changing its Sharpe.** This is the only cost idea, and
+  it is cheap at 3 bp a side either way.
+- **Against the benchmarks on 2020–2026, nothing beats vol-targeted SPY or SPY + T-bills by +0.05.** Several ideas beat
+  60/40 on the test: asymmetric VT +0.23, the ⅓ blend +0.14, 60/40 on a 5-year leg +0.14.
+
+Multiple testing:
+- The largest test-window deflated Sharpe ratio is 0.48, with N = 20 (R5's 5 plus the 15 R6 rows). None reaches 0.95.
+- Gold as a fourth sleeve (R6g) was not run: the repo has no monthly-frequency engine.
+- CPI comes directly from the BLS (public domain), not from FRED.
+
+![R6 ideas vs their parents](reports/figures/R6/r6_dsharpe_own_parent_dev_vs_test.png)
+![Placebos: each switch vs random timing and a flat cut](reports/figures/R6/r6_placebo_gates.png)
+
+Tables: `reports/r6/` (`verdict.csv`, `compare.csv`, `placebo.csv`, `metrics.csv`, `crisis.csv`, `costs.csv`, `dsr.csv`).
+To reproduce, see §9.
+
+## 7. Method
 
 - **Windows:**
   - warm-up 1986–1989 (estimation only);
@@ -168,7 +252,7 @@ T-bills at matched risk in development (L1 −0.08, L2 −0.06).
   language in `learn/decisions.md`). Each phase had one adversarial review (`reports/reviews/`).
 - **Library:** `quantkit` v0.19.2 (statistics, vol models, ladder, bonds, figures), pinned with a per-module hash check.
 
-## 7. Data and licences
+## 8. Data and licences
 
 v2 uses only sources whose terms permit local storage. See `LICENSES.md` for the quoted clauses.
 
@@ -184,7 +268,7 @@ v2 uses only sources whose terms permit local storage. See `LICENSES.md` for the
 - **Committed vs local:** only derived statistics are committed. Daily series and curve figures stay local
   (`data/`, `reports/figures_local/`, gitignored).
 
-## 8. Reproduce
+## 9. Reproduce
 
 macOS with Homebrew and [uv](https://docs.astral.sh/uv/). The LightGBM risk-sizing row (R4) links Homebrew's OpenMP
 runtime. `make omp` points scikit-learn's bundled copy at the same runtime inside `.venv` only, so both libraries load
@@ -198,6 +282,8 @@ make doctor
 make fetch
 make all
 make report-site-local
+make -f Makefile.r6 r6-data
+make -f Makefile.r6 all
 ```
 
 - `make fetch` downloads Ken French, GSW and H.15 into `data/raw/` with a manifest of hashes.
@@ -205,10 +291,15 @@ make report-site-local
   checked byte for byte against `reports/r5/`), then draws the figures and `reports/site/index.html`.
 - A fresh Ken French download that adds a month after 2026-09 fails the freeze lock on purpose. The test window is
   frozen.
+- R6 (§6) has its own `Makefile.r6`, because R5's `Makefile` is locked by its freeze. `make -f Makefile.r6 r6-data`
+  fetches CPI from the BLS once. `make -f Makefile.r6 all` then runs the R6 ideas, draws `reports/figures/R6/` and
+  rebuilds the page. `make freeze-verify` still prints "freeze OK".
+- `make -f Makefile.r6 r6-figures-local` draws R6's local headline figures into the gitignored
+  `reports/figures_local/R6/`.
 - `make report-site-local` draws the local curve figures (growth of $1, exposure, correlation regime) into the
   gitignored `reports/figures_local/`.
 
-## 9. Limitations
+## 10. Limitations
 
 - The SPY and TLT legs are proxies. Ken French Hi 20 is a value-weighted large-cap portfolio, not the ETF; the 25-year
   GSW bond is a constructed constant-maturity Treasury, QA'd against TLT only from 2005.
