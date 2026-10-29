@@ -86,9 +86,10 @@ def test_test_metrics_reproduce_from_committed_params(v1):
     assert round(turnover, 2) == summ["turnover"]
 
 
-def test_v1_selection_rule_picks_the_summary_row():
-    """E0.3 (cheap half): v1's own selection rule on the committed grid picks the committed parameters."""
-    from legacy.run import _select_robust_parameters  # importing legacy.config needs no data
+def test_v1_selection_rule_picks_the_summary_row(no_yahoo):
+    """E0.3 (cheap half): v1's own selection rule on the committed grid picks the committed parameters. Needs the
+    yfinance stub: legacy.run imports legacy.data (R1 fix: it passed only when another test had imported legacy first)."""
+    from legacy.run import _select_robust_parameters
 
     best = _select_robust_parameters(_read("grid_search_results.csv"))
     assert best[PARAMS].tolist() == _summary_params().tolist()

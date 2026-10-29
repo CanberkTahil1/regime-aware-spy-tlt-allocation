@@ -1,12 +1,16 @@
 """Repository paths. Data lives under $RSPY_DATA (default ./data), never in git.
 Adapted from naive-vs-optimal `src/nvo/paths.py` @ b5f6278 (← resid-book @ 9a1e939; COPIED.md): seal, freeze and spec
-accessors dropped until a phase needs them (spec/rules.yaml and spec/prereg.yaml arrive at R1)."""
+accessors dropped; R1 adds rules()/prereg() and their hashes."""
 
 from __future__ import annotations
 
+import hashlib
 import os
 import pathlib
 import sys
+from functools import lru_cache
+
+import yaml
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 
@@ -18,6 +22,7 @@ def _test_env(name: str) -> str | None:
 
 PIN = pathlib.Path(_test_env("RSPY_PIN") or ROOT / "spec" / "quantkit_pin.json")  # env: planted-change tests only
 PREREG = ROOT / "spec" / "prereg.yaml"
+RULES = ROOT / "spec" / "rules.yaml"
 REPORTS = ROOT / "reports"
 LOGS = ROOT / "logs"
 GITHUB = ROOT.parent
@@ -44,3 +49,17 @@ def quantkit_root() -> pathlib.Path:
 def sibling(name: str) -> pathlib.Path:
     """A read-only sibling repo under ~/github (CLAUDE.md)."""
     return (GITHUB / name).resolve()
+
+
+@lru_cache(maxsize=1)
+def rules() -> dict:
+    return yaml.safe_load(RULES.read_text())
+
+
+@lru_cache(maxsize=1)
+def prereg() -> dict:
+    return yaml.safe_load(PREREG.read_text())
+
+
+def sha256(p: pathlib.Path) -> str:
+    return hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()

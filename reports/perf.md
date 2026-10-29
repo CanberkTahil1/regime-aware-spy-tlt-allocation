@@ -29,3 +29,13 @@ Worker count vs memory (descriptive, rss_peak, pytest -q only): -n 16: 1952 MB /
 -n 4: 665 MB / 8.31 s. Wall time is set by the ~7 s v1 grid test, so more workers buy nothing at R0.
 
 Note: the grid test is marked `slow` (runtime recorded above, D0.3 amendment 5) and stays in `make test`.
+
+## R1 budgets (charter targets) and measurements (rss_peak = summed tree RSS, upper bound)
+
+| Date | Step | Budget | Wall | Peak RSS | Within | Complexity |
+|---|---|---|---|---|---|---|
+| 2026-10-28 | `make fetch` (download 3 files + build) | — | 2.4 s | — | — | network-bound |
+| 2026-10-28 | `make data` build (26,338 sessions; 4 bond legs, bills) | ≤ 30 s | 1.9 s | — | yes | O(n·m·M) per leg (quantkit.bonds), n ≈ 16k curve days |
+| 2026-10-28 | `make reconcile` (8 steps × 3 windows + QA) | ≤ 10 s | 1.4 s | 617 MB | yes | O(T·N) per step, numba walk |
+| 2026-10-28 | `make test` (69 tests, -n auto, max 4) | ≤ 60 s, ≤ 1.5 GB | 9.4 s | 1,140 MB | yes | — |
+| 2026-10-28 | `make report-site` | — | ~3 s | — | — | vl-convert SVG per chart × 2 themes |

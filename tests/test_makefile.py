@@ -19,8 +19,8 @@ def test_pipeline_failure_fails_make(tmp_path):
 
 def test_required_targets_exist():
     targets = set(re.findall(r"^([a-z][a-z-]*):", MK, flags=re.M))
-    assert {"help", "doctor", "test", "test-nolegacy", "lint", "legacy", "data", "ladder", "report-site", "all", "pin",
-            "verify-pin"} <= targets
+    assert {"help", "doctor", "test", "test-nolegacy", "lint", "legacy", "fetch", "data", "reconcile", "ladder",
+            "report-site", "all", "pin", "verify-pin"} <= targets
 
 
 def test_every_recipe_runs_through_uv_frozen_no_sync():
@@ -41,10 +41,10 @@ def test_caches_exported_in_repo():
 
 
 def test_unbuilt_targets_refuse():
-    """Every step not built yet says so and exits non-zero (R0 builds none of data, ladder, report-site)."""
+    """Every step not built yet says so and exits non-zero (R1 built data and report-site; ladder arrives at R2)."""
     import sys
 
-    for s in ("make_data", "ladder", "site"):
+    for s in ("ladder",):
         f = ROOT / "scripts" / f"{s}.py"
         assert "not built yet" in f.read_text(), s
         assert subprocess.run([sys.executable, str(f)], capture_output=True).returncode != 0, s
