@@ -97,3 +97,12 @@ Note: the grid test is marked `slow` (runtime recorded above, D0.3 amendment 5) 
 | GBM (30 walk-forward fits, 8,213 rows × 8 features) | ≤ 30 s | ≈ 7 s inside the zoo step | yes | threads 1 |
 | `make ladder` (R2 + R3 + R4 + figures), warm | ≤ 5 min, ≤ 1.5 GB | **145 s, 1,122 MB** (rss_peak) | yes | — |
 | `make test` (134 tests, -n auto) | ≤ 60 s | 10.9 s | yes | — |
+
+## R5 budgets (set at the expectation commit, E5.17) and measurements
+
+| Step | Budget | Complexity | Measured (2026-10-29) | Within |
+|---|---|---|---|---|
+| `make dry-run` (synthetic panel, cold vol zoo: 3 extended + 3 development-only series) | ≤ 120 s, ≤ 1.5 GB | build O(T·N) per book + GARCH refits every 21 rows; evaluation O(draws·T_test) per matched row | **78.7 s, 889 MB** summed over 6 processes (rss_peak) | yes |
+| `make dry-run`, warm | — | — | 9.2 s (build 2.2, identity 0.5, evaluate 6.6) | yes |
+| `make test-run` (cold: 3 extended vol-zoo series; development-only rebuild cached from R4) | ≤ 120 s, ≤ 1.5 GB | as above | (after the run) | — |
+| `make test` (147 tests) | ≤ 60 s | — | 10.6 s | yes |

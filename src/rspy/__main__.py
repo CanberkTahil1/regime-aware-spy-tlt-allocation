@@ -1,6 +1,7 @@
 """CLI: python -m rspy <cmd>.
 
 - pin / verify-pin: record / check the full quantkit tree (make pin, make verify-pin, make doctor, make freeze).
+- freeze write | verify: the R5 freeze lock (rspy.freeze, D5.5): `make freeze`, `make freeze-verify`.
 - run SCRIPT [ARGS...]: run a make-target script in this process, then check every quantkit file it loaded against
   the pin (rspy.pin.verify_loaded). A loaded file that changed or is unpinned turns the exit code to 1.
 Copied from naive-vs-optimal `src/nvo/__main__.py` @ b5f6278 (← resid-book @ 9a1e939; COPIED.md), renamed.
@@ -32,13 +33,17 @@ def run(script: str, args: list[str]) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python -m rspy")
-    ap.add_argument("cmd", choices=["pin", "verify-pin", "run"])
+    ap.add_argument("cmd", choices=["pin", "verify-pin", "run", "freeze"])
     ap.add_argument("rest", nargs=argparse.REMAINDER)
     a = ap.parse_args(argv)
     if a.cmd == "run":
         if not a.rest:
             ap.error("run needs a script path")
         return run(a.rest[0], a.rest[1:])
+    if a.cmd == "freeze":
+        from rspy import freeze
+
+        return freeze.main(a.rest)
     if a.cmd == "pin":
         rec = pin.pin()
         print(

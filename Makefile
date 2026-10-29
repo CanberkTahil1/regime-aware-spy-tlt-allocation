@@ -14,9 +14,9 @@ export PYTHONPYCACHEPREFIX := $(CURDIR)/.cache/pycache
 export NUMBA_CACHE_DIR := $(CURDIR)/.cache/numba
 export MPLBACKEND := Agg
 
-.PHONY: omp help doctor test test-nolegacy lint legacy fetch data reconcile ladder report-site report-site-local all pin verify-pin logs
+.PHONY: omp help doctor test test-nolegacy lint legacy fetch data reconcile ladder report-site report-site-local all pin verify-pin logs freeze freeze-verify dry-run test-run r5-replay r5-figures
 help:
-	@echo "make doctor | test | test-nolegacy | lint | legacy | fetch | data | reconcile | ladder | report-site | report-site-local | all | pin | verify-pin"
+	@echo "make doctor | test | test-nolegacy | lint | legacy | fetch | data | reconcile | ladder | report-site | report-site-local | all | pin | verify-pin | freeze | freeze-verify | dry-run | test-run | r5-replay"
 doctor:
 	@$(PY) scripts/doctor.py
 test: logs omp  # -n auto capped at 4 workers (D0.4: memory budget). Includes the v1 characterization (marker legacy, D0.3): a missing data/prices.csv FAILS
@@ -49,6 +49,7 @@ report-site-local: logs  # owner O1.1: curve figures + full page from the gitign
 	$(RUN) scripts/r2_figures_local.py 2>&1 | tee -a logs/report_site_local.log | tail -2
 	$(RUN) scripts/r3_figures_local.py 2>&1 | tee -a logs/report_site_local.log | tail -2
 	$(RUN) scripts/r4_figures_local.py 2>&1 | tee -a logs/report_site_local.log | tail -2
+	$(RUN) scripts/r5_figures_local.py 2>&1 | tee -a logs/report_site_local.log | tail -2
 pin:  # owner-approved only: records the installed quantkit tag
 	@$(PY) -m rspy pin
 verify-pin:  # full tree (also run by doctor)
@@ -58,5 +59,17 @@ logs:
 omp:  # R4 D4.3: one OpenMP runtime per process (quantkit.omp: sklearn's vendored libomp -> the one LightGBM uses; idempotent, .venv only, quantkit.omp.restore() undoes it)
 	@$(PY) -c "import pathlib, sys; sys.exit(0 if any(pathlib.Path(p).exists() for p in ('/opt/homebrew/opt/libomp/lib/libomp.dylib', '/usr/local/opt/libomp/lib/libomp.dylib')) else 'FAIL: Homebrew libomp missing (brew install libomp; D4.8)')"
 	@$(PY) -m quantkit.omp --fix | tail -1
+freeze:  # R5 D5.5: write spec/freeze.lock.json (content hashes; refuses if it exists). Commit it before `make test-run`.
+	@$(PY) -m rspy freeze write
+freeze-verify:
+	@$(PY) -m rspy freeze verify
+dry-run: logs data omp  # R5 D5.5: the whole test pipeline on a seeded synthetic panel into a temporary directory (code check, not evidence)
+	$(RUN) scripts/r5.py --mode dry 2>&1 | tee logs/dry_run.log | tail -40
+test-run: logs data omp  # R5, RUN ONCE: refuses unless the lock matches, locked files are clean, RSPY_TEST_RUN=run-once and reports/r5/test_run.json is absent
+	$(RUN) scripts/r5.py --mode run 2>&1 | tee logs/test_run.log | tail -80
+r5-replay: logs data omp  # R5: recompute the test window into a temporary directory, require byte-identical reports/r5, write the local books
+	$(RUN) scripts/r5.py --mode replay 2>&1 | tee logs/r5_replay.log | tail -5
+r5-figures: logs  # R5 statistics figures (reports/figures/R5, committed) from reports/r5
+	$(RUN) scripts/r5_figures.py 2>&1 | tee logs/r5_figures.log | tail -3
 # Raw permitted data to every figure.
-all: data test lint ladder report-site  # reconcile (R1) is a local legacy target: it needs v1's cached file
+all: data test lint ladder r5-replay r5-figures report-site  # reconcile (R1) is a local legacy target: it needs v1's cached file

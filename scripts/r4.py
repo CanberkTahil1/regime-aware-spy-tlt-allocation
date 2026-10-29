@@ -361,6 +361,7 @@ eff = effective_trials(P, rho_star=R4["dsr"]["rho_star"], seed=R4["dsr"]["seed"]
 is_grid = np.array([k.startswith("v1_grid_") for k in names])
 eff_ng = effective_trials(P[:, ~is_grid], rho_star=R4["dsr"]["rho_star"], seed=R4["dsr"]["seed"])
 vr = pd.read_csv(paths.REPORTS / "variants.csv")
+vr = vr[~vr["phase"].isin(["R5"])]  # R4's register as of R4 (R5 rows are counted in R5's own test DSR)
 raw_n = int(vr.loc[vr["counted_in_dsr"] == "yes", "n_configs"].sum())
 sel_only = 1  # walk_chains_O2.3 (D4.6 amendment 3)
 sr_pp = P.mean(axis=0) / P.std(axis=0, ddof=1)

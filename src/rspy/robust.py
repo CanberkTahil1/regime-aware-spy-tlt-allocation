@@ -56,20 +56,21 @@ class Core:
     r4: pd.Series
     keep: dict
     rt: dict | None = None
+    picks: dict | None = None   # vol-zoo picks {year-end y: pick for y + 1} (R5 D5.1 guard)
 
 
 UNBANDED = ("L0", "L1", "L2")
 
 
-def leg_panel(panel: pd.DataFrame, maturity: int) -> pd.DataFrame:
+def leg_panel(panel: pd.DataFrame, maturity: int, end: str = "2019-12-31") -> pd.DataFrame:
     """The panel with the TLT leg replaced by the GSW `maturity`-year proxy (D4.5); asserts it is reported from the
-    1986 warm-up start (D4.5 amendment 1)."""
+    1986 warm-up start through `end` (D4.5 amendment 1; R5 passes the test end)."""
     if maturity == paths.rules()["bonds"]["maturity_years"]:
         return panel
     col = f"tlt{maturity}"
-    seg = panel.loc["1986-01-02":"2019-12-31", col]
+    seg = panel.loc["1986-01-02":end, col]
     if seg.isna().any():
-        raise ValueError(f"{col} is not reported on every session 1986-01-02 .. 2019-12-31")
+        raise ValueError(f"{col} is not reported on every session 1986-01-02 .. {end}")
     return panel.assign(tlt25=panel[col])
 
 
@@ -91,12 +92,16 @@ def decision_rows(index: pd.DatetimeIndex, quarterly: bool = False) -> np.ndarra
 
 
 def build_core(panel: pd.DataFrame, *, maturity: int = 25, band: float | None = None, quarterly: bool = False,
-               l1: bool = True) -> Core:
+               l1: bool = True, end: str | None = None) -> Core:
+    """`end` (R5, D5.1): the last session built; default the development end (R4). Every book runs from 1986-01-02, so a
+    later `end` extends the same causal rules (vol-zoo picks for year-ends 1989 .. end year − 1; `dev` = rows ≥ 1990,
+    the L8 path and the coverage check) and must leave rows ≤ 2019-12-31 unchanged (checked by scripts/r5.py)."""
     R2 = paths.rules()["r2"]
     sc = paths.rules()["r4"]["scored"]
+    end = str(sc[1]) if end is None else str(end)
     B = R2["band"]["width"] if band is None else float(band)
-    p = leg_panel(panel, maturity)
-    inp = rungs.Inputs.from_panel(p, "1986-01-02", str(sc[1]))
+    p = leg_panel(panel, maturity, end)
+    inp = rungs.Inputs.from_panel(p, "1986-01-02", end)
     idx = inp.index
     dev = np.asarray(idx >= pd.Timestamp(str(sc[0])))
     rows = decision_rows(idx, quarterly)
@@ -106,14 +111,15 @@ def build_core(panel: pd.DataFrame, *, maturity: int = 25, band: float | None = 
         T["L1"] = rungs.l1_target(p, inp)
     r4 = rungs.log_book_returns(rungs.book(T["L4"], inp, band=B))
     F4 = volzoo.forecasts(r4)
-    s5 = volzoo.stitched(F4, picks_cached(F4, r4, range(1989, int(str(sc[1])[:4]))))
+    picks = picks_cached(F4, r4, range(1989, int(end[:4])))
+    s5 = volzoo.stitched(F4, picks)
     T["L5"] = rungs.vol_target(T["L4"], s5, idx, R2["L5"]["target_vol"], R2["L5"]["cap"])
     T["L5-lev"] = rungs.vol_target(T["L4"], s5, idx, R2["L5-lev"]["target_vol"], R2["L5-lev"]["cap"])
     RT = regime.targets(inp, rows, dev, T["L5"], band=B)
     for k in ("corr126", "trend"):
         regime.check_coverage(k, RT["keep"][k], rows & dev)
     T.update(RT["targets"])  # L6, L7, L8 and R3's descriptive rows (L6-63, L6-th±0.2, L7-on-L5, L7-63)
-    return Core(p, inp, rows, dev, B, T, s5, r4, RT["keep"], RT)
+    return Core(p, inp, rows, dev, B, T, s5, r4, RT["keep"], RT, picks)
 
 
 def book(core: Core, name: str, target=None, *, cost_mult: float = 1.0, stress_bp: float = 0.0):
