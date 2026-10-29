@@ -1,0 +1,53 @@
+{
+ "beat 60/40 (L3)": {
+  "answer": "not shown in the test window",
+  "best": {
+   "child": "L7",
+   "dsharpe": -0.14779524813499495
+  },
+  "holm_hits": [],
+  "raw_flags": [],
+  "rows": [
+   "L4",
+   "L5",
+   "L6",
+   "L7",
+   "L8"
+  ]
+ },
+ "beat SPY + T-bills at matched risk (line)": {
+  "answer": "not shown in the test window",
+  "best": {
+   "child": "L2",
+   "dsharpe": 0.10706347143165551
+  },
+  "holm_hits": [],
+  "raw_flags": [],
+  "rows": [
+   "L2",
+   "L3",
+   "L4",
+   "L5",
+   "L6",
+   "L7",
+   "L8"
+  ]
+ },
+ "beat plain vol-targeted SPY (L2)": {
+  "answer": "not shown in the test window",
+  "best": {
+   "child": "L3",
+   "dsharpe": -0.24799028225213254
+  },
+  "holm_hits": [],
+  "raw_flags": [],
+  "rows": [
+   "L3",
+   "L4",
+   "L5",
+   "L6",
+   "L7",
+   "L8"
+  ]
+ }
+}

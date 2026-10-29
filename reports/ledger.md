@@ -371,23 +371,23 @@ D5.2 (test-window ex post, one scalar).
 
 | ID | Expectation (band) | Source | Status |
 |---|---|---|---|
-| E5.1 | code (D5.1): every extended book (L0–L8, L5-lev, L2-u at 1×) equals data/r2, data/r3 bit for bit on rows ≤ 2019-12-31; vol-zoo picks 1989..2018 equal reports/r2/volzoo.json; a pick exists for every year 2019..2025 | D5.1 | open |
-| E5.2 | code (D5.5): `python -m rspy freeze verify` OK after the lock commit; the runner refuses (non-zero exit, nothing written) without `RSPY_TEST_RUN=run-once`, with reports/r5/test_run.json present, with a changed or uncommitted locked file, with a changed panel; the synthetic dry run completes, writes nothing under reports/r5, and refuses `RSPY_TEST_RUN` or the repo's data/ | D5.5 | open |
-| E5.3 | code (D5.2): the matched reference's test-window excess vol equals the child's ≤ 1e-10 for every family row; every scored series has exactly 1,695 rows | D5.2 | open |
-| E5.4 | L0 (SPY proxy), test: CAGR in [11%, 17%]; excess Sharpe in [0.45, 0.95]; max DD in [−37%, −28%] | author | open |
-| E5.5 | Bonds hurt on the test: L3 vs matched L0 ΔSharpe in [−0.45, +0.05] (development +0.215, sign likely disagrees); L3 Sharpe < L0 Sharpe | author | open |
-| E5.6 | L5 vs its line ΔSharpe in [−0.70, +0.05]; L5 test excess Sharpe in [−0.10, 0.60] | author | open |
-| E5.7 | Correlation layer: L6 − matched L5 cumulative return in infl_2022 ≥ +3 pp; L6 vs L5 test ΔSharpe in [−0.10, +0.50] | author; thesis | open |
-| E5.8 | Trend layer: L7 − matched L6 in infl_2022 ≥ 0 pp; in covid ≤ +1 pp (10-month SMA exits late); L7 vs L6 test ΔSharpe in [−0.40, +0.40] | author | open |
-| E5.9 | Crash rule: \|L8 vs L7 ΔSharpe\| ≤ 0.10 | author (development −0.002) | open |
-| E5.10 | Headline (D5.3): all three questions — beat L2, beat 60/40, beat the line — answer "not shown in the test window" (no row with point ≥ +0.05 and Holm p < 0.05) | D5.3; R4 power | open |
-| E5.11 | Crisis panels: in covid, L5 − its line ≥ +2 pp (the bond leg rallied); in infl_2022, L5 − its line ≤ −2 pp | author | open |
-| E5.12 | L1 (v1 corrected) test excess Sharpe in [0.45, 1.05] (R1's 2020–2025 0.78, seen) | R1 | open |
-| E5.13 | 10-year row (post-hoc): L5@10y − L5@25y test Sharpe in [0, +0.40]; L5@10y loses less than L5@25y in infl_2022 | owner lead; author | open |
-| E5.14 | DSR (D5.4): the raw-N companion's V = 1/(T−1) = 5.90e-4 (> V_dev 5.38e-5); headline test DSR (N 5) < 0.95 for every official rung | D5.4; author | open |
-| E5.15 | Costs on the test: at 3×, every parent-row ΔSharpe moves ≤ 0.03 from 1× except L2 vs L0 (≤ 0.08); at +75 bp, L3–L8 excess Sharpe equal to 1× within 1e-8 | R4 E4.5 / E4.6 | open |
-| E5.16 | Sign agreement (descriptive): 30%–80% of the 24 family rows have the same ΔSharpe sign as in development | author | open |
-| E5.17 | perf: dry run ≤ 120 s; the test run ≤ 120 s cold (three new vol-zoo series) and peak RSS ≤ 1.5 GB; `make test` ≤ 60 s | performance contract | open |
+| E5.1 | code (D5.1): every extended book (L0–L8, L5-lev, L2-u at 1×) equals data/r2, data/r3 bit for bit on rows ≤ 2019-12-31; vol-zoo picks 1989..2018 equal reports/r2/volzoo.json; a pick exists for every year 2019..2025 | D5.1 | **held** — reports/r5/facts.json dev_identity: 35/35 True (every extended 1× book's net and held weights ≤ 2019-12-31 equal the development-only rebuild and data/r2, data/r3 bit for bit; picks 1989..2018 equal); `require_picks` passed for 2020..2026 (picks: gjr_garch_t every year, = the 2019 pick) |
+| E5.2 | code (D5.5): `python -m rspy freeze verify` OK after the lock commit; the runner refuses (non-zero exit, nothing written) without `RSPY_TEST_RUN=run-once`, with reports/r5/test_run.json present, with a changed or uncommitted locked file, with a changed panel; the synthetic dry run completes, writes nothing under reports/r5, and refuses `RSPY_TEST_RUN` or the repo's data/ | D5.5 | **held** — real repo, after the lock commit ff40927: `make freeze-verify` → freeze OK; `make test-run` without the env → "refused: env RSPY_TEST_RUN=run-once not set", nothing written; a planted line in src/rspy/rungs.py → "locked file changed … uncommitted change", nothing written (restored, freeze OK); tests/test_r5.py (16) incl. a completed dry run writing only its temporary directory and the crash record; 9 broken-input checks; synthetic dry run identity 24/24 True |
+| E5.3 | code (D5.2): the matched reference's test-window excess vol equals the child's ≤ 1e-10 for every family row; every scored series has exactly 1,695 rows | D5.2 | **held** — facts.json: max matched-vol error on k ≤ 1 rows 2.8e-17 (every family row has k ≤ 1 on the test: no k > 1 row occurred); every scored series 1,695 rows |
+| E5.4 | L0 (SPY proxy), test: CAGR in [11%, 17%]; excess Sharpe in [0.45, 0.95]; max DD in [−37%, −28%] | author | **held** — metrics.csv L0: CAGR 15.93%, excess Sharpe 0.682, max DD −33.0% |
+| E5.5 | Bonds hurt on the test: L3 vs matched L0 ΔSharpe in [−0.45, +0.05] (development +0.215, sign likely disagrees); L3 Sharpe < L0 Sharpe | author | **held** — family.csv L3 vs L0 −0.205 [−0.535, +0.125] (development +0.215: sign reversed); L3 Sharpe 0.477 < L0 0.682 |
+| E5.6 | L5 vs its line ΔSharpe in [−0.70, +0.05]; L5 test excess Sharpe in [−0.10, 0.60] | author | **held** — L5 vs its line −0.576 [−1.131, −0.022]; L5 excess Sharpe 0.116 |
+| E5.7 | Correlation layer: L6 − matched L5 cumulative return in infl_2022 ≥ +3 pp; L6 vs L5 test ΔSharpe in [−0.10, +0.50] | author; thesis | **failed (2022 part)** — crisis.csv: L6 − matched L5 in infl_2022 **+1.1 pp** (< +3 pp). Held: L6 vs L5 test ΔSharpe +0.001 [−0.322, +0.324] |
+| E5.8 | Trend layer: L7 − matched L6 in infl_2022 ≥ 0 pp; in covid ≤ +1 pp (10-month SMA exits late); L7 vs L6 test ΔSharpe in [−0.40, +0.40] | author | **failed (covid part)** — L7 − matched L6 in covid **+3.7 pp** (> +1 pp). Held: infl_2022 +7.3 pp ≥ 0; L7 vs L6 ΔSharpe +0.212 [−0.318, +0.743] |
+| E5.9 | Crash rule: \|L8 vs L7 ΔSharpe\| ≤ 0.10 | author (development −0.002) | **held** — L8 vs L7 −0.011 [−0.032, +0.010] |
+| E5.10 | Headline (D5.3): all three questions — beat L2, beat 60/40, beat the line — answer "not shown in the test window" (no row with point ≥ +0.05 and Holm p < 0.05) | D5.3; R4 power | **held** — headline.json: all three "not shown in the test window"; no raw or Holm flag in 24 rows (min Holm p 1.0); best rows: vs L2 L3 −0.248, vs 60/40 L7 −0.148, vs the line L2 +0.107 (p 0.195) |
+| E5.11 | Crisis panels: in covid, L5 − its line ≥ +2 pp (the bond leg rallied); in infl_2022, L5 − its line ≤ −2 pp | author | **held** — covid: L5 −3.0% vs its line −7.1% (+4.1 pp); infl_2022: L5 −22.4% vs line −8.8% (−13.7 pp) |
+| E5.12 | L1 (v1 corrected) test excess Sharpe in [0.45, 1.05] (R1's 2020–2025 0.78, seen) | R1 | **held** — L1 excess Sharpe 0.743 (2020-01 → 2026-09) |
+| E5.13 | 10-year row (post-hoc): L5@10y − L5@25y test Sharpe in [0, +0.40]; L5@10y loses less than L5@25y in infl_2022 | owner lead; author | **failed (Sharpe part, by 0.001)** — sens10y.csv: L5@10y − L5@25y Sharpe **−0.001** (0.115 vs 0.116), not in [0, +0.40]. Held: L5@10y loses less in infl_2022 (−18.8% vs −22.4%). Descriptive: L6@10y +0.181, L7@10y +0.078 |
+| E5.14 | DSR (D5.4): the raw-N companion's V = 1/(T−1) = 5.90e-4 (> V_dev 5.38e-5); headline test DSR (N 5) < 0.95 for every official rung | D5.4; author | **held** — trial V = 1/(T−1) = 5.90e-4 (null > V_dev); headline test DSR (N 5) max L1 0.764, every official rung < 0.95; raw N 751 all ≤ 0.11 |
+| E5.15 | Costs on the test: at 3×, every parent-row ΔSharpe moves ≤ 0.03 from 1× except L2 vs L0 (≤ 0.08); at +75 bp, L3–L8 excess Sharpe equal to 1× within 1e-8 | R4 E4.5 / E4.6 | **held** — costs.csv: at 3× the parent ΔSharpe moves L2 −0.038 (≤ 0.08), others ≤ 0.013 (L5-lev); +75 bp: L3–L8 Sharpe identical to 1× (facts f75_equals_1x_sharpe_max_abs 0.0) |
+| E5.16 | Sign agreement (descriptive): 30%–80% of the 24 family rows have the same ΔSharpe sign as in development | author | **failed** — facts.json share_family_sign_agrees **16.7%** (4 of 24), below [30%, 80%] |
+| E5.17 | perf: dry run ≤ 120 s; the test run ≤ 120 s cold (three new vol-zoo series) and peak RSS ≤ 1.5 GB; `make test` ≤ 60 s | performance contract | **held** — dry run 78.7 s / 889 MB cold (70.3 s after the M1 / D5.8 changes); `python scripts/rss_peak.py make test-run` **64.8 s, 947 MB** summed over 6 processes (build 41.1, identity 0.5, evaluate 20.5); `make test` 10.3 s |
 
 **Forward (optional, not built in R5; D5.7):** the prereg `windows.forward` entry stands as "after R5, optional
 monthly log". It would start at 2026-10, available about 2026-12, behind the R5 freeze lock.
@@ -403,7 +403,7 @@ monthly log". It would start at 2026-10, available about 2026-12, behind the R5 
 
 | ID | Expectation (band) | Source | Status |
 |---|---|---|---|
-| E5.18 | Test placebo (D5.8, descriptive): L6's infl_2022 matched gain vs L5 sits at percentile ≥ 50 of its 100 shuffles (the gate is in cash for much of 2022); L7's ΔSharpe vs L6 percentile in [10, 90] | D5.8; author | open |
+| E5.18 | Test placebo (D5.8, descriptive): L6's infl_2022 matched gain vs L5 sits at percentile ≥ 50 of its 100 shuffles (the gate is in cash for much of 2022); L7's ΔSharpe vs L6 percentile in [10, 90] | D5.8; author | **failed (L6 part)** — placebo.csv: L6's infl_2022 matched gain vs L5 at percentile **25** of 100 test-window shuffles (< 50). Held: L7 ΔSharpe percentile 65 in [10, 90] |
 
 ### Freeze (2026-10-29, `make freeze`; before the test run)
 - `spec/freeze.lock.json` sha256 **489884cee70d523a9f90dc6ccb5d92b05e832ea9cc61d76c339da9b4177ae0bc**: 39 files (spec, pin,
@@ -411,3 +411,37 @@ monthly log". It would start at 2026-10, available about 2026-12, behind the R5 
   reports/r4/{dsr.csv, facts.json}); data: build key, panel sha256 10aeb147…f771e, test window 2020-01-02 → 2026-09-30
   (1,695 sessions), local inputs data/r2, data/r3 books. Rules commit (a label: the owner's history rewrite will change
   shas) 5012edb. Content hashes decide (D5.5). No tag (owner-only).
+
+**R5 test run (2026-10-29 16:02–16:03 UTC, `RSPY_TEST_RUN=run-once make test-run`, once; logged before diagnosis).**
+reports/r5/test_run.json status completed, lock 489884ce…, panel 10aeb147…, 1,695 sessions. Contradicting the
+expectations:
+- **E5.7:** L6 − matched L5 in 2022-01 → 2022-10 is +1.1 pp, below the +3 pp band.
+- **E5.8:** L7 − matched L6 in COVID is +3.7 pp, above the ≤ +1 pp band.
+- **E5.13:** L5@10y − L5@25y Sharpe is −0.001, below the [0, +0.40] band.
+- **E5.16:** 16.7% of the 24 family rows agree in sign with development, below the [30%, 80%] band.
+- **E5.18:** L6's 2022 gain sits at percentile 25 of its shuffles, below ≥ 50.
+
+**Diagnosis (no code change; `make r5-replay` reproduces every table byte for byte):**
+- **E5.7 / E5.18 — timing of the registered 126-day window.** The 126-day SPY–TLT correlation stayed negative at every
+  month-end decision through 2022-07 (−0.25 in January, −0.04 in July). The gate first fired at the 2022-08-31 decision,
+  so L6 was gated only for September–October 2022, after most of the bond loss. Mean TLT weight in the window: L6 0.34
+  vs L5 0.41.
+  - A test-window shuffle gates about 45% of days at random, so it catches more of January–June 2022 than the lagged
+    gate did. The 2022 gain (+1.1 pp) is inside the placebo's p05–p95 [−1.8, +12.0] pp.
+  - Per D5.8 the README must say: "2022 gain not distinguishable from holding fewer bonds at random times".
+  - L6's test ΔSharpe vs L5 (+0.001) is at percentile 3 of the placebos (median +0.22). In this window, removing bonds at
+    random beat removing them at the gate's times. That matches development (reports/r3/placebo.csv: L6 did not beat
+    its placebo).
+- **E5.8 — the trend rule exited SPY earlier than predicted.** SPY was below its 10-month SMA at the 2020-02-28
+  decision (traded 2020-03-02), so L7 missed most of March 2020 (L7 SPY weight 0.27 vs L6 0.38 over the window). The
+  band assumed a 10-month SMA reacts too late for a one-month crash; on this path it did not.
+  - In 2022 the trend rule had TLT out from the 2022-01-31 decision (L7 TLT weight 0.04, cash 0.85 over the window).
+    Trend, not the correlation gate, did the 2022 work: L7 − matched L6 +7.3 pp, inside the placebo's p05–p95 as well.
+- **E5.13 — essentially zero.** At the same 10% vol target the 10-year leg lowers L5's CAGR and vol together (3.57% /
+  7.6% vs 3.63% / 9.4%), with Sharpe 0.115 vs 0.116. The R4 development lead (+0.07) does not carry to L5 on the test.
+  It does for L6 (+0.18) and L7 (+0.08), but L6's own gate is weak. Post-hoc, descriptive.
+- **E5.16 — the test reversed the development ordering of the bond layers.**
+  - In 2020–2026 the 25-year TLT proxy lost heavily (2022) and rates rose.
+  - Every row where bonds or risk weighting helped in development flips sign: L3 vs L0, L4 vs L3, L5 vs L2 / L3 / line.
+  - The 4 agreeing rows are L7 vs L3, L8 vs L7, L8 vs L3 and L2 vs L0. This is a regime effect, not a bug: every
+    development row of every book is bit-identical to R2/R3 (E5.1).

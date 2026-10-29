@@ -1,0 +1,36 @@
+{
+ "completed_utc": "2026-10-29T16:03:47Z",
+ "head": "ff40927f8124487c5aafa941c3c5e640140601d3",
+ "label": "test window 2020-01 -> 2026-09, frozen rules run once; seen by owner in v1, disclosed",
+ "lock_rules_commit": "5012edb7b2e3282b3f28482f7c06c2910372392e",
+ "lock_sha256": "489884cee70d523a9f90dc6ccb5d92b05e832ea9cc61d76c339da9b4177ae0bc",
+ "note": "commit shas are labels (owner's history rewrite pending; re-point after)",
+ "outputs_sha256": {
+  "reports/r5/costs.csv": "983f46d4894f77b53b10b0990097eb6f68687fa3dbfdd43d66e2ac302f62ca75",
+  "reports/r5/crisis.csv": "383e78c512f33619808c3afeaeb90f9d4dd106a4cf4665e5626fcd71d599fea4",
+  "reports/r5/dsr.csv": "db49d77539317d6d92fa146e8ede2b6cf1fecbfcc4685d5241d53bebdf504b44",
+  "reports/r5/facts.json": "597d35c993b9fb6ca7c7d87054c42fcc2215fcbfba5c251904ee9537d110774f",
+  "reports/r5/family.csv": "02ff1601fe651327854ab83db06f11d647b8f8e9831fcda9db5ee640b92dbe89",
+  "reports/r5/headline.json": "e147e3e470c8a5c889e5a9cee454599eb4fd7481d8d2dc6d1c96e04b5bde619d",
+  "reports/r5/metrics.csv": "5570be7034e9b5c7288b814378b349a8d6aa3d5c62e733a961b3baf3e68e4f3f",
+  "reports/r5/placebo.csv": "b17a3b1fd991a0935a1a2d3761b005e77779e843325c5d49f819574aa2c40598",
+  "reports/r5/sens10y.csv": "8be818370d1188769ba301d7aeee8b727cd9d66f0e81c92e84a22012df35dde9",
+  "reports/r5/v1_corrections.csv": "7c63cc1eb9564f3d8f41a1323b07df6cbf2661203113db74e03941300d9856be",
+  "reports/r5/v1_vs_v2.csv": "570760e52f0db040a1d717d10d6fa3ae50810f5ceb82fdef3e1bda8eee929357",
+  "reports/r5/vs_l1.csv": "2621c0291b0a56dfbd2c999dd6c3275df1e67ab2bc453916d59d22e8d257ee38"
+ },
+ "panel_sha256": "10aeb147043cd71222b38e754a990492eb48fc99d64c9fcc5f2b1728140f771e",
+ "started_utc": "2026-10-29T16:02:45Z",
+ "status": "completed",
+ "test_window": {
+  "first": "2020-01-02",
+  "last": "2026-09-30",
+  "sessions": 1695
+ },
+ "timing_s": {
+  "build": 41.12,
+  "evaluate": 20.46,
+  "identity": 0.45,
+  "total": 62.03
+ }
+}

@@ -1,0 +1,9 @@
+step,correction,window,cagr,sharpe_excess,max_dd,turnover_pa,d_cagr,d_sharpe_excess,source
+S0,"v1 as committed (own Yahoo/Cboe data, own accounting)",2020-01-02 .. 2025-12-31,0.1631393984,0.8320323962,-0.177002301,26.59367697,,,"reports/r1/reconciliation.csv (R1; v1's own test 2020-2025, seen)"
+S1,+ trade at t+1,2020-01-02 .. 2025-12-31,0.1403760111,0.7016553977,-0.2049789329,26.59976311,-0.0227633873,-0.1303769985,"reports/r1/reconciliation.csv (R1; v1's own test 2020-2025, seen)"
+S2,"+ cash at bills, financing above 1x",2020-01-02 .. 2025-12-31,0.1344230623,0.670423733,-0.2064692224,26.59976311,-0.0059529488,-0.0312316647,"reports/r1/reconciliation.csv (R1; v1's own test 2020-2025, seen)"
+S3,+ charter costs on true traded turnover,2020-01-02 .. 2025-12-31,0.141325381,0.7067172533,-0.2043258409,26.73436354,0.0069023187,0.0362935203,"reports/r1/reconciliation.csv (R1; v1's own test 2020-2025, seen)"
+S4,+ excess-return Sharpe / standard Sortino,2020-01-02 .. 2025-12-31,0.141325381,0.7067172533,-0.2043258409,26.73436354,0,0,"reports/r1/reconciliation.csv (R1; v1's own test 2020-2025, seen)"
+S5,+ no shorts,2020-01-02 .. 2025-12-31,0.1402526,0.702276844,-0.2032028033,23.58325178,-0.001072781,-0.0044404093,"reports/r1/reconciliation.csv (R1; v1's own test 2020-2025, seen)"
+S6,+ VIX -> realised vol,2020-01-02 .. 2025-12-31,0.1398155546,0.6965502416,-0.2082659637,23.42924504,-0.0004370454,-0.0057266024,"reports/r1/reconciliation.csv (R1; v1's own test 2020-2025, seen)"
+S7,"+ permitted data (KF Hi 20, GSW 25y, H.15) = L1",2020-01-02 .. 2025-12-31,0.1551056214,0.7802515653,-0.1979904976,19.71468206,0.0152900668,0.0837013237,"reports/r1/reconciliation.csv (R1; v1's own test 2020-2025, seen)"
