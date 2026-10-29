@@ -439,8 +439,16 @@ pd.DataFrame(pbo_rows).to_csv(OUT / "pbo.csv", index=False, float_format="%.10g"
 lap("pbo")
 
 # ---- facts and local series ---------------------------------------------------------------------------------------------------
-facts["timing_s"] = timing | {"total": round(time.perf_counter() - t0, 2)}
-(OUT / "facts.json").write_text(json.dumps(facts, indent=1, sort_keys=True, default=float))
+fresh = timing | {"total": round(time.perf_counter() - t0, 2)}
+# R5: reports/r4/facts.json is a locked input of the frozen test run (spec/freeze.lock.json). A rerun whose statistics
+# are unchanged keeps the committed timing (the fresh one goes to logs/r4_timing.json), so `make all` can replay R5.
+fp = OUT / "facts.json"
+old = json.loads(fp.read_text()) if fp.exists() else {}
+same = {k: v for k, v in old.items() if k != "timing_s"} == json.loads(json.dumps(facts, sort_keys=True, default=float))
+facts["timing_s"] = old["timing_s"] if same and "timing_s" in old else fresh
+paths.LOGS.mkdir(exist_ok=True)
+(paths.LOGS / "r4_timing.json").write_text(json.dumps(fresh, indent=1))
+fp.write_text(json.dumps(facts, indent=1, sort_keys=True, default=float))
 loc = {"bill": inp.bill[dev], "spy_proxy": inp.R[dev, 0], "tlt_proxy": inp.R[dev, 1]}
 for r in RUNGS:
     loc[f"{r}_net"] = net[r]

@@ -31,7 +31,7 @@ facts = json.loads((pathlib.Path(a.src) / "facts.json").read_text())
 t0, t1 = pd.Timestamp(facts["test_first"]), pd.Timestamp(facts["test_last"])
 bt = b.loc[t0:t1]
 N = {**fg.NAMES, **fg.NAMES_R3}
-SUB = f"Test {t0.date()} → {t1.date()}, frozen rules run once (seen by owner in v1, disclosed)"
+SUB = f"Test {t0.date()} to {t1.date()}, frozen rules run once (seen by owner in v1, disclosed)"  # headline font has no arrow glyph
 
 # 1. headline: the ladder on the test window -------------------------------------------------------------------------------
 lines = {N["L5"]: bt["L5_net"], N["L6"]: bt["L6_net"], N["L7"]: bt["L7_net"], N["L8"]: bt["L8_net"],

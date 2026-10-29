@@ -61,3 +61,17 @@
 3. **Would more data settle whether inverse-vol beats 60/40?** Not soon. If the measured +0.13 Sharpe were the truth,
    with ρ 0.89 between the two daily return series, 80% power at α 0.05 needs about 87 years of daily data. Thirty
    years is a third of that, and the vol-target layer's +0.01 would need about 900.
+
+## R5 — Freeze, test, write-up
+
+1. **Your test window says nothing worked. Was the strategy wrong or the window unlucky?** Both readings fit, and 6.75
+   years can't separate them. Even the best development layer needs about 30 years for 80% power. What the test does
+   show is that the edge depended on long Treasuries hedging stocks. 2022 broke that, and the rule meant to detect the
+   break (a 126-day correlation) first fired at the end of August 2022, after most of the year's bond loss.
+2. **How do you know you didn't peek at the test before freezing?** Every rule and comparison was hashed into the
+   ledger first. The lock hashes 39 code and spec files plus the data. The runner writes a "started" record before
+   computing anything and refuses a second run. The window is still labelled "seen by owner in v1", because the owner
+   saw 2020–25 in the old project.
+3. **The trend layer did well in 2022. Why not promote it?** Because promotion happens only in development, and there
+   trend lowered Sharpe by 0.17 against its parent. On the test its 2022 gain is inside the range of random timing
+   shuffles. One good crisis out of two, in a window chosen after the fact, is an anecdote.

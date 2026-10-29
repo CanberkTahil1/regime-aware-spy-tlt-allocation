@@ -22,8 +22,19 @@ def test_every_bundle_number_traces_to_the_committed_csv():
     refs = {v: k for k, v in site.R3_REFS.items()}
     zoo = pd.read_csv(paths.REPORTS / "r4" / "zoo.csv")
     refs4 = {v: k for k, v in site.R4_REFS.items()}
+    m5 = pd.read_csv(paths.REPORTS / "r5" / "metrics.csv")
+    m5 = m5[m5.book == "1x"].set_index("rung")
+    fam5 = pd.read_csv(paths.REPORTS / "r5" / "family.csv")
     for r in b.tables["summary"].itertuples(index=False):
         metric, window = r.metric.rsplit(" (", 1)
+        if window == "R5 test)":  # R5: test window, disclosed-reuse, copied from reports/r5/*.csv
+            if metric.startswith("dsharpe_vs_"):
+                row = fam5[(fam5.child == r.strategy) & (fam5.kind == metric[len("dsharpe_vs_"):])].iloc[0]
+                assert (r.value, r.lo, r.hi) == (row.dsharpe, row.lo, row.hi), (r.strategy, r.metric)
+            else:
+                assert r.value == m5.loc[r.strategy, metric], (r.strategy, r.metric)
+            assert r.tier == "disclosed-reuse"
+            continue
         if r.strategy in site.R4_NAMES:  # R4 zoo rows: development, in-sample, copied from reports/r4/zoo.csv
             q = zoo[zoo.row == r.strategy]
             if metric.startswith("dsharpe_vs_"):

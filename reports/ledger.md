@@ -445,3 +445,13 @@ expectations:
   - Every row where bonds or risk weighting helped in development flips sign: L3 vs L0, L4 vs L3, L5 vs L2 / L3 / line.
   - The 4 agreeing rows are L7 vs L3, L8 vs L7, L8 vs L3 and L2 vs L0. This is a regime effect, not a bug: every
     development row of every book is bit-identical to R2/R3 (E5.1).
+
+**After the run, outside the lock (no number moved):**
+- `scripts/r4.py` (not an engine file) now keeps the committed `timing_s` in reports/r4/facts.json whenever every other
+  fact is unchanged, and writes the fresh timing to logs/r4_timing.json.
+- Why: reports/r4/facts.json is a locked R5 input, and `make ladder` rewrote its timing on every run, so `make all`
+  would have failed at `make r5-replay`.
+- Check: `make ladder` then `make r5-replay` → "every reports/r5 table byte-identical"; data/r2 and data/r3 books
+  unchanged (cc44a713…, fe2e3adb…); `make freeze-verify` OK.
+- Figures and the page (scripts/r5_figures*.py, src/rspy/site.py; not engine) were drawn after the run, from the
+  committed tables only. D5.8's placebo binding is in the figure notes and the page verdicts.

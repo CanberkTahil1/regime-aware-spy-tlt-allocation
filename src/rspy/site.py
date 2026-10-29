@@ -204,8 +204,82 @@ def r4_verdicts(zoo: pd.DataFrame, costs: pd.DataFrame, loco: pd.DataFrame, sens
     ]
 
 
+R5_RUNGS = ["L0", "L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8"]
+R5_METRICS = [("cagr", "per year"), ("vol", "annualised"), ("sharpe_excess", "excess Sharpe"), ("max_dd", "fraction"),
+              ("cdar95", "CDaR-95 magnitude"), ("turnover_pa", "× per year")]
+
+
+def tables_r5(m: pd.DataFrame, fam: pd.DataFrame) -> dict[str, pd.DataFrame]:
+    """R5 test-window rows copied as stored: reports/r5/metrics.csv (1× books) and the parent and line rows of
+    reports/r5/family.csv (ΔSharpe at matched risk, LW 95%). Tier "disclosed-reuse" (seen by owner in v1)."""
+    a, z = (str(d) for d in paths.rules()["r5"]["scored"])
+    m1 = m[m.book == "1x"].set_index("rung")
+    sm = []
+    for r in R5_RUNGS:
+        for k, unit in R5_METRICS:
+            sm.append((r, f"{k} (R5 test)", float(m1.loc[r, k]), unit, "disclosed-reuse", a, z, np.nan, np.nan))
+        for kind, key in (("parent", "parent"), ("line", "line")):
+            q = fam[(fam.child == r) & (fam.kind == kind)]
+            if len(q):
+                row = q.iloc[0]
+                sm.append((r, f"dsharpe_vs_{key} (R5 test)", float(row.dsharpe),
+                           f"ΔSharpe vs {row.reference} at matched risk (LW 95%)", "disclosed-reuse", a, z,
+                           float(row.lo), float(row.hi)))
+    summary = pd.DataFrame(sm, columns=["strategy", "metric", "value", "unit", "tier", "window_start", "window_end", "lo",
+                                        "hi"])
+    windows = pd.DataFrame([("R5 test", a, z, "disclosed-reuse", False, True,
+                             "frozen rules run once; seen by owner in v1, disclosed")],
+                           columns=["name", "start", "end", "tier", "sealed", "opened", "note"])
+    return {"summary": summary, "windows": windows}
+
+
+def r5_verdicts(head: dict, fam: pd.DataFrame, cz: pd.DataFrame, plc: pd.DataFrame, dev_plc: pd.DataFrame, crash: dict,
+                dsr: pd.DataFrame, s10: pd.DataFrame, m: pd.DataFrame) -> list[dict]:
+    """Every sentence built from the committed R5 tables (and R3's placebo verdicts, D5.8 binding)."""
+    m1 = m[m.book == "1x"].set_index("rung")
+    par = fam[fam.kind == "parent"].set_index("child")
+    c = cz.set_index(["rung", "crisis"])
+    p = plc.set_index("gate")
+    dp = dev_plc.set_index("gate")
+    h = dsr[dsr.pool.str.startswith("headline")].set_index("rung")
+    t = s10.set_index("rung")
+    plc_txt = "; ".join(
+        f"{g}: development beats placebo = {bool(dp.loc[g, 'beats_placebo'])}" if g in dp.index else
+        f"{g}: development crash judge on = {crash['on']}" for g in p.index)
+    return [
+        {"id": "R5 headline (D5.3)", "tier": "disclosed-reuse",
+         "text": "Test 2020-01 → 2026-09, frozen rules run once (seen by owner in v1, disclosed; cannot change any "
+                 "development verdict). " + "; ".join(f"{q}: {v['answer']}" for q, v in head.items())
+                 + f". No row of the registered 24 has a raw or Holm flag; minimum Holm p {fam.holm_p.min():.2f}."},
+        {"id": "R5 ablation (test)", "tier": "disclosed-reuse",
+         "text": "Each layer vs its parent at matched risk, ΔSharpe [LW 95%] test (development): " + ", ".join(
+             f"{r} {par.loc[r, 'dsharpe']:+.2f} [{par.loc[r, 'lo']:+.2f}, {par.loc[r, 'hi']:+.2f}] "
+             f"({par.loc[r, 'dsharpe_dev']:+.2f})" for r in par.index) + "."},
+        {"id": "R5 rungs vs the line", "tier": "disclosed-reuse",
+         "text": "Excess Sharpe, test window: " + ", ".join(f"{r} {m1.loc[r, 'sharpe_excess']:.2f}" for r in R5_RUNGS)
+                 + f"; L5's SPY + T-bills line {m1.loc['L5-line', 'sharpe_excess']:.2f}."},
+        {"id": "R5 crises (COVID, 2022)", "tier": "disclosed-reuse",
+         "text": "Cumulative return in window, rung vs its ex-ante line: " + ", ".join(
+             f"{r} {c.loc[(r, 'covid'), 'return']:+.1%} / {c.loc[(r, 'infl_2022'), 'return']:+.1%} (line "
+             f"{c.loc[(r, 'covid'), 'line_return']:+.1%} / {c.loc[(r, 'infl_2022'), 'line_return']:+.1%})"
+             for r in ("L0", "L3", "L5", "L6", "L7", "L8")) + "."},
+        {"id": "R5 placebos (D5.8)", "tier": "disclosed-reuse",
+         "text": "Every test L6–L8 number sits beside the development placebo verdict (" + plc_txt + "). Test-window "
+                 "shuffles (100 seeds, about 7 blocks; coarse; descriptive): " + ", ".join(
+                     f"{g} 2022 gain vs parent {p.loc[g, 'infl_2022_gate_minus_parent']:+.1%} at percentile "
+                     f"{p.loc[g, 'infl_2022_gate_percentile']:.0f}"
+                     + (" — not distinguishable from holding fewer bonds at random times"
+                        if p.loc[g, 'infl_2022_inside_placebo_p05_p95'] else "") for g in p.index) + "."},
+        {"id": "R5 DSR and the 10-year row", "tier": "disclosed-reuse",
+         "text": "Test DSR (N 5): " + ", ".join(f"{r} {h.loc[r, 'dsr']:.2f}" for r in R5_RUNGS)
+                 + ". POST-HOC 10-year bond leg (owner): Sharpe 10y vs 25y " + ", ".join(
+                     f"{r} {t.loc[r, 'sharpe_10y']:.2f} vs {t.loc[r, 'sharpe_25y']:.2f}" for r in t.index)
+                 + " (not QA'd vs an ETF; cannot change any verdict)."},
+    ]
+
+
 def manifest(tab: pd.DataFrame, qa: pd.DataFrame, sources: list[dict], r2: dict | None = None,
-             r3: dict | None = None, r4: dict | None = None) -> dict:
+             r3: dict | None = None, r4: dict | None = None, r5: dict | None = None) -> dict:
     head = git_head()
     t = tab[tab.window == "test"].set_index("step")
     q = qa[qa["sample"] == "2005-2025"].set_index("pair")
@@ -244,10 +318,12 @@ def manifest(tab: pd.DataFrame, qa: pd.DataFrame, sources: list[dict], r2: dict 
                         "cost_model": "3/2 bp per side, true turnover; bill + 25 bp financing", "gross_nav": False}
                        for k, v in R4_NAMES.items()]
         verdicts += r4["verdicts"]
+    if r5 is not None:
+        verdicts += r5["verdicts"]
     return {
         "schema_version": qr.SCHEMA_VERSION,
         "project": {"name": "regime-aware-spy-tlt-allocation", "repo": "regime-aware-spy-tlt-allocation",
-                    "repo_commit": head, "quantkit_tag": "v0.19.2", "phase": "R4" if r4 else ("R3" if r3 else ("R2" if r2 else "R1")),
+                    "repo_commit": head, "quantkit_tag": "v0.19.2", "phase": "R5" if r5 else ("R4" if r4 else ("R3" if r3 else ("R2" if r2 else "R1"))),
                     "thesis": "Regime-aware SPY/TLT/cash allocation; R1 swaps v1 onto permitted data and the charter's "
                               "accounting, one correction at a time.",
                     "data_cut": str(tab["end"].max()), "verdicts": verdicts},
@@ -340,4 +416,20 @@ def bundle() -> qr.Bundle:
                      "licence": "derived statistics only; KF Hi 20 (gitignored), GSW and H.15 (public domain)",
                      "ledger_ref": "reports/ledger.md R4"} for f in ("zoo.csv", "costs.csv", "loco.csv", "sensitivity.csv",
                                                                        "dsr.csv", "pbo.csv", "facts.json")]
-    return qr.Bundle(manifest(tab, qa, sources, r2, r3, r4), t)
+    r5, r5p = None, paths.REPORTS / "r5"
+    if (r5p / "family.csv").exists():
+        import json
+
+        rd = {k: pd.read_csv(r5p / f"{k}.csv") for k in ("metrics", "family", "crisis", "placebo", "dsr", "sens10y")}
+        t5 = tables_r5(rd["metrics"], rd["family"])
+        t = {k: pd.concat([t[k], t5[k]], ignore_index=True) if k in t5 else t[k] for k in t}
+        r5 = {"verdicts": r5_verdicts(json.loads((r5p / "headline.json").read_text()), rd["family"], rd["crisis"],
+                                      rd["placebo"], pd.read_csv(paths.REPORTS / "r3" / "placebo.csv"),
+                                      json.loads((paths.REPORTS / "r3" / "crash.json").read_text()), rd["dsr"],
+                                      rd["sens10y"], rd["metrics"])}
+        sources += [{"path": str((r5p / f).relative_to(paths.ROOT)), "sha256": paths.sha256(r5p / f),
+                     "licence": "derived statistics only; KF Hi 20 (gitignored), GSW and H.15 (public domain)",
+                     "ledger_ref": "reports/ledger.md R5"} for f in ("metrics.csv", "family.csv", "crisis.csv",
+                                                                       "placebo.csv", "dsr.csv", "sens10y.csv",
+                                                                       "headline.json", "test_run.json")]
+    return qr.Bundle(manifest(tab, qa, sources, r2, r3, r4, r5), t)

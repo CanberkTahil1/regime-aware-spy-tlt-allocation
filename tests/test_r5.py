@@ -262,6 +262,8 @@ def test_a_completed_dry_run_writes_only_its_temporary_directory(monkeypatch, tm
 
 def test_a_crash_after_the_record_marks_it_crashed(monkeypatch, tmp_path):
     """Review R5 M2: an exception after start_record leaves status "crashed" with the stage, not a bare "started"."""
+    real = ROOT / freeze.RECORD
+    real_before = real.read_bytes() if real.exists() else None
     root = tmp_path / "repo"
     (root / "reports" / "r5").mkdir(parents=True)
     monkeypatch.setattr(paths, "ROOT", root)
@@ -282,4 +284,4 @@ def test_a_crash_after_the_record_marks_it_crashed(monkeypatch, tmp_path):
         _run_script(monkeypatch, tmp_path, "run", build=boom)
     rec = json.loads((root / freeze.RECORD).read_text())
     assert rec["status"] == "crashed" and rec["stage"] == "build" and "planted" in rec["traceback"]
-    assert not (ROOT / freeze.RECORD).exists() or ROOT == root
+    assert (real.read_bytes() if real.exists() else None) == real_before  # the real record is never touched

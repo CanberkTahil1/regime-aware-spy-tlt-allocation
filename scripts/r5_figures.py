@@ -34,6 +34,16 @@ s10 = pd.read_csv(R / "sens10y.csv")
 v12 = pd.read_csv(R / "v1_vs_v2.csv")
 head = json.loads((R / "headline.json").read_text())
 facts = json.loads((R / "facts.json").read_text())
+plc = pd.read_csv(R / "placebo.csv").set_index("gate")
+dev_plc = pd.read_csv(paths.REPORTS / "r3" / "placebo.csv").set_index("gate")
+crash = json.loads((paths.REPORTS / "r3" / "crash.json").read_text())
+PLACEBO = ("D5.8 placebo binding: development (R3) — L6 beats its placebo: "
+           f"{bool(dev_plc.loc['L6', 'beats_placebo'])}, L7: {bool(dev_plc.loc['L7', 'beats_placebo'])}, L8 crash rule on: "
+           f"{crash['on']}. Test-window shuffles (100 seeds, ~7 blocks; coarse; descriptive): "
+           + "; ".join(f"{g} 2022 gain {plc.loc[g, 'infl_2022_gate_minus_parent']:+.1%} at percentile "
+                       f"{plc.loc[g, 'infl_2022_gate_percentile']:.0f}"
+                       + (" (inside placebo p05–p95: not distinguishable from holding fewer bonds at random times)"
+                          if plc.loc[g, "infl_2022_inside_placebo_p05_p95"] else "") for g in plc.index) + ".")
 LAB = {"L0": "SPY", "L1": "v1", "L2": "VT SPY", "L3": "60/40", "L4": "InvVol", "L5": "InvVol+VT", "L5-lev": "InvVol+VT 1.5x",
        "L6": "+CorrReg", "L7": "+Trend", "L8": "+Crash", "L2-u": "VT SPY 10%", "line": "SPY+bills"}
 WIN = f"{facts['test_first']} → {facts['test_last']}"
@@ -67,7 +77,7 @@ ax.plot([], [], "o", color=fg.AQUA, label="beat at raw p < 0.05 and ≥ +0.05")
 ax.plot([], [], "o", color=fg.BLUE, label="beat after Holm (24 rows)")
 ax.plot([], [], "o", mfc="none", mec=fg.ORANGE, label="development 1990–2019 ΔSharpe (same pair)")
 ax.legend(fontsize=7, loc="lower right")
-note(fig, "Headline: " + "; ".join(f"{q}: {v['answer']}" for q, v in head.items()) + ".")
+note(fig, "Headline: " + "; ".join(f"{q}: {v['answer']}" for q, v in head.items()) + ". " + PLACEBO)
 fg.save(fig, OUT, "family_dsharpe_test_vs_development")
 
 # 2. what each layer added (ablation, parent rows) --------------------------------------------------------------------------
@@ -100,7 +110,7 @@ for ax, k in zip(axes, ["covid", "infl_2022"], strict=True):
 axes[0].set_ylabel("cumulative return in window")
 axes[0].legend(fontsize=7)
 note(fig, "k uses the whole test window's vol, crises included (in-crisis vols are not matched). SPY and v1 have no "
-     "parent bar.", y=-0.06)
+     "parent bar. " + PLACEBO, y=-0.06)
 fg.save(fig, OUT, "crisis_covid_2022_matched")
 
 # 4. v1 vs v2 side by side ------------------------------------------------------------------------------------------------------
