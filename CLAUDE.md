@@ -45,7 +45,9 @@ Long-history proxies make 1990–2019 possible (1994 bonds, 2000–02, 2008, 201
 
 ## The ladder (pre-registered order; each rung adds ONE layer; parameters fixed from the literature, not searched)
 - **L0** SPY · **L0-line** SPY + T-bills at the rung's volatility (the benchmark every rung is judged against)
-- **L1** legacy v1 (frozen v1 code + selected params, run on the new data and new accounting) — the baseline to beat
+- **L1** legacy v1 (frozen v1 code + selected params, run on the new data and new accounting) — the baseline to beat:
+  a **comparison row, not a parent** (amended post-hoc 2026-10-29, owner O2.3; every rung is compared with L1
+  descriptively)
 - **L2** vol-targeted SPY (v1's real driver, isolated)
 - **L3** static 60/40 SPY/TLT (monthly, 5 pp band)
 - **L4** inverse-vol SPY/TLT (63-day vol, monthly, band) · **L4b** ERC on the 2×2 covariance (zoo)
@@ -59,6 +61,12 @@ Long-history proxies make 1990–2019 possible (1994 bonds, 2000–02, 2008, 201
 - **Zoo (exploratory, every row registered, never promoted unless re-registered):** HMM / jump-model regime gate,
   vol-model zoo (EWMA fast/slow, GJR-GARCH-t, EGARCH-t, HAR on daily returns) for the vol target, min-CDaR / max-div
   objectives, one GBM risk-side sizing row, v1's spread and Bollinger signals as overlays on L5.
+**Walk topology (amended post-hoc 2026-10-29, owner O2.3, after R2 results):** each rung is judged against its
+parent, along two chains: **L0 → L2** (vol target on SPY) and **L0 → L3 (bonds) → L4 (inverse-vol weighting) → L5
+(vol target) → L6 → L7 → L8**. Reason: R2's pre-registered walk L1 → L2 → L3 → L4 → L5 (taken from the owner's plan
+listing L1 first) contradicted "each rung adds ONE layer" (L3 adds bonds to L0, not a layer to L2). R2's
+pre-registered walk stays as recorded (L2 did not beat L1) and is shown beside the chain walk; the chain walk is
+labelled post-hoc and counted in the DSR trial count.
 Promotion between rungs: `quantkit.ladder` four-part rule (min effect ΔSharpe ≥ +0.05 or CDaR ≥ 15% lower at matched
 vol; paired one-sided `sharpe_diff_lw`; no loss at 2× costs / +75 bp financing / leave-one-crisis-out; inside the 90%
 MCS on vol-matched returns). Ties go to the simpler rung. Every rung also gets "beyond 60/40" (ΔSharpe vs vol-matched

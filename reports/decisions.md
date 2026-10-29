@@ -276,6 +276,9 @@ any R2 code or result. Research: reports/research/R2.md (16791b4).
   Vol-target SPY, SPY+T-bills line) with each full name printed in the footer, as now; (b) quantkit fix (margin sized to
   the labels or wrapped end labels) in a new quantkit tag, then re-pin and redraw; (c) other short labels the owner names.
 - **Status:** (a) applied as an interim (src/rspy/figures.py `SHORT`); reversible by editing one dict.
+- **Owner (2026-10-29): keep short labels with the footer key**, readable abbreviations: SPY, v1, VT SPY, 60/40, InvVol,
+  InvVol+VT, SPY+bills (figures.SHORT). Longer labels become an optional quantkit Q15 carry-over request
+  (reports/quantkit_carryovers.md); quantkit is not edited from this repo. **Resolved.**
 
 ### O2.3 — The promotion walk's order (D2.4) · ESCALATED TO OWNER (advisor vs quant-reviewer) · pending
 - **Why escalated:** advisor vs reviewer disagreement on an outcome-determining charter reading (R2 review MATERIAL 1).
@@ -292,3 +295,10 @@ any R2 code or result. Research: reports/research/R2.md (16791b4).
 - **Author's note (not a recommendation):** (b) is the cheapest honest way to answer the charter's question without
   hiding the pre-registered result; it is post-hoc by construction.
 - **Status:** not acted on; the committed result is the pre-registered walk.
+- **Owner (2026-10-29): (c).** Charter ladder text amended first, in its own commit, labelled post-hoc. Reason: the
+  pre-registered walk order contradicted the charter's "each rung adds ONE layer"; the order came from the owner's plan
+  listing L1 first (so the R2 review's attribution of the ORDER to the advisor alone is corrected: D2.4 transcribed it).
+  New structure: L1 is a comparison row, not a parent; parent chains L0 → L2 and L0 → L3 → L4 → L5 (→ L6 → L7 → L8 in
+  R3). Prereg re-hashed, the chains walked with the same promotion rule, the new walk counted in the DSR trial count
+  (variants.csv), shown beside the pre-registered walk, which stays as recorded (L2 did not beat L1). Every rung is
+  still compared descriptively with L1. **Resolved.**

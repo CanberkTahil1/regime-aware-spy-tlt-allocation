@@ -55,8 +55,12 @@
 - **D2.7 (advisor): inverse-vol weights use plain 63-day volatility**, as pre-registered.
 - **D2.8 (advisor): each rung's benchmark is SPY + T-bills scaled to the rung's trailing 63-day risk**, using only
   yesterday's data; the exact full-sample match is shown for reference.
-- **O2.2 (yours, pending): three of your chart names are too long for quantkit's headline chart**, which refuses labels
-  that leave the figure. For now the chart shows short labels and prints the full names underneath.
-- **O2.3 (yours, pending): the order of the promotion walk.** The advisor put vol-targeted SPY before 60/40; the walk
-  stopped there, so the stock-bond rungs were never tested. The reviewer says 60/40 should be judged against its own
-  parent. Changing it now is post-hoc, so it is your call.
+- **O2.2 (yours): short chart labels stay, with a key underneath**: SPY, v1, VT SPY, 60/40, InvVol, InvVol+VT,
+  SPY+bills. Room for longer labels is noted as an optional request for quantkit's next version (Q15); this repo does
+  not change quantkit.
+- **O2.3 (yours): each rung is now judged against the rung it actually builds on.** The charter says every rung adds
+  one layer, but the original walk put 60/40 after vol-targeted SPY, which it does not build on (the order came from
+  your plan listing v1 first). The charter was amended first, openly labelled as a change made after seeing results.
+  v1 becomes a yardstick every rung is compared with, not a step. Two chains: SPY → vol-targeted SPY, and SPY → 60/40 →
+  inverse-vol → + vol target (→ R3's layers). The original walk's result stays on record next to the new one, and the
+  new walk counts as an extra trial when the deflated Sharpe is computed.
