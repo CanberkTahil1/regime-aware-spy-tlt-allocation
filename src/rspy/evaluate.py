@@ -180,6 +180,21 @@ def walk(books: dict, c, rate, dt, dates: pd.DatetimeIndex, *, prereg_path, regi
     return {"steps": steps, "winner": order[start], "ladders": ladders, "mcs_all": {}}
 
 
+def crisis_matched(child, parent, c, rate, dt, pos: dict) -> list[dict]:
+    """POST-HOC descriptive (owner O2.4), never in the promotion rule: per crisis window, the child's cumulative return
+    vs the parent rescaled ex post to the child's development excess vol with T-bills (`rescale`, bill + 25 bp above
+    1×, the legs' matching). Also the in-window excess-Sharpe difference, the quantity the registered leg compares."""
+    child = np.asarray(child, np.float64)
+    pm = rescale(parent, c, float(np.std(child - c, ddof=1)) * math.sqrt(ANN), rate, dt, spread_bp=25.0)
+    out = []
+    for k, p in pos.items():
+        rc, rp, rm = (float(np.prod(1 + np.asarray(s)[p]) - 1) for s in (child, parent, pm))
+        out.append({"crisis": k, "child_return": rc, "parent_return": rp, "parent_matched_return": rm,
+                    "diff_matched": rc - rm, "loses_matched": bool(rc < rm),
+                    "dsharpe_in_window": sr(child[p] - c[p]) - sr(np.asarray(parent)[p] - c[p])})
+    return out
+
+
 def chains(built) -> dict[str, list[str]]:
     """Post-hoc parent chains (owner O2.3; prereg `walk_chains`), each cut at its first rung not built yet (L6–L8 join in
     R3). A comparison row (L1) is never a parent: refuses a chain that contains one."""

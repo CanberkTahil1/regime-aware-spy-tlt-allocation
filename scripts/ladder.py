@@ -3,7 +3,7 @@ L0-line, the pre-registered promotion walk L1 → L5 (D2.4), the post-hoc parent
 O2.3), timing luck (D2.5).
 
 Committed (statistics only): reports/r2/{metrics.csv, lines.csv, ablation.csv, crisis.csv, timing_luck.csv,
-volzoo.json, ladder.json, ladder_chains.json, vs_l1.csv, facts.json, ladder_prereg.jsonl (append-only, written before any book is built)}.
+volzoo.json, ladder.json, ladder_chains.json, vs_l1.csv, crisis_matched.csv (post-hoc, O2.4), facts.json, ladder_prereg.jsonl (append-only, written before any book is built)}.
 Local only (gitignored, KF-derived daily series): data/r2/books.parquet, data/r2/register.csv (rebuilt each run).
 The test window 2020+ is not run here (R5).
 """
@@ -141,6 +141,16 @@ for k, ch in CHAINS.items():  # post-hoc (O2.3): same rule, same books, parents 
     res_chains[k] = {"chain": ch, **ev.walk(cb, c, rate, dt, D, prereg_path=PREREG, register_path=REGISTER,
                                             name=f"r2_chain_{k}")}
 
+# ---- in-crisis return at matched vol (POST-HOC descriptive, owner O2.4; cannot change any verdict) ------------------
+tested = {(st["rung"], st["incumbent"]) for w in [res, *res_chains.values()] for st in w["steps"]}
+pairs = list(dict.fromkeys([*zip(WALK[1:], WALK[:-1], strict=True)]
+                           + [p_ for ch in CHAINS.values() for p_ in zip(ch[1:], ch[:-1], strict=True)]))
+cm = []
+for ch_, pa_ in pairs:
+    for row in ev.crisis_matched(books[ch_]["1x"].net[dev], books[pa_]["1x"].net[dev], c, rate, dt, pos):
+        cm.append({"child": ch_, "parent": pa_, "tested_in_a_walk": (ch_, pa_) in tested, **row})
+pd.DataFrame(cm).to_csv(OUT / "crisis_matched.csv", index=False, float_format="%.10g")
+
 # ---- every rung vs L1 (comparison row, descriptive; O2.3) --------------------------------------------------------------
 x1 = books["L1"]["1x"].net[dev]
 v1rows = []
@@ -258,5 +268,8 @@ for k, v in res_chains.items():
 print(pd.DataFrame(v1rows).set_index("rung")[["dsharpe_vs_L1", "lo", "hi", "p_one_sided", "dsharpe_vs_L1_matched",
                                             "cdar_change"]].round(3)
       .to_string())
+print("[post-hoc O2.4] in-crisis return at matched vol (tested steps):")
+print(pd.DataFrame(cm).query("tested_in_a_walk")[["child", "parent", "crisis", "child_return",
+      "parent_matched_return", "loses_matched", "dsharpe_in_window"]].round(4).to_string(index=False))
 print("winner:", res["winner"], "| facts:", json.dumps(facts, default=float)[:600])
 print(f"ladder: {time.perf_counter() - t0:.1f} s")

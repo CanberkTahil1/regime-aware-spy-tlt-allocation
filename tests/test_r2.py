@@ -197,3 +197,17 @@ def test_chain_walk_registers_beside_the_prereg_walk_and_never_uses_l1(tmp_path)
             assert s["incumbent"] == ch[ch.index(s["rung"]) - 1] and "L1" not in (s["rung"], s["incumbent"])
     with pytest.raises(PreregistrationError):  # the same rung set under another name: order chosen after the fact
         ev.ladder("renamed", ["L0", "L2"]).preregister(pre)
+
+
+def test_crisis_matched_parent_is_the_legs_rescale():
+    """O2.4 descriptive row: the matched parent is `evaluate.rescale` to the child's excess vol, exactly."""
+    rng = np.random.default_rng(3)
+    T = 1500
+    c, rate, dt = np.full(T, 1e-4), np.full(T, 0.0365), np.full(T, 1 / 360)
+    x, y = rng.normal(3e-4, 0.006, T), rng.normal(3e-4, 0.012, T)
+    pos = {"a": np.arange(100, 180), "b": np.arange(900, 960)}
+    out = ev.crisis_matched(x, y, c, rate, dt, pos)
+    ym = ev.rescale(y, c, float(np.std(x - c, ddof=1)) * np.sqrt(252), rate, dt, spread_bp=25.0)
+    for r, p in zip(out, pos.values(), strict=True):
+        assert r["parent_matched_return"] == float(np.prod(1 + ym[p]) - 1)
+        assert r["child_return"] == float(np.prod(1 + x[p]) - 1) and r["loses_matched"] == (r["diff_matched"] < 0)

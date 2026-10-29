@@ -168,5 +168,14 @@ selection).
 
 | ID | Expectation (band) | Source | Status |
 |---|---|---|---|
-| E2.16 | L3 vs L0 at matched vol (k ≈ 0.60 from development vols 10.3% / 17.3%): 1994 still a loss for L3 (L3 −6.9% vs matched SPY ≈ −0.5%); Q4 2018 close to a tie (matched SPY ≈ −7.5% vs L3 −7.7%, sign uncertain) | O2.4 | open |
-| E2.17 | code: the verdict files (ladder.json, ladder_chains.json) unchanged byte for byte; the row's matched parent = `evaluate.rescale` exactly (test) | O2.4 | open |
+| E2.16 | L3 vs L0 at matched vol (k ≈ 0.60 from development vols 10.3% / 17.3%): 1994 still a loss for L3 (L3 −6.9% vs matched SPY ≈ −0.5%); Q4 2018 close to a tie (matched SPY ≈ −7.5% vs L3 −7.7%, sign uncertain) | O2.4 | **held** — reports/r2/crisis_matched.csv: 1994 L3 −6.94% vs matched SPY −0.26% (loss); Q4 2018 L3 −7.69% vs matched SPY −7.43% (a loss by 0.26 pp) |
+| E2.17 | code: the verdict files (ladder.json, ladder_chains.json) unchanged byte for byte; the row's matched parent = `evaluate.rescale` exactly (test) | O2.4 | **held** — both files `cmp`-identical after the change; `test_crisis_matched_parent_is_the_legs_rescale`; the row's in-window ΔSharpe reproduces quantkit's robustness numbers (1994 −0.5388, Q4 2018 −0.1038) |
+
+**Result (descriptive, cannot change any verdict):** at matched vol, 60/40 **still fails 1994** (−6.9% vs −0.3%) and
+also **Q4 2018** (−7.69% vs −7.43%): so Q4 2018 is not an instance of the pathology once risk is matched (the owner's
+example was the raw comparison −7.7% vs −12.9%). A real instance does exist in the walks: L2 vs L0 in the GFC — L2
+−27.4% vs matched SPY −41.4%, yet its in-window Sharpe is lower (ΔSharpe −0.39); L2 still loses five other windows at
+matched vol, so its verdict would not change either. The limitation stands as recorded (decisions O2.4); the
+registered leg is unchanged. For R3 (owner O2.4): the walk verdict stands (nothing promoted past SPY); L6–L8 are tested
+through the charter's ablation table (each layer vs its own parent, vs 60/40 and vs v1, 95% intervals, descriptive),
+not through the walk.

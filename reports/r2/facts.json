@@ -17,11 +17,11 @@
  },
  "line_first_finite_scored": "1990-01-02",
  "timing_s": {
-  "books": 1.38,
-  "metrics_lines_walk": 8.01,
-  "targets_and_zoo": 5.49,
-  "timing_luck": 2.18,
-  "total": 17.06
+  "books": 1.36,
+  "metrics_lines_walk": 7.97,
+  "targets_and_zoo": 5.55,
+  "timing_luck": 2.14,
+  "total": 17.02
  },
  "walk_winner": "L1"
 }
