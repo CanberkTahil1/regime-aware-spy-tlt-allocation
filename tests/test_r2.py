@@ -11,7 +11,7 @@ from quantkit.alloc.risk import erc
 from quantkit.trade import tranche as qtr
 
 from rspy import evaluate as ev
-from rspy import rungs, volzoo
+from rspy import paths, rungs, volzoo
 
 
 def _inp(seed=0, T=700):
@@ -118,3 +118,47 @@ def test_promotion_legs_no_loss_rule():
     same = ev.legs({"1x": y, "2x": y, "f75": y}, {"1x": y, "2x": y, "f75": y}, c, rate, dt, pos)
     assert abs(same["dsharpe_matched"]) <= 1e-12 and all(same["legs"]["sharpe"].values())  # ties do not lose
     assert not same["route_cdar"]
+
+
+def _panel(seed=7, T=900):
+    rng = np.random.default_rng(seed)
+    idx = pd.bdate_range("1999-01-01", periods=T)
+    return pd.DataFrame({"hi20": rng.normal(4e-4, 0.011, T), "tlt25": rng.normal(2e-4, 0.009, T),
+                         "bill": np.full(T, 1e-4), "mmy": np.full(T, 0.0365), "dt": np.full(T, 1 / 360)}, index=idx)
+
+
+def test_l1_l2_books_equal_legacy_bridge_run_accounting(no_yahoo):
+    """Review R2 MATERIAL 2: rspy's L1/L2 decision → trade mapping is the R1 bridge's, end to end (a one-day shift in
+    `v1_target` changes the book)."""
+    from rspy import legacy_bridge as lb
+
+    panel = _panel()
+    inp = rungs.Inputs.from_panel(panel, panel.index[10], panel.index[-1])
+    R = pd.DataFrame(inp.R, index=inp.index, columns=["SPY", "TLT"])
+    bills = pd.DataFrame({"bill": inp.bill, "mmy": inp.mmy, "dt": inp.dt}, index=inp.index)
+    kw = rungs.acc_kw()
+    sig = pd.DataFrame({"SPY_pos": 1.0, "TLT_pos": 0.0}, index=inp.index)
+    want = lb.run_accounting(lb.v1_scaled(sig, R), R, bills, rates=kw["cost_rates"], spread=kw["spread"],
+                             allow_shorts=False, floor_zero=True)["net"].to_numpy()
+    assert np.array_equal(rungs.book(rungs.l2_target(inp), inp).net, want)
+    w = paths.rules()["legacy"]["vix_proxy"]["window"]
+    start = inp.index[0] - pd.Timedelta(days=7)
+    prices, rets, _ = lb.new_data_inputs(panel, panel.loc[:start].index[-1], inp.index[-1], w)
+    sig1 = lb.v1_signals(prices, rets).reindex(inp.index).fillna(0.0)
+    want1 = lb.run_accounting(lb.v1_scaled(sig1, R), R, bills, rates=kw["cost_rates"], spread=kw["spread"],
+                              allow_shorts=False, floor_zero=True)["net"].to_numpy()
+    assert np.array_equal(rungs.book(rungs.l1_target(panel, inp), inp).net, want1)
+
+
+def test_vol_target_uses_the_forecast_stamped_t():
+    """Review R2 MATERIAL 2: row t of the vol layer uses the forecast stamped t (not t+1): a strictly increasing
+    forecast makes any misalignment visible."""
+    inp = _inp(8)
+    parent = np.full(inp.R.shape, np.nan)
+    parent[0] = (0.5, 0.5)
+    f = pd.Series(np.linspace(1e-5, 4e-4, len(inp.index)), inp.index)
+    T = rungs.vol_target(parent, f, inp.index, 0.10, 10.0)
+    want = 0.5 * 0.10 / np.sqrt(252 * f.to_numpy())
+    assert np.allclose(T[:, 0], want, rtol=0, atol=1e-15)
+    T2 = rungs.vol_target(parent, f.iloc[::2], inp.index, 0.10, 10.0)  # a stamp missing on day t → no decision at t
+    assert np.isnan(T2[1]).all() and np.isfinite(T2[2]).all()

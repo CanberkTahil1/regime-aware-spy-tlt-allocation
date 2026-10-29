@@ -70,6 +70,7 @@ def save(fig, out: pathlib.Path, name: str) -> None:
     import matplotlib.pyplot as plt
 
     out.mkdir(parents=True, exist_ok=True)
-    for ext in ("png", "svg"):
-        fig.savefig(out / f"{name}.{ext}", dpi=160, bbox_inches="tight")
+    with plt.rc_context({"svg.hashsalt": "rspy"}):  # deterministic SVG ids and no date: a rerun leaves no diff
+        fig.savefig(out / f"{name}.svg", bbox_inches="tight", metadata={"Date": None})
+        fig.savefig(out / f"{name}.png", dpi=160, bbox_inches="tight", metadata={"Software": None})
     plt.close(fig)

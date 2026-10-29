@@ -267,3 +267,28 @@ any R2 code or result. Research: reports/research/R2.md (16791b4).
   1990-01 (weights from warm-up rows); realised vol of line and rung reported side by side; ex-post line descriptive;
   window/lag/mode written into spec/rules.yaml before any rung number. Closes E1.12.
 - **Why the others lost:** (b) full-sample σ = look-ahead in the judge; (c) no source for 60 over 63.
+
+### O2.2 — Headline chart labels vs the owner's names · ESCALATED TO OWNER · pending
+- **Why escalated:** the owner fixed the readable names; three do not fit the pinned quantkit v0.19.2 `viz.headline`,
+  which raises when "<name>  $<end value>" leaves the figure (measured: any label over ~17 characters, in any position).
+  Changing quantkit needs a new tag + re-pin (owner-only).
+- **Options:** (a) [author's recommendation] keep the interim chart labels (Inv-vol + vol tgt, Inv-vol SPY/TLT,
+  Vol-target SPY, SPY+T-bills line) with each full name printed in the footer, as now; (b) quantkit fix (margin sized to
+  the labels or wrapped end labels) in a new quantkit tag, then re-pin and redraw; (c) other short labels the owner names.
+- **Status:** (a) applied as an interim (src/rspy/figures.py `SHORT`); reversible by editing one dict.
+
+### O2.3 — The promotion walk's order (D2.4) · ESCALATED TO OWNER (advisor vs quant-reviewer) · pending
+- **Why escalated:** advisor vs reviewer disagreement on an outcome-determining charter reading (R2 review MATERIAL 1).
+  D2.4 (advisor, before results) fixed the walk L1 → L2 → L3 → L4 → L5; quantkit stops at the first failure. The walk
+  stopped at L2 vs L1 (ΔSharpe +0.021, LW p 0.23), so L3–L5 were never tested. The reviewer: the charter says each rung
+  adds ONE layer and is judged against its parent; L3 (60/40) adds bonds to L0, not a layer to L2, so L3-vs-L2 is not a
+  parent comparison and a vol-targeted-SPY result can never let the stock-bond rungs be tested.
+- **Options:** (a) [advisor's pre-registered choice] keep it: R2's seat holder is L1; L3–L5 stay descriptive; the
+  question is revisited only through R3's rungs (which build on L5 and would also never be tested); (b) post-hoc, a
+  second registered walk on parent chains (L1 → L3 → L4 → L5, each step a one-layer parent comparison; L2 judged vs L0
+  separately), labelled post-hoc, its rows counted in variants.csv and DSR, results shown beside the pre-registered
+  walk, never replacing it; (c) amend the charter's ladder text to define the walk topology explicitly before R3, and
+  run (b) under it.
+- **Author's note (not a recommendation):** (b) is the cheapest honest way to answer the charter's question without
+  hiding the pre-registered result; it is post-hoc by construction.
+- **Status:** not acted on; the committed result is the pre-registered walk.

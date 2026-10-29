@@ -55,3 +55,8 @@
 - **D2.7 (advisor): inverse-vol weights use plain 63-day volatility**, as pre-registered.
 - **D2.8 (advisor): each rung's benchmark is SPY + T-bills scaled to the rung's trailing 63-day risk**, using only
   yesterday's data; the exact full-sample match is shown for reference.
+- **O2.2 (yours, pending): three of your chart names are too long for quantkit's headline chart**, which refuses labels
+  that leave the figure. For now the chart shows short labels and prints the full names underneath.
+- **O2.3 (yours, pending): the order of the promotion walk.** The advisor put vol-targeted SPY before 60/40; the walk
+  stopped there, so the stock-bond rungs were never tested. The reviewer says 60/40 should be judged against its own
+  parent. Changing it now is post-hoc, so it is your call.

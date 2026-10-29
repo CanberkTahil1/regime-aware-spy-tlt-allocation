@@ -114,11 +114,16 @@ byte-identical (reports/r2/volzoo.json compared before/after).
 **R2 walk (development, D2.4):** stopped at its first step. L2 vs L1: quantkit effect +0.021 < 0.05, LW one-sided p 0.23,
 and L2 loses Sharpe inside five of six development crises (1994, dot-com, GFC, 2011, 2015); the rspy Sharpe-route legs
 pass, the CDaR route does not apply (L2's CDaR-95 is higher than L1's matched). **Seat holder: L1**; L3, L4, L5 are
-"not tested (sequence stopped)" under the owner's fixed-sequence rule (reports/r2/ladder.json). Descriptive only (not
+"not tested (sequence stopped)" (reports/r2/ladder.json). Attribution (corrected after review MATERIAL 1): stopping at
+the first failure is quantkit's fixed-sequence rule (owner, quantkit Q10 ladder docstring); the walk ORDER
+L1 → L2 → L3 → L4 → L5, with L2 as L3's incumbent, is the advisor's reading of the charter (D2.4), not an owner rule.
+The reviewer disputes it (L3 adds bonds to L0, not a layer to L2): escalated to the owner as O2.3; nothing changed. Descriptive only (not
 promotion evidence): vs the SPY + T-bills line at matched vol (ex ante), ΔSharpe L3 +0.17 [0.01, 0.32] (p 0.017), L4
 +0.24 [−0.06, 0.54] (p 0.055), L5 +0.26 [−0.04, 0.55] (p 0.038), L1 −0.08, L2 −0.06 (reports/r2/lines.csv); ablation at
 matched vol: bonds (L3 vs L0) +0.21 Sharpe / −23% CDaR, risk weighting (L4 vs L3) +0.13 / −31%, portfolio vol target
 (L5 vs L4) +0.01 / −7% (reports/r2/ablation.csv). L5's cap 1.0 binds on 84% of days (facts.json), as noted before code.
+L5 held gross never exceeds 1.0 (no financing); L5-lev's target cap is 1.5 but its held gross reaches 1.515 (band and
+drift; above 1.5 on 1.5% of development days, data/r2/books.parquet) — "cap 1.5" is a target cap (review MINOR 2).
 Vol zoo (pick made at year-end y, used in y+1): EWMA-slow at 1989–2002 and 2004–2006 year-ends, GJR-GARCH-t at 2003 and 2007–2018 (reports/r2/volzoo.json). D2.2 limitation
 diagnostic: EWMA-60 vol of the L4 book / of current weights × past sleeve returns: median 1.00 (5–95%: 0.95–1.08).
 Not in R2: DSR / PBO with the effective number of trials (R4–R5), the 2020+ test window (R5).

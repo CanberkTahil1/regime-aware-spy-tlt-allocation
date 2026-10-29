@@ -50,18 +50,19 @@ bk4 = rungs.book(T["L4"], inp, band=B)
 r4 = rungs.log_book_returns(bk4)
 F4 = volzoo.forecasts(r4)
 picks4 = volzoo.select(F4, r4, years)
-f5 = volzoo.stitched(F4, picks4).reindex(idx).to_numpy()
+s5 = volzoo.stitched(F4, picks4)
 w4 = rungs.carry(T["L4"])
-T["L5"] = rungs.vol_scaled(w4, f5, R2["L5"]["target_vol"], R2["L5"]["cap"])
-T["L5-lev"] = rungs.vol_scaled(w4, f5, R2["L5-lev"]["target_vol"], R2["L5-lev"]["cap"])
+T["L5"] = rungs.vol_target(T["L4"], s5, idx, R2["L5"]["target_vol"], R2["L5"]["cap"])
+T["L5-lev"] = rungs.vol_target(T["L4"], s5, idx, R2["L5-lev"]["target_vol"], R2["L5-lev"]["cap"])
 for m in F4:
-    T[f"L5_vol_{m}"] = rungs.vol_scaled(w4, F4[m].reindex(idx).to_numpy(), R2["L5"]["target_vol"], R2["L5"]["cap"])
+    T[f"L5_vol_{m}"] = rungs.vol_target(T["L4"], F4[m], idx, R2["L5"]["target_vol"], R2["L5"]["cap"])
     band[f"L5_vol_{m}"] = B
 r0 = pd.Series(np.log1p(inp.R[:, 0]), idx)
 F0 = volzoo.forecasts(r0)
 picks0 = volzoo.select(F0, r0, years)
-f0 = volzoo.stitched(F0, picks0).reindex(idx).to_numpy()
-T["L2-u"] = rungs.vol_scaled(np.tile([1.0, 0.0], (len(idx), 1)), f0, R2["L2u"]["target_vol"], R2["L2u"]["cap"])
+spy = np.full((len(idx), 2), np.nan)
+spy[0] = (1.0, 0.0)
+T["L2-u"] = rungs.vol_target(spy, volzoo.stitched(F0, picks0), idx, R2["L2u"]["target_vol"], R2["L2u"]["cap"])
 t_targets = time.perf_counter() - t0
 
 # ---- books: 1x, 2x, 3x costs and +75 bp financing ---------------------------------------------------------------------
@@ -153,7 +154,7 @@ def rule_for(r):
         elif r == "L4":
             tg = rungs.l4_target(inp, dec)
         else:
-            tg = rungs.vol_scaled(rungs.carry(rungs.l4_target(inp, dec)), f5, R2["L5"]["target_vol"], R2["L5"]["cap"])
+            tg = rungs.vol_target(rungs.l4_target(inp, dec), s5, idx, R2["L5"]["target_vol"], R2["L5"]["cap"])
         return post_trade(rungs.book(tg, inp, band=B))
     return rule
 

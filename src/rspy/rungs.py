@@ -122,6 +122,13 @@ def vol_scaled(parent_w: np.ndarray, f: np.ndarray, target_vol: float, cap: floa
     return T
 
 
+def vol_target(parent_target: np.ndarray, f: pd.Series, index: pd.DatetimeIndex, target_vol: float,
+               cap: float) -> np.ndarray:
+    """The vol layer as wired for every vol-targeted rung: row t uses the forecast STAMPED t (data ≤ t, quantkit) and the
+    parent's latest decided weights (decided ≤ t); traded at t+1 by the accounting. Review R2 MATERIAL 2: tested."""
+    return vol_scaled(carry(parent_target), f.reindex(index).to_numpy(), target_vol, cap)
+
+
 def log_book_returns(bk) -> pd.Series:
     """The parent book's daily log net return from its first invested row (the series the vol zoo forecasts)."""
     s = pd.Series(np.log1p(bk.net), index=bk.index)
@@ -140,7 +147,8 @@ def _legacy():
 
 
 def v1_target(scaled: pd.DataFrame) -> np.ndarray:
-    """`legacy_bridge.run_accounting`'s mapping: scaled[t] (decided at close t − 1) → target row t − 1, shorts floored."""
+    """`legacy_bridge.run_accounting`'s mapping: scaled[t] (decided at close t − 1) → target row t − 1, shorts floored.
+    tests/test_r2.py pins rspy's L1/L2 books to `legacy_bridge.run_accounting` on the same inputs (review R2 MATERIAL 2)."""
     t = scaled.shift(-1)
     t.iloc[-1] = np.nan
     return t.clip(lower=0.0).to_numpy()

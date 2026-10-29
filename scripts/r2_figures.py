@@ -22,7 +22,7 @@ m1 = m[m.book == "1x"].set_index("rung")
 ln = pd.read_csv(R2 / "lines.csv").set_index("rung")
 abl = pd.read_csv(R2 / "ablation.csv")
 tl = pd.read_csv(R2 / "timing_luck.csv")
-NOTE = "Development 1990–2019 (in-sample, not evidence). SPY = KF Hi 20 proxy; TLT = " + paths.rules()["bonds"]["label"] + "."
+NOTE = "Development 1990–2019 (in-sample, not evidence). SPY = SPY proxy (KF Hi 20); TLT = " + paths.rules()["bonds"]["label"] + "."
 
 # 1. ladder chart: ΔSharpe vs the SPY + T-bills line at matched vol, LW 95% interval ---------------------------------------
 rows = ["L1", "L2", "L2-u", "L3", "L4", "L5", "L5-lev"]

@@ -21,3 +21,16 @@
 3. **Why rebuild TLT from the Fed curve instead of using the ETF?** The ETF price data couldn't be stored under its
    terms. A 25-year constant-maturity par bond off the Fed's public-domain curve tracks TLT at 0.994 monthly correlation
    and 1.5%/yr tracking error over 2005–25, and it gives history back to 1986.
+
+## R2 — The core mix
+
+1. **Your stock-bond mix looks far better than v1. Why didn't it get promoted?** The walk is a fixed sequence chosen
+   before results: each rung must beat the one before it, and it stops at the first failure. Vol-targeted SPY didn't
+   beat v1 by +0.05 with significance, so the later rungs were never tested. The raw gap (excess Sharpe 0.83 vs 0.51)
+   has no test behind it, and 1990–2019 was a bond bull market. Promoting anyway would choose the order after seeing
+   the results.
+2. **How do you compare an 8%-vol portfolio with SPY at 17%?** Against SPY + T-bills scaled to the portfolio's own
+   trailing 63-day volatility, using only data available the day before. The exact full-sample match is shown only
+   for reference.
+3. **Why does the vol target barely matter here?** The inverse-vol mix already runs below 10% vol on 84% of days, so
+   the 1.0× cap binds and the layer acts only in high-vol spells: +0.01 Sharpe and −7% CDaR at matched vol.
