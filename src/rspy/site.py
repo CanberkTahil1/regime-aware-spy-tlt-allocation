@@ -91,7 +91,50 @@ def tables_r2(m: pd.DataFrame, ln: pd.DataFrame, v1: pd.DataFrame) -> dict[str, 
     return {"summary": summary, "loss": loss, "windows": windows}
 
 
-def manifest(tab: pd.DataFrame, qa: pd.DataFrame, sources: list[dict], r2: dict | None = None) -> dict:
+R3_NAMES = {"L6": "+ correlation regime (L6)", "L7": "+ per-asset trend (L7)", "L8": "+ crash rule (L8)"}
+R3_REFS = {"parent": "parent", "60/40 (L3)": "L3", "v1 (L1)": "L1", "SPY+T-bills line": "line"}
+
+
+def tables_r3(m: pd.DataFrame, abl: pd.DataFrame) -> dict[str, pd.DataFrame]:
+    """R3 rows copied as stored: reports/r3/metrics.csv (L6–L8, 1× books) and reports/r3/ablation.csv (each layer vs its
+    parent, 60/40, v1 and the line at matched vol; LW 95% interval). Descriptive (owner O2.4: no walk)."""
+    a, z = (str(d) for d in paths.rules()["r3"]["scored"])
+    m1 = m.set_index("rung")
+    sm, loss = [], []
+    for r in R3_NAMES:
+        for k, unit in R2_METRICS:
+            sm.append((r, f"{k} (development)", float(m1.loc[r, k]), unit, "in-sample", a, z, np.nan, np.nan))
+        for ref, key in R3_REFS.items():
+            row = abl[(abl.child == r) & (abl.reference == ref)].iloc[0]
+            sm.append((r, f"dsharpe_vs_{key} (development)", float(row.dsharpe), f"ΔSharpe vs {ref} at matched vol (LW 95%)",
+                       "in-sample", a, z, float(row.lo), float(row.hi)))
+        v = m1.loc[r]
+        for part, val in (("gross", v.net_pa + v.cost_pa + v.financing_pa), ("cost", -v.cost_pa),
+                          ("financing", -v.financing_pa), ("net", v.net_pa)):
+            loss.append((r, part, float(val), "mean return per year", "in-sample", a, z))
+    summary = pd.DataFrame(sm, columns=["strategy", "metric", "value", "unit", "tier", "window_start", "window_end", "lo",
+                                        "hi"])
+    loss = pd.DataFrame(loss, columns=["strategy", "part", "value", "unit", "tier", "window_start", "window_end"])
+    return {"summary": summary, "loss": loss}  # same development window as R2 (declared there)
+
+
+def r3_verdicts(abl: pd.DataFrame, pl: pd.DataFrame, crash: dict) -> list[dict]:
+    par = abl[(abl.reference == "parent") & (abl.role == "rung")].set_index("child")
+    p = pl.set_index("gate")
+    return [
+        {"id": "R3 ablation", "tier": "in-sample",
+         "text": "Descriptive (owner O2.4: no walk; nothing promoted past SPY). Each regime layer vs its parent at matched "
+                 "vol, ΔSharpe [LW 95%]: " + ", ".join(f"{k} {par.loc[k, 'dsharpe']:+.2f} [{par.loc[k, 'lo']:+.2f}, "
+                                                      f"{par.loc[k, 'hi']:+.2f}]" for k in R3_NAMES) + "."},
+        {"id": "R3 placebos", "tier": "in-sample",
+         "text": "No gate beats its block-shuffled placebo: " + ", ".join(
+             f"{g} percentile {p.loc[g, 'percentile_among_100_seeds']:.0f} of 100" for g in p.index)
+                 + f"; crash rule sizing.judge on = {crash['on']}."},
+    ]
+
+
+def manifest(tab: pd.DataFrame, qa: pd.DataFrame, sources: list[dict], r2: dict | None = None,
+             r3: dict | None = None) -> dict:
     head = git_head()
     t = tab[tab.window == "test"].set_index("step")
     q = qa[qa["sample"] == "2005-2025"].set_index("pair")
@@ -120,10 +163,15 @@ def manifest(tab: pd.DataFrame, qa: pd.DataFrame, sources: list[dict], r2: dict 
                         "cost_model": "3/2 bp per side, true turnover; bill + 25 bp financing", "gross_nav": False}
                        for k, v in R2_NAMES.items()]
         verdicts += r2["verdicts"]
+    if r3 is not None:
+        strategies += [{"id": k, "family": "R3 regime layer", "variant": v, "frozen": False,
+                        "cost_model": "3/2 bp per side, true turnover; bill + 25 bp financing", "gross_nav": False}
+                       for k, v in R3_NAMES.items()]
+        verdicts += r3["verdicts"]
     return {
         "schema_version": qr.SCHEMA_VERSION,
         "project": {"name": "regime-aware-spy-tlt-allocation", "repo": "regime-aware-spy-tlt-allocation",
-                    "repo_commit": head, "quantkit_tag": "v0.19.2", "phase": "R2" if r2 else "R1",
+                    "repo_commit": head, "quantkit_tag": "v0.19.2", "phase": "R3" if r3 else ("R2" if r2 else "R1"),
                     "thesis": "Regime-aware SPY/TLT/cash allocation; R1 swaps v1 onto permitted data and the charter's "
                               "accounting, one correction at a time.",
                     "data_cut": str(tab["end"].max()), "verdicts": verdicts},
@@ -191,4 +239,16 @@ def bundle() -> qr.Bundle:
                      "licence": "derived statistics only; KF Hi 20 (gitignored), GSW and H.15 (public domain)",
                      "ledger_ref": "reports/ledger.md R2"} for f in ("metrics.csv", "lines.csv", "ladder.json", "ladder_chains.json",
                                                                        "vs_l1.csv")]
-    return qr.Bundle(manifest(tab, qa, sources, r2), t)
+    r3, r3p = None, paths.REPORTS / "r3"
+    if (r3p / "metrics.csv").exists():
+        import json
+
+        m3, abl = pd.read_csv(r3p / "metrics.csv"), pd.read_csv(r3p / "ablation.csv")
+        t3 = tables_r3(m3, abl)
+        t = {k: pd.concat([t[k], t3[k]], ignore_index=True) if k in t3 else t[k] for k in t}
+        r3 = {"verdicts": r3_verdicts(abl, pd.read_csv(r3p / "placebo.csv"), json.loads((r3p / "crash.json").read_text()))}
+        sources += [{"path": str((r3p / f).relative_to(paths.ROOT)), "sha256": paths.sha256(r3p / f),
+                     "licence": "derived statistics only; KF Hi 20 (gitignored), GSW and H.15 (public domain)",
+                     "ledger_ref": "reports/ledger.md R3"} for f in ("metrics.csv", "ablation.csv", "placebo.csv",
+                                                                       "crash.json")]
+    return qr.Bundle(manifest(tab, qa, sources, r2, r3), t)

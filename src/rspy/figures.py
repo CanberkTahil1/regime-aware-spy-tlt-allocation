@@ -25,6 +25,15 @@ NAMES = {"L0": "SPY", "L1": "v1 legacy", "L2": "Vol-targeted SPY", "L3": "60/40"
          "L5": "Inverse-vol + vol target", "L0-line": "SPY+T-bills at matched vol"}
 SHORT = {"v1 legacy": "v1", "Vol-targeted SPY": "VT SPY", "Inverse-vol SPY/TLT": "InvVol",
          "Inverse-vol + vol target": "InvVol+VT", "SPY+T-bills at matched vol": "SPY+bills"}
+# R3 (owner, 2026-10-29): headline labels SPY, v1, 60/40, InvVol+VT, +CorrReg, +Trend, +Crash, SPY+bills.
+NAMES_R3 = {"L6": "+ correlation regime (TLT to cash when 126-day corr > 0)",
+            "L7": "+ per-asset trend (Faber 10-month SMA)", "L8": "+ crash rule (drawdown brake)",
+            "L7-on-L5": "Trend on inverse-vol + vol target", "hmm_gate": "HMM gate", "jump_gate": "Jump-model gate",
+            "min_cdar": "Min-CDaR + vol target"}
+SHORT.update({NAMES_R3["L6"]: "+CorrReg", NAMES_R3["L7"]: "+Trend", NAMES_R3["L8"]: "+Crash"})
+SHORT_R3 = {"L0": "SPY", "L1": "v1", "L3": "60/40", "L5": "InvVol+VT", "L6": "+CorrReg", "L7": "+Trend",
+            "L8": "+Crash", "L7-on-L5": "Trend only", "hmm_gate": "HMM gate", "jump_gate": "Jump gate",
+            "min_cdar": "Min-CDaR"}
 CRISIS_LABELS = {"bonds_1994": "1994 bonds", "dotcom": "Dot-com", "gfc": "GFC", "euro_2011": "Euro 2011",
                  "china_2015": "China 2015", "q4_2018": "Q4 2018", "covid": "Covid", "infl_2022": "2022 inflation"}
 FOOTER = ("SPY = SPY proxy (Ken French Hi 20, value-weighted, daily); TLT = " + paths.rules()["bonds"]["label"]

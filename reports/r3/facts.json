@@ -1,0 +1,29 @@
+{
+ "L1_equals_r2_book": true,
+ "L3_equals_r2_book": true,
+ "L5_equals_r2_book": true,
+ "L5_vol_dev": 0.08112783698989826,
+ "L5_vol_same_days": 0.08489710481058566,
+ "L6_share_dev_days_tlt_gated": 0.37610795078714115,
+ "L6_vol_dev": 0.07071686969442939,
+ "L6_vol_gated_days": 0.05487600272422651,
+ "L7_share_dev_days_tlt_zero_target": 0.5803677735150152,
+ "hmm_share_dev_decisions_turbulent": 0.298050139275766,
+ "holm_family_size": 20,
+ "jump_share_dev_decisions_turbulent": 0.43175487465181056,
+ "max_div_minus_L4_max_abs": 8.770761894538737e-15,
+ "min_cdar_first_pick_year_end": 1991,
+ "min_cdar_first_target": "1989-01-05",
+ "min_cdar_vol_default_until": "1992-01-01 (ewma_slow before the first pick; disclosed)",
+ "n_scored_decision_rows": 359,
+ "timing_s": {
+  "ablation": 16.32,
+  "books": 0.78,
+  "core_targets": 4.07,
+  "crisis_placebo": 17.08,
+  "total": 74.86,
+  "zoo": 36.61
+ },
+ "trend_share_dev_days_spy_out": 0.217885963751819,
+ "trend_share_dev_days_tlt_out": 0.31393041407593597
+}

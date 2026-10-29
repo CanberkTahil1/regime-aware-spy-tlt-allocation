@@ -62,3 +62,13 @@ Note: the grid test is marked `slow` (runtime recorded above, D0.3 amendment 5) 
 | 2026-10-28 | `make test` (94 tests, -n auto, 4 workers) | 9.3 s | — | yes |
 | 2026-10-29 | `make ladder` with the post-hoc chain walk (2 chains) + vs-L1 table (7 LW), warm | 19.9 s | 911 MB | yes (E2.15) |
 | 2026-10-29 | `make test` (98 tests, -n auto) | 8.7 s | — | yes |
+
+## R3 budgets (set at the expectation commit, E3.14) and measurements
+
+| Step | Budget | Measured | Within | Complexity |
+|---|---|---|---|---|
+| `make ladder` (R2 + R3), warm | ≤ 5 min, ≤ 1.5 GB | 62.9 s, 955 MB (rss_peak) | yes | — |
+| `make ladder`, cold (.cache/r3 and .cache/volzoo cleared) | ≤ 5 min, ≤ 1.5 GB | 110.9 s, 937 MB | yes | HMM refits ≈ 21 s (now cached), min-CDaR LPs + its vol zoo ≈ 15 s |
+| R3 part, warm (facts.json timing_s) | — | 40 s: targets 3.5, zoo 2.3, books 0.9, ablation 17.0, crisis + placebos 16.8 | yes | 20 ablation rows × (LW 1,000 + 2 dd_ratio_ci 1,000); 4 gates × 102 placebo books |
+| one rung's evaluation (4 references) | ≤ 10 s | ≈ 3.4 s | yes | O(draws·T) per interval |
+| `make test` (118 tests, -n auto) | ≤ 60 s | 10.9 s | yes | — |

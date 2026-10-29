@@ -17,8 +17,19 @@ def test_every_bundle_number_traces_to_the_committed_csv():
     ln = pd.read_csv(paths.REPORTS / "r2" / "lines.csv").set_index("rung")
     v1 = pd.read_csv(paths.REPORTS / "r2" / "vs_l1.csv").set_index("rung")
     r2 = set(site.R2_NAMES)
+    m3 = pd.read_csv(paths.REPORTS / "r3" / "metrics.csv").set_index("rung")
+    abl = pd.read_csv(paths.REPORTS / "r3" / "ablation.csv")
+    refs = {v: k for k, v in site.R3_REFS.items()}
     for r in b.tables["summary"].itertuples(index=False):
         metric, window = r.metric.rsplit(" (", 1)
+        if r.strategy in site.R3_NAMES:  # R3: development, in-sample, copied from reports/r3/*.csv
+            if metric.startswith("dsharpe_vs_"):
+                row = abl[(abl.child == r.strategy) & (abl.reference == refs[metric[len("dsharpe_vs_"):]])].iloc[0]
+                assert (r.value, r.lo, r.hi) == (row.dsharpe, row.lo, row.hi), (r.strategy, r.metric)
+            else:
+                assert r.value == m3.loc[r.strategy, metric], (r.strategy, r.metric)
+            assert r.tier == "in-sample"
+            continue
         if r.strategy in r2:  # R2: development window, in-sample, copied from reports/r2/*.csv
             want = (ln.loc[r.strategy, metric] if metric == "dsharpe_vs_line"
                     else v1.loc[r.strategy, metric] if metric == "dsharpe_vs_L1" else m1.loc[r.strategy, metric])
@@ -28,8 +39,8 @@ def test_every_bundle_number_traces_to_the_committed_csv():
         assert r.value == want, (r.strategy, r.metric)
         assert r.tier == ("disclosed-reuse" if window.startswith("test") else "in-sample")
     for r in b.tables["loss"].itertuples(index=False):
-        if r.strategy in r2:
-            v = m1.loc[r.strategy]
+        if r.strategy in r2 or r.strategy in site.R3_NAMES:
+            v = m1.loc[r.strategy] if r.strategy in r2 else m3.loc[r.strategy]
             want = {"gross": v.net_pa + v.cost_pa + v.financing_pa, "cost": v.cost_pa, "financing": v.financing_pa,
                     "net": v.net_pa}[r.part]
             assert abs(abs(r.value) - abs(want)) <= 1e-15 and r.tier == "in-sample"

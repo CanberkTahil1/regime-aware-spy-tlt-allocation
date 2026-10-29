@@ -35,14 +35,17 @@ reconcile: logs  # R1: legacy reconciliation S0-S7 + data QA -> reports/r1/ (sta
 	$(RUN) scripts/reconcile.py 2>&1 | tee logs/reconcile.log | tail -60
 	$(RUN) scripts/r1_diagnose.py 2>&1 | tee -a logs/reconcile.log | tail -3
 	$(RUN) scripts/r1_figures.py 2>&1 | tee -a logs/reconcile.log | tail -3
-ladder: logs data  # R2-R4: L0-L8 + zoo -> reports/r2/ (statistics) + reports/figures/R2/ (statistics figures) + data/r2/ (local books)
+ladder: logs data  # R2-R4: L0-L8 + zoo -> reports/r2/, reports/r3/ (statistics) + reports/figures/R2/, R3/ (statistics figures) + data/r2/, data/r3/ (local books)
 	$(RUN) scripts/ladder.py 2>&1 | tee logs/ladder.log | tail -40
 	$(RUN) scripts/r2_figures.py 2>&1 | tee -a logs/ladder.log | tail -2
+	$(RUN) scripts/r3.py 2>&1 | tee -a logs/ladder.log | tail -60
+	$(RUN) scripts/r3_figures.py 2>&1 | tee -a logs/ladder.log | tail -2
 report-site: logs  # every phase with results: reports/site/index.html + reports/figures/Rn/ (stub until R1)
 	$(RUN) scripts/site.py 2>&1 | tee logs/report_site.log | tail -5
 report-site-local: logs  # owner O1.1: curve figures + full page from the gitignored series -> reports/site_local, reports/figures_local (never committed)
 	$(RUN) scripts/site_local.py 2>&1 | tee logs/report_site_local.log | tail -5
 	$(RUN) scripts/r2_figures_local.py 2>&1 | tee -a logs/report_site_local.log | tail -2
+	$(RUN) scripts/r3_figures_local.py 2>&1 | tee -a logs/report_site_local.log | tail -2
 pin:  # owner-approved only: records the installed quantkit tag
 	@$(PY) -m rspy pin
 verify-pin:  # full tree (also run by doctor)

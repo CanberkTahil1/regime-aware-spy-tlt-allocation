@@ -210,3 +210,26 @@ def chains(built) -> dict[str, list[str]]:
 
 def as_ladder(lad: Ladder, **kw) -> Ladder:
     return dataclasses.replace(lad, **kw)
+
+
+def ablation_row(x, ref, c, rate, dt, *, draws: int | None = None) -> dict:
+    """R3 ablation row (D3.5; spec r3.ablation): `ref` rescaled ONCE ex post to x's development excess vol (`rescale`,
+    bill + 25 bp above 1×); ΔSharpe = the `pair` point with the LW 95% interval and one-sided p on (x − c, matched ref
+    − c); CDaR-95 and max-DD ratios x / matched ref with quantkit's paired stationary-bootstrap interval
+    (`stats.drawdown.dd_ratio_ci`: one index set for both series; median shown so any bias is visible)."""
+    a = paths.rules()["r3"]["ablation"]
+    x, c = np.asarray(x, np.float64), np.asarray(c, np.float64)
+    vol = float(np.std(x - c, ddof=1)) * math.sqrt(ANN)
+    rm = rescale(ref, c, vol, rate, dt, spread_bp=paths.rules()["accounting"]["financing_spread_bp"])
+    ds = sr(x - c) - sr(rm - c)
+    d = a["dsharpe"]
+    t = lw(x - c, rm - c, seed=d["seed"], draws=d["draws"], block=d["block"])
+    out = {"dsharpe": ds, "lo": t["lo"], "hi": t["hi"], "p_one_sided": t["p_one_sided"], "dsharpe_lw": t["dsharpe"],
+           "child_vol": vol}
+    dd = a["drawdown"]
+    for stat, key in (("cdar", "cdar"), ("max_dd", "maxdd")):
+        r = qdd.dd_ratio_ci(x, rm, stat=stat, alpha=dd["alpha"], draws=draws or dd["draws"],
+                            mean_block=dd["mean_block"], seed=dd["seed"], level=dd["level"])
+        out |= {f"{key}_ratio": r["point"], f"{key}_lo": r["ci"][0], f"{key}_hi": r["ci"][1],
+                f"{key}_median": float(np.nanmedian(r["draws"])), f"{key}_n_nan": r["n_nan"]}
+    return out

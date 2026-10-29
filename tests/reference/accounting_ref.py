@@ -1,7 +1,8 @@
 """Plain reference for rspy.accounting.run (D1.3): one Python loop, every formula written out from the charter, no
 numba and no quantkit. Equivalence ≤ 1e-10 in tests/test_accounting.py.
 R2 (D2.1): `band` b ≥ 0 per sleeve: at a decision row a sleeve whose drifted weight is within ±b of its target is not
-traded; outside, it trades to the band edge. b = None is the unbanded book."""
+traded; outside, it trades to the band edge. b = None is the unbanded book. R3 (D3.1): a target of exactly 0 is
+never banded (the sleeve exits fully)."""
 
 import numpy as np
 
@@ -25,7 +26,7 @@ def run_ref(target, R, bill, mmy, dt, *, cost_rates, spread, stress_spread=0.0, 
             new = []
             for i in range(N):
                 g = float(target[t - 1, i])
-                if band is not None:  # stay inside ±b of the target; outside, move to the nearest edge
+                if band is not None and g != 0.0:  # a zero target exits fully (R3 D3.1); else stay inside ±b of the target; outside, move to the nearest edge
                     b = band[i]
                     g = drifted[i] if abs(drifted[i] - g) <= b else (g - b if drifted[i] < g else g + b)
                 d = g - drifted[i]

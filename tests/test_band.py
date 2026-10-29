@@ -60,3 +60,32 @@ def test_negative_band_raises():
     target, R, bill, mmy, dt = _inputs(6)
     with pytest.raises(ValueError, match="band"):
         accounting.run(target, R, bill, mmy, dt, band=-0.01, **KW)
+
+
+def test_zero_target_exits_fully_and_reentry_stops_at_the_edge():
+    """R3 D3.1 (spec/rules.yaml accounting.band_zero_target): a sleeve whose target is exactly 0 trades to 0 (a gate
+    sends it to cash, no 5 pp stub); the band still applies otherwise, so re-entry from 0 stops at target − b."""
+    T = 40
+    R = np.zeros((T, 2))
+    bill, mmy, dt = np.zeros(T), np.zeros(T), np.full(T, 1 / 360)
+    target = np.full((T, 2), np.nan)
+    target[0] = (0.6, 0.4)
+    target[10] = (0.6, 0.0)  # gate on: TLT to cash
+    target[20] = (0.6, 0.4)  # gate off: back in
+    bk = accounting.run(target, R, bill, mmy, dt, band=0.05, **KW)
+    assert bk.held[12, 1] == 0.0  # fully out, not 0.05
+    assert np.isclose(bk.held[22, 1], 0.35)  # re-entry stops at the band edge (disclosed asymmetry)
+    ref = run_ref(target, R, bill, mmy, dt, band=np.array([0.05, 0.05]), **KW)
+    assert np.abs(bk.held - ref["held"]).max() <= 1e-12
+
+
+@pytest.mark.parametrize("seed", [0, 1, 2])
+def test_banded_fast_equals_reference_with_zero_targets(seed):
+    target, R, bill, mmy, dt = _inputs(seed, decide_every=5)
+    rows = np.flatnonzero(~np.isnan(target[:, 0]))
+    target[rows[::3], 1] = 0.0  # planted gate exits
+    target[rows[1::4], 0] = 0.0
+    fast = accounting.run(target, R, bill, mmy, dt, band=0.05, **KW)
+    ref = run_ref(target, R, bill, mmy, dt, band=np.array([0.05, 0.05]), **KW)
+    assert np.abs(fast.held - ref["held"]).max() <= 1e-10
+    assert np.abs(fast.net - ref["net"]).max() <= 1e-10

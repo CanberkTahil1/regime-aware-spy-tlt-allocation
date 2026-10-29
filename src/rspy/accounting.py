@@ -16,7 +16,8 @@ Timing, one line per transform (value at t uses data ≤ t):
 - band (R2, D2.1; optional, per sleeve b ≥ 0): at a decision row a sleeve whose DRIFTED weight is within ±b of its
   target is not traded; outside it trades to the band edge (the quantkit `trade.rules.band` convention, but on drifted
   weights: quantkit's band compares to the previous target and takes no returns). b = 0 is the unbanded book bit for
-  bit; cash is the residual and never banded; a first build from cash also stops at the edge (target − b). The edge rule: de Lataillade et al. (2012) [quantkit docstring].
+  bit; cash is the residual and never banded; a first build from cash also stops at the edge (target − b). A target of
+  exactly 0 is never banded: the sleeve exits fully (R3 D3.1, a gate to cash; re-entry from 0 still stops at the edge). The edge rule: de Lataillade et al. (2012) [quantkit docstring].
 No shorts: a negative target raises unless `allow_shorts=True` (only the R1 legacy reconciliation rows S3–S4, D1.4).
 Metrics: Sharpe = quantkit.stats.sharpe(net − bill) (rf=None, D1.3), Sortino = √252·mean(e)/√mean(min(e, 0)²).
 Complexity: O(T·N) time, O(T·N) memory; the path loop is numba-compiled (charter performance contract).
@@ -83,7 +84,7 @@ def _walk(target, R, bill, band):  # pragma: no cover - compiled; equivalence-te
         if t >= 1 and not np.isnan(target[t - 1, 0]):
             for i in range(N):
                 g = target[t - 1, i]
-                if band[i] > 0.0:
+                if band[i] > 0.0 and g != 0.0:  # a zero target exits fully (R3 D3.1)
                     g = min(max(nxt[i], g - band[i]), g + band[i])
                 dw[t, i] = g - nxt[i]
                 nxt[i] = g

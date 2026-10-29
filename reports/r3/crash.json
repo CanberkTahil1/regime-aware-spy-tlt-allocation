@@ -1,0 +1,22 @@
+{
+ "on": false,
+ "sharpe": {
+  "vol": 0.5770713797559912,
+  "candidate": 0.5741929868052192,
+  "placebo": 0.578219887467668
+ },
+ "candidate": {
+  "p_one_sided": 0.999000999000999,
+  "p": 0.08591408591408592,
+  "p_uncentred": 0.991
+ },
+ "placebo": {
+  "p_one_sided": 0.1878121878121878,
+  "p": 0.45854145854145856,
+  "p_uncentred": 0.162
+ },
+ "share_dev_days_g_below_1": 0.026855404153988623,
+ "min_g": 0.8567152546176036,
+ "max_dd_overlay_nav_excess": 0.1286569490764793,
+ "note": "judge is same-close (e_t earns r_{t+1}) on L7 excess returns; the L8 book adds the one-session lag and costs (D3.3)"
+}

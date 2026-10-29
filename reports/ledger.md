@@ -205,17 +205,52 @@ development excess vol (D3.5). Δ = child − matched reference.
 
 | ID | Expectation (band) | Source | Status |
 |---|---|---|---|
-| E3.1 | L6 vs L5 (parent), development: ΔSharpe in [−0.25, +0.05] (bonds earned well in the 1990s positive-correlation spells L6 removes); LW one-sided p > 0.05 | BUILD_PROMPTS R3; author | open |
-| E3.2 | L6 matters mainly in 1994: matched in-crisis return L6 − L5 ≥ +2 pp in bonds_1994; \|L6 − L5\| ≤ 2 pp in GFC and in Q4 2018 (gate off throughout: same holdings up to scale) | BUILD_PROMPTS R3 ("1994 and 2022-type"); research facts | open |
-| E3.3 | L7 vs L6 (parent): ΔSharpe in [−0.20, +0.15]; CDaR-95 ratio (L7 / matched L6) < 1 (point) | BUILD_PROMPTS R3 ("cuts drawdowns at some whipsaw cost") | open |
-| E3.4 | L7 cuts the 2000–02 and 2008 drawdowns: matched in-crisis return L7 − L6 > 0 in dotcom and in GFC; Q4 2018 L7 − L6 < 0 (TLT out ~3/4 of days, SPY mostly in: the hedge is removed when it worked); 1994 L7 − L6 ≥ −0.5 pp | BUILD_PROMPTS R3; research facts | open |
-| E3.5 | L8 fails `judge`: on = False (candidate one-sided LW p ≥ 0.05); L8 vs L7 matched ΔSharpe in [−0.05, +0.03]; g < 1 on < 10% of development days | BUILD_PROMPTS R3 ("most crash rules do"); D3.3 | open |
-| E3.6 | Gate rule (D3.4): neither L6 nor L7 "beats placebo" (each fails the gate-vs-parent p < 0.05 part); 100-seed percentile of L6's matched ΔSharpe < 95 | author | open |
-| E3.7 | vs 60/40 (L3) at matched vol: L6 and L7 ΔSharpe in [−0.10, +0.30] (L5 vs matched L3 ≈ +0.14 in R2's ablation chain) | owner O2.4; author | open |
-| E3.8 | vs v1 (L1) at matched vol: L6 and L7 ΔSharpe in [0.00, +0.50] (L5 +0.32 in R2) | owner O2.4; author | open |
-| E3.9 | vs the SPY + T-bills line (ex ante, L0-line): L6 and L7 ΔSharpe in [−0.10, +0.40] (L5 +0.26 in R2) | charter; author | open |
-| E3.10 | L6 realised development vol below L5's by ≥ 0.5 pp (vol scale kept while TLT goes to cash, D3.1) | D3.1 amendment 4 | open |
-| E3.11 | Zoo (descriptive): HMM and jump gates vs L5 matched ΔSharpe in [−0.20, +0.10], neither beats placebo; min-CDaR (+ vol layer) vs L5 in [−0.15, +0.10]; max-div = L4 weights ≤ 1e-10 at every decision row | D3.6; author | open |
-| E3.12 | code: the zero-target exemption leaves every R2 output unchanged — reports/r2/*.{csv,json} `cmp`-identical after `make ladder`, data/r2/books.parquet columns equal bit for bit; ladder_chains.json still cut at L5 (no R3 walk) | D3.1 amendment 1; O2.4 | open |
-| E3.13 | code: tests — gate decided ≤ t (perturbing rows > t leaves the decision unchanged); correlation = np.corrcoef reference ≤ 1e-10; faber read-back = SMA at decision rows (exact); no NaN gate/trend/zoo state at any development decision row; L8 g path = judge's candidate (Sharpe equal ≤ 1e-12); placebo = block permutation of the monthly vector, shared across sleeves; zero target exits fully under the band | D3.1–D3.6 | open |
-| E3.14 | perf: `make ladder` (R2 + R3) ≤ 5 min and peak RSS ≤ 1.5 GB (rss_peak); R3 per-rung evaluation (books, 4 references, LW + 2 dd_ratio_ci, crisis) ≤ 10 s | performance contract; D3.5 amendment 6 | open |
+| E3.1 | L6 vs L5 (parent), development: ΔSharpe in [−0.25, +0.05] (bonds earned well in the 1990s positive-correlation spells L6 removes); LW one-sided p > 0.05 | BUILD_PROMPTS R3; author | **held** — `make ladder` → reports/r3/ablation.csv (L6 vs parent): ΔSharpe **−0.081** [−0.229, +0.066], one-sided p 0.863 (Holm 1.00); CDaR ratio 1.13 [0.80, 1.38] |
+| E3.2 | L6 matters mainly in 1994: matched in-crisis return L6 − L5 ≥ +2 pp in bonds_1994; \|L6 − L5\| ≤ 2 pp in GFC and in Q4 2018 (gate off throughout: same holdings up to scale) | BUILD_PROMPTS R3 ("1994 and 2022-type"); research facts | **held** — `make ladder` → reports/r3/crisis.csv (L6 vs matched L5): 1994 **+5.87 pp** (L6 +0.07% vs −5.80%); GFC −1.16 pp, Q4 2018 −0.59 pp (in-window ΔSharpe 0.000: same holdings, the gap is the matching scale) |
+| E3.3 | L7 vs L6 (parent): ΔSharpe in [−0.20, +0.15]; CDaR-95 ratio (L7 / matched L6) < 1 (point) | BUILD_PROMPTS R3 ("cuts drawdowns at some whipsaw cost") | **failed (CDaR part)** — ΔSharpe **−0.172** [−0.421, +0.076] (inside the band) but CDaR-95 ratio L7 / matched L6 = **1.137** [0.671, 1.701], not < 1. Diagnosis below |
+| E3.4 | L7 cuts the 2000–02 and 2008 drawdowns: matched in-crisis return L7 − L6 > 0 in dotcom and in GFC; Q4 2018 L7 − L6 < 0 (TLT out ~3/4 of days, SPY mostly in: the hedge is removed when it worked); 1994 L7 − L6 ≥ −0.5 pp | BUILD_PROMPTS R3; research facts | **failed (1994 part)** — matched L7 − L6: dotcom **+10.0 pp**, GFC **+11.8 pp**, Q4 2018 **−2.5 pp** (all as predicted) but 1994 **−2.5 pp** < −0.5 pp. Diagnosis below |
+| E3.5 | L8 fails `judge`: on = False (candidate one-sided LW p ≥ 0.05); L8 vs L7 matched ΔSharpe in [−0.05, +0.03]; g < 1 on < 10% of development days | BUILD_PROMPTS R3 ("most crash rules do"); D3.3 | **held** — reports/r3/crash.json: judge on = **False** (candidate one-sided p 0.999, placebo 0.188); L8 vs L7 ΔSharpe **−0.002** [−0.006, +0.003]; g < 1 on **2.7%** of development days (min g 0.857) |
+| E3.6 | Gate rule (D3.4): neither L6 nor L7 "beats placebo" (each fails the gate-vs-parent p < 0.05 part); 100-seed percentile of L6's matched ΔSharpe < 95 | author | **held** — reports/r3/placebo.csv: L6 gate p 0.863, L7 p 0.901 (neither < 0.05 ⇒ neither beats placebo); L6 percentile **59** of 100 placebo seeds (L7 36) |
+| E3.7 | vs 60/40 (L3) at matched vol: L6 and L7 ΔSharpe in [−0.10, +0.30] (L5 vs matched L3 ≈ +0.14 in R2's ablation chain) | owner O2.4; author | **failed (L7)** — vs matched 60/40: L6 **+0.057** [−0.126, +0.240] (inside), L7 **−0.115** [−0.436, +0.205] < −0.10 |
+| E3.8 | vs v1 (L1) at matched vol: L6 and L7 ΔSharpe in [0.00, +0.50] (L5 +0.32 in R2) | owner O2.4; author | **held** — vs matched v1: L6 **+0.239** [−0.072, +0.551] (p 0.057), L7 **+0.067** [−0.294, +0.429] |
+| E3.9 | vs the SPY + T-bills line (ex ante, L0-line): L6 and L7 ΔSharpe in [−0.10, +0.40] (L5 +0.26 in R2) | charter; author | **held** — vs the ex-ante SPY + T-bills line (then matched): L6 **+0.229** [−0.062, +0.521] (p 0.053), L7 **+0.023** [−0.349, +0.395] |
+| E3.10 | L6 realised development vol below L5's by ≥ 0.5 pp (vol scale kept while TLT goes to cash, D3.1) | D3.1 amendment 4 | **held** — reports/r3/facts.json: L6 development vol **7.07%** vs L5 8.11% (−1.04 pp); on gated days 5.49% vs 8.49% |
+| E3.11 | Zoo (descriptive): HMM and jump gates vs L5 matched ΔSharpe in [−0.20, +0.10], neither beats placebo; min-CDaR (+ vol layer) vs L5 in [−0.15, +0.10]; max-div = L4 weights ≤ 1e-10 at every decision row | D3.6; author | **held** — ΔSharpe vs L5: HMM gate −0.072 [−0.267, +0.123], jump gate −0.045 [−0.256, +0.166], neither beats placebo (p 0.749 / 0.637); min-CDaR +0.024 [−0.112, +0.160]; max-div − L4 max abs **8.8e-15** |
+| E3.12 | code: the zero-target exemption leaves every R2 output unchanged — reports/r2/*.{csv,json} `cmp`-identical after `make ladder`, data/r2/books.parquet columns equal bit for bit; ladder_chains.json still cut at L5 (no R3 walk) | D3.1 amendment 1; O2.4 | **held** — after the band change and `make ladder`: every reports/r2/* file `git diff`-clean except facts.json `timing_s` (wall clock; restored); data/r2/books.parquet `DataFrame.equals` True (8,570 × 37); L1/L3/L5 rebuilt in r3.py equal R2's books bit for bit (facts.json); ladder_chains.json unchanged (chains cut at L5) |
+| E3.13 | code: tests — gate decided ≤ t (perturbing rows > t leaves the decision unchanged); correlation = np.corrcoef reference ≤ 1e-10; faber read-back = SMA at decision rows (exact); no NaN gate/trend/zoo state at any development decision row; L8 g path = judge's candidate (Sharpe equal ≤ 1e-12); placebo = block permutation of the monthly vector, shared across sleeves; zero target exits fully under the band | D3.1–D3.6 | **held** — tests/test_r3.py (14) + tests/test_band.py zero-target tests (2); each guard broken → its test FAILS, restored → PASSES (accounting zero-target exit, gate causality, faber read-back e+2, block placebo, judge path, coverage guard, correlation look-ahead) |
+| E3.14 | perf: `make ladder` (R2 + R3) ≤ 5 min and peak RSS ≤ 1.5 GB (rss_peak); R3 per-rung evaluation (books, 4 references, LW + 2 dd_ratio_ci, crisis) ≤ 10 s | performance contract; D3.5 amendment 6 | **held** — `python scripts/rss_peak.py make ladder`: warm **955 MB**, 62.9 s; cold (caches cleared) **937 MB**, 110.9 s; R3 ablation 20 rows in 17 s (≈ 0.85 s per row, ≤ 3.4 s per rung's four references) |
+
+**E3.3 / E3.4 / E3.7 failures logged before diagnosis (2026-10-29, first `make ladder` with R3).** Diagnosis (sign,
+timing, units, alignment checked; no bug found; nothing changed): the trend layer's holdings match the signal-state
+table seen before code (SPY out 39% of 1994 days, 77% of GFC days; TLT out 77% of Q4 2018 days,
+reports/r3/crisis_exposure.csv). 1994 was a flat, choppy year for SPY: the trend rule sold dips and missed recoveries
+(L7 −2.2% vs L6 +0.07%; L6 had already removed TLT). L7's CDaR is higher than matched L6's because trend whipsaw creates
+drawdowns of its own (matched L7 − L6: euro_2011 −8.9 pp, china_2015 −7.5 pp, Q4 2018 −2.5 pp; L7's max DD is in
+2015-02 → 2016-01, L6's in 2001-11 → 2002-07). The same trend effect, without the correlation layer (L7-on-L5 vs L5),
+gives −0.145 ΔSharpe: the cost is the trend layer's, not an interaction. No spec or code change.
+
+**R3 result (development 1990–2019, descriptive; owner O2.4: no walk, the R2 verdict stands — nothing promoted past
+SPY).** Ablation at matched vol (ΔSharpe, LW 95%; CDaR-95 ratio, paired bootstrap 95%; Holm over 20 p-values: every
+Holm p = 1.00):
+
+| Layer | vs parent | vs 60/40 (L3) | vs v1 (L1) | vs SPY + T-bills line |
+|---|---|---|---|---|
+| L6 corr regime (vs L5) | −0.08 [−0.23, +0.07]; CDaR ×1.13 | +0.06 [−0.13, +0.24] | +0.24 [−0.07, +0.55] | +0.23 [−0.06, +0.52] |
+| L7 trend (vs L6) | −0.17 [−0.42, +0.08]; CDaR ×1.14 | −0.12 [−0.44, +0.21] | +0.07 [−0.29, +0.43] | +0.02 [−0.35, +0.40] |
+| L8 crash (vs L7) | −0.00 [−0.01, +0.00]; CDaR ×1.00 | −0.12 [−0.44, +0.21] | +0.07 [−0.30, +0.43] | +0.02 [−0.35, +0.40] |
+
+Owner windows at matched risk (child − parent rescaled to the child's vol; reports/r3/crisis.csv):
+- **1994 bonds:** L6 **+5.9 pp** vs L5 (TLT out on 100% of days; +0.1% vs −5.8%) — the one window where the correlation
+  layer acts; L7 −2.5 pp vs L6 (SPY whipsaw); vs matched SPY L6 −0.9 pp, L7 −3.4 pp.
+- **GFC 2007-10 → 2009-03:** L6 −1.2 pp vs L5 (gate off throughout: identical holdings, the gap is the matching
+  scale); **L7 +11.8 pp** vs L6 (+6.0% vs −5.7%: SPY out 77% of days); vs matched 60/40 L7 +17.4 pp, vs SPY +22.7 pp.
+- **Q4 2018:** L6 −0.6 pp vs L5 (gate off); **L7 −2.5 pp** vs L6 (TLT out 77% of days, SPY mostly in: the hedge was
+  removed when it worked).
+Gates vs placebos: no gate beats its 12-month-block placebo; placebos themselves average about −0.10 ΔSharpe (sending
+a sleeve to cash in a 30-year bull market for both assets costs Sharpe whatever the timing), and the gates sit inside
+that distribution (L6 59th, L7 36th, HMM 64th, jump 86th percentile). Crash rule: `judge` on = False; the brake was
+active on 2.7% of days and never below 0.86. Zoo: no row differs from L5 by more than its interval. min-CDaR: vol layer
+on EWMA-slow until the first zoo pick (1991 year-end) — warm-up extended into 1990–91 for this zoo row only (disclosed).
+**Answer to the owner's question:** L6 does what it was built for (1994) and nothing else in the development sample;
+L7 helps in equity bear markets (dot-com, GFC) and hurts in choppy or hedge-working windows (1994, 2011, 2015, Q4 2018),
+for a net Sharpe loss; L8 does nothing measurable. None beats its parent; L6 sits between 60/40 and v1 / the line.
