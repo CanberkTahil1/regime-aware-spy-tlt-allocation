@@ -156,3 +156,34 @@ r3:   # R3 regime layer (D3.1-D3.6, advisor; reports/decisions.md), fixed before
     min_cdar: {impl: quantkit.alloc.min_cdar, alpha: 0.95, window: 756, floor: null, decision: month_end, then: "L5's vol layer (zoo forecast of the min-CDaR book)"}
     max_div: {impl: quantkit.alloc.risk.max_div, cov: "63-row sample covariance, ddof 1 (explicit)", identity: "equals L4 (two assets)"}
     deferred_to_R4: [v1_spread_overlay_on_L5, v1_bollinger_overlay_on_L5, gbm_risk_sizing]
+
+r4:   # R4 robustness + the three O3.1 zoo rows (D4.1-D4.7, advisor; definitions in spec/prereg.yaml r4_zoo / r4_evaluation)
+  scored: [1990-01-01, 2019-12-31]          # development only; 2020+ is R5
+  overlays:                                 # D4.1
+    spread: {window: 10, threshold: 2.5}
+    bollinger: {window: 10, num_std: 2.0}
+  gbm:                                      # D4.2
+    params: {n_estimators: 200, learning_rate: 0.05, num_leaves: 31, min_child_samples: 20, subsample: 0.8,
+             subsample_freq: 1, colsample_bytree: 0.8, reg_lambda: 0.0}
+    seed: 0
+    threads: 1
+    horizon: 21                             # sessions t+2 .. t+22
+    label_lag: 2                            # first label session after the decision close (t+1 trade, earns from t+2)
+    purge: 22
+    embargo: 0
+    rv_windows: [5, 21, 63, 252]
+    corr_window: 63
+    ret_window: 21
+    refit_years: [1989, 2018]               # year-end y fits the model for year y+1
+    haircut: 0.5
+    target_vol: 0.10
+    cap: 1.0
+  costs: {multipliers: [1, 2, 3], financing_extra_bp: 75}
+  rolling_sessions: 1260
+  sensitivity:                              # D4.5
+    maturities: [10, 20, 30]
+    band_widths: [0.0, 0.025, 0.10]
+    quarter_months: [3, 6, 9, 12]
+  dsr: {rho_star: 0.5, seed: 0}
+  pbo: {blocks: 16, descriptive_blocks: [8, 12]}
+  power: {alpha: 0.05, target: 0.8}

@@ -90,3 +90,21 @@
   amendment before the tag, or drop them from the charter.
   **Your answer:** move them to R4. Their definitions are written into the pre-registration and hashed at R4 start,
   before any number. They are exploratory, cannot change any verdict, and count toward the multiple-testing total.
+
+## R4 (advisor decisions, before any R4 number)
+- **D4.1 (advisor): v1's two signals are used as "go to cash for a day" switches on the core mix.** When v1's spread
+  or Bollinger signal fires, the sleeve it would sell goes to T-bills; on every other day the book is the core mix
+  unchanged. v1 used each signal only in one market state, judged by VIX; we use them every day, and we say so.
+- **D4.2 (advisor): the machine-learning row predicts next month's volatility with a gradient-boosted model, but may
+  only move half-way from our existing forecast** (that is the "50% haircut"). It is refit once a year on data whose
+  answers were already known, with no tuning. The unshrunk version is shown beside it.
+- **D4.3 (advisor): we install the machine-learning add-on the pinned quantkit version already declares.** It is the
+  same version and the same checked code; the libraries are standard open-source ones, and no data terms change.
+- **D4.4 (advisor): nothing was promoted, so every rung gets the same stress tests,** to show where each loses: costs,
+  financing, a single crisis, a decade. Nothing here can reopen a verdict.
+- **D4.5 (advisor): bond maturity, trading band and rebalancing calendar are each changed one at a time** against the
+  registered choice. The 10-, 20- and 30-year bond series were never checked against a real ETF, and the labels say so.
+- **D4.6 (advisor): the multiple-testing count includes every registered trial,** including v1's 648-setting search
+  re-run on the new data. Near-copies are grouped so they don't inflate the count.
+- **D4.7 (advisor): the "probability of backtest overfitting" is computed over the zoo of core-mix variants,** with
+  exact copies removed, splitting history into 16 blocks as in the original paper.

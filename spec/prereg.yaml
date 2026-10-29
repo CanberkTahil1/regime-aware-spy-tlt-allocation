@@ -116,3 +116,64 @@ r3_evaluation:
   crash_judge: {impl: quantkit.sizing.judge, rule: dd, target: 0.10, sigma: 0.10, cap: 1.0, block: 21, seed: 0, draws: 1000}
   zoo_built: [hmm_gate, jump_model_gate, min_cdar, max_div]
   zoo_deferred_R4: [v1_spread_overlay_on_L5, v1_bollinger_overlay_on_L5, gbm_risk_sizing]
+
+# R4 (2026-10-29, owner O3.1 + advisor D4.1-D4.7, before any R4 computation). Every R4 number is descriptive: no walk,
+# no promotion, no verdict can change (R2 walk seats L1, post-hoc chains seat L0, R3 not walked per O2.4). Scored:
+# development 1990-01-02 -> 2019-12-31 only; warm-up 1986-1989 estimation only; 2020+ is R5. Parameters: rules.yaml r4.
+r4_zoo:   # O3.1: the three rows deferred from R3, defined here and hashed before any R4 number; zoo = never promoted,
+          # cannot change any verdict, counted in DSR N (variants.csv) and in the PBO pool
+  v1_spread_overlay_on_L5:   # D4.1
+    signal: "legacy/signals/spread.py generate_spread_signals, unchanged; window 10, threshold 2.5 (v1 selected); input = SPY/TLT proxy daily simple returns (legacy_bridge.new_data_inputs, the L1/S7 path)"
+    state: "z_t = (spread_t - mean) / sd over the 10 spreads ending at t-1 (v1 code); only the state is used, never v1's weights"
+    action: "z_t > 2.5 => L5 SPY column 0 at row t; z_t < -2.5 => L5 TLT column 0 at row t (v1's short TLT leg floored); any other day incl. NaN z / zero sd => L5 unchanged"
+    departure_from_v1: "unconditional: v1 used spread only in its VIX high-vol state (regime_allocation.py:178-213); VIX is excluded (O0.1), registered as a departure"
+    decision: "close t (daily), traded t+1 by the accounting; regime.gate path (keep decided <= t), look-ahead test"
+    vol_scale: "L5's (D3.1 form); L5's 5 pp band with the zero-target exit; re-entry from 0 stops at the band edge"
+    report: [share of development days per state, traded turnover]
+  v1_bollinger_overlay_on_L5:   # D4.1
+    signal: "legacy/signals/bollinger.py generate_bollinger_signals, unchanged; window 10 (v1 passes z_window), num_std 2; input = SPY/TLT proxy total-return levels (new_data_inputs prices; ratio test is base-free)"
+    action: "ratio_t > upper band => SPY column 0; ratio_t < lower band => TLT column 0; otherwise (incl. NaN bands) L5 unchanged"
+    departure_from_v1: "unconditional: v1 used Bollinger only in its low-vol downtrend state; registered"
+    decision: "as v1_spread_overlay_on_L5"
+    vol_scale: "as v1_spread_overlay_on_L5"
+    report: [share of development days per state, traded turnover]
+  gbm_risk_sizing:   # D4.2 ("purged CV, 50% haircut")
+    model: "quantkit.ml.lightgbm(task='regression'), fixed defaults (n_estimators 200, learning_rate 0.05, num_leaves 31, min_child_samples 20, subsample 0.8, subsample_freq 1, colsample_bytree 0.8, reg_lambda 0), seed 0, threads 1, search None, early_stopping None"
+    label: "y_t = log sqrt(252 * mean(r^2)) of the unscaled L4 book's daily log net return over sessions t+2 .. t+22 (21 sessions; zero-mean, the zoo's QLIKE proxy); label_end_t = t+22"
+    features: "at close t, data <= t: log sigma_zoo_t (annualised sqrt(252 f_t) of L5's stitched R2 forecast); log sqrt(252 mean r^2) of the L4 book's daily log net return over the 5, 21, 63, 252 sessions ending at t; SPY-TLT Pearson correlation over 63 sessions ending at t (regime.corr); SPY proxy 21-session compounded return ending at t; mmy_t (the lagged H.15 money-market yield the financing uses)"
+    rows: "rows with any undefined feature or label are dropped and counted; training may use 1986-1989 (estimation only)"
+    cv: "walk-forward, expanding, purged: one quantkit cv.Split per year-end y in 1989..2018: test = rows of year y+1, train = rows t with label_end_t <= last row of year y; purge 22, embargo 0, label_end passed to fit_cv; quantkit cv.check_split on every split (tested); predictions only from fit_cv's split results"
+    haircut: "0.5, frozen, no sweep: log sigma_used_t = log sigma_zoo_t + 0.5 * (log sigma_gbm_t - log sigma_zoo_t)"
+    sizing: "target_t = min(0.10 / sigma_used_t, 1.0) x L4's latest decided weights (L5's vol layer with sigma_used in place of sigma_zoo); rows before 1990 use sigma_zoo (warm-up); L5's 5 pp band"
+    determinism: "1 vs N workers bit-identical (test)"
+  gbm_risk_sizing_raw: {as: gbm_risk_sizing, haircut: 0.0, role: "descriptive zoo row (the un-shrunk reading)"}
+
+r4_evaluation:
+  label: "built rungs; none promoted (R2 walk seats L1, post-hoc chains seat L0, R3 not walked per O2.4)"   # D4.4
+  rungs: [L0, L1, L2, L3, L4, L5, L5-lev, L6, L7, L8]
+  parents: {L2: L0, L3: L0, L4: L3, L5: L4, L6: L5, L7: L6, L8: L7, L5-lev: L5}   # O2.3 chains, post-hoc; L1, L0: none
+  comparisons: {all: [line, L1, L3], L1: [line, L0], L0: [line]}
+  match: "reference rescaled once ex post to the child's development excess vol (evaluate.rescale, bill + 25 bp above 1x; 100 bp in the +75 bp leg)"
+  costs: {multipliers: [1, 2, 3], financing_extra_bp: 75}
+  loco: "the six development crisis windows, one dropped at a time; matched once on the full sample"
+  decades: [[1990-01-01, 1999-12-31], [2000-01-01, 2009-12-31], [2010-01-01, 2019-12-31]]
+  rolling: {window_sessions: 1260, stats: ["excess Sharpe per rung", "dSharpe vs the parent matched once over development"]}
+  power: {impl: quantkit.stats.power.periods_needed, alpha: 0.05, target: 0.8, sr: "per-period (ann / sqrt 252)", rho: "corr(child excess, matched parent excess)", nonpositive: "inf (measured edge <= 0)", label: "point estimate as true effect (optimistic); iid planning (quantkit HEADER)"}
+  waterfall: "arithmetic annualised means: gross + cash - cost_spy - cost_tlt - financing = net; net - bill = excess; per-day identity <= 1e-10; CAGR gap shown apart; bars 1x, 2x, 3x, +75 bp"
+  sensitivity:   # D4.5, one factor at a time vs the registered rung; descriptive; registered in variants.csv first
+    maturity: {years: [10, 20, 30], rungs: [L1, L3, L4, L5, L6, L7, L8], label: "GSW <n>y constant-maturity proxy, not QA'd vs an ETF", assert: "SVENY<n> reported from the 1986 warm-up start"}
+    band_pp: {widths: [0.0, 2.5, 10.0], calendar: monthly, rungs: [L3, L4, L5, L6, L7]}
+    calendar: {quarterly: "month-end rows of Mar/Jun/Sep/Dec at offset 0 for the mix, the L6 gate and the L7 read-back; vol scale and L8 brake stay daily", band_pp: 5, rungs: [L3, L4, L5, L6, L7]}
+    untested_disclosed: ["quarterly timing luck (other month-in-quarter phases)", "band x calendar interactions"]
+  dsr:   # D4.6
+    pool: "development daily bill-excess returns of every variants.csv row with a return series and counted_in_dsr = yes (placebos already counted stay; 100-seed sets out; S0-S6 and diagnostics out), tranche offsets included (flag set yes before any DSR), plus v1's 648-config grid on the L1/S7 path (permitted data, realised-vol proxy, charter accounting), scored 1990-2019"
+    n_eff: {impl: quantkit.stats.effective_trials, rho_star: 0.5, sensitivity: quantkit default, seed: 0}
+    n_used: "n_eff + selection-only rows (walk_chains_O2.3: +1)"
+    report: "quantkit.stats.dsr_effective for every rung above and for the best Sharpe in the pool; companions: DSR at raw N (sum n_configs) and without v1's grid; k_cut_sens"
+  pbo:   # D4.7
+    primary_pool: [L5, L4b, max_div, L5_vol_ewma_slow, L5_vol_ewma_fast, L5_vol_har, L5_vol_gjr_garch_t, L5_vol_egarch_t, hmm_gate, jump_model_gate, min_cdar, v1_spread_overlay_on_L5, v1_bollinger_overlay_on_L5, gbm_risk_sizing, gbm_risk_sizing_raw]
+    dedupe: "exact-duplicate columns dropped before CSCV (first kept), dropped ids logged; zero-variance-half columns logged and dropped"
+    blocks: 16
+    descriptive_blocks: [8, 12]
+    secondary_pool: "every selectable rung and sensitivity variant (L0, L1, L2, L2-u, L3, L4, L5, L5-lev, L6 + L6-63 / th -0.2 / th +0.2, L7 + L7-on-L5 / L7-63, L8, the R4 sensitivity books) + the deduped zoo; no placebos, no tranche offsets, no line; descriptive"
+    inputs: "development daily excess returns, record offset, 1x costs"

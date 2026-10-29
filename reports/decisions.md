@@ -411,3 +411,133 @@ any R2 code or result. Research: reports/research/R2.md (16791b4).
   their definitions (v1 spread overlay on L5; v1 Bollinger overlay on L5; GBM risk-side sizing row with purged CV and
   the 50% haircut) are written and registered in spec/prereg.yaml, and its hash goes into the ledger. They are zoo rows:
   they cannot change any verdict and are counted in DSR N. **Resolved.**
+
+## R4 (research: reports/research/R4.md, d2fa0c5; all decider = advisor, before any R4 computation; owner O3.1: the three deferred zoo rows are defined in spec/prereg.yaml `r4` and hashed before any R4 number)
+
+### D4.1 — v1 spread / Bollinger overlays on L5 · confidence high
+- **Options:**
+  - (a) [rec] Cash-only event overlay: v1's frozen signal code with its selected parameters. The flagged sleeve goes to
+    cash on signal days only.
+  - (b) Replace L5 with v1's floored weights on signal days.
+  - (c) v1's floored weights replace L4's mix.
+- **Choice:** (a), amended:
+  1. It fires only on signal days. If spread z > 2.5, or the Bollinger ratio is above its upper band, the SPY column
+     goes to 0. If z < −2.5, or the ratio is below its lower band, the TLT column goes to 0. This is v1's short TLT leg,
+     floored. Any other day, including NaN z or a zero sd, keeps L5 unchanged.
+  2. The signal is applied unconditionally. v1 used spread only in its VIX high-vol state and Bollinger only in its
+     low-vol downtrend state. This is a registered departure from v1.
+  3. `legacy/signals/{spread,bollinger}.py` are called unchanged (window 10, th 2.5, num_std 2). Spread runs on proxy
+     daily returns and Bollinger on proxy total-return levels. Only each function's state is used, never its weights.
+     The decision is at close t and traded at t+1, through the tested `regime.gate` path with a look-ahead test.
+  4. L5's vol scale is kept. L5's 5 pp band applies with the zero-target exit; re-entry stops at the band edge.
+  5. For each row, report the share of development days in each state and the traded turnover. Two variants rows;
+     zoo; counted in DSR N.
+- **Why the others lost:** (b) puts 100% of the book in one sleeve and changes the mix and the concentration together,
+  so it no longer isolates the signal. (c) is a different rung (v1's mostly-SPY allocator) that repeats L1/L2.
+
+### D4.2 — GBM risk-side sizing row · confidence medium ("50% haircut" is an interpretation; the raw row covers the other reading)
+- **Options:**
+  - (a) [rec] A LightGBM vol forecast shrunk 50% in log space toward L5's own forecast, refit walk-forward with a purge.
+  - (b) (a) plus CPCV early stopping.
+  - (c) A Harvey–Liu 50% Sharpe haircut in reporting only.
+- **Choice:** (a), amended:
+  1. Label = log √(252·mean r²) of the unscaled L4 book's daily log net returns over sessions t+2 … t+22. This is zero
+     mean, the zoo's QLIKE proxy. σ̂_zoo and σ̂_GBM are both annualised before the blend.
+  2. The zoo feature is exactly the stitched σ̂ that sizes L5 in R2 (no new zoo run). Undefined rows are dropped and
+     counted. Training may use the 1986–89 warm-up; the first scored prediction is in 1990.
+  3. The bill feature is the lagged H.15 yield the financing uses (mmy), not a same-day print.
+  4. Splits are hand-built `cv.Split`s, one per year y+1, with label_end = t+22, purge 22, embargo 0, and
+     `check_split` on each (tested). `search=None`, `early_stopping=None`, seed 0, threads 1. Predictions come only
+     from `fit_cv`'s split results.
+  5. The haircut is frozen at 0.5 with no sweep. The blended and raw rows are 2 trials, both zoo.
+  6. Expectation: ΔSharpe vs matched L5 in [−0.05, +0.05], with the blended row no further from L5 than the raw row.
+- **Why the others lost:** (b) adds a search, and CPCV trains on later years, so it cannot size a tradable book.
+  (c) is cosmetic on a sizing row and duplicates the DSR; quantkit deprecates `haircut_sharpe` for decisions.
+
+### D4.3 — GBM backend · confidence high · not escalated (advisor: not a re-pin, not a licence question)
+- **Options:**
+  - (a) [rec] Add the `ml` extra of the same pinned tag v0.19.2.
+  - (b) Use scikit-learn HistGradientBoosting directly.
+  - (c) Drop the GBM row.
+- **Choice:** (a), amended:
+  1. LICENSES.md gets a "Software (non-data)" line, with versions and licences read from the installed METADATA.
+  2. `make verify-pin` must pass with spec/quantkit_pin.json unchanged byte for byte. If pin.py would rewrite it, stop:
+     that is a re-pin.
+  3. A test checks the GBM row is bit-identical with 1 worker and with N workers; `threads` is pinned in the spec.
+  4. A perf budget is set before code. Only the LightGBM path is imported.
+  5. The real `uv lock` / `uv sync` runs in the repo, and uv.lock is committed (no push).
+- **Why the others lost:** (b) re-implements what quantkit provides and drops `fit_cv`'s leakage guards. (c)
+  contradicts O3.1 (a charter change).
+
+### D4.4 — Robustness scope (no rung promoted) · confidence high
+- **Options:**
+  - (a) [rec] Every built main rung.
+  - (b) The seat holders only.
+  - (c) L2–L8 without L1 and L5-lev.
+- **Choice:** (a), amended:
+  1. The header reads "built rungs; none promoted (R2 walk seats L1, post-hoc chains seat L0, R3 not walked per
+     O2.4)". Every row is descriptive.
+  2. Parents: L2→L0, L3→L0, L4→L3, L5→L4, L6→L5, L7→L6, L8→L7, L5-lev→L5. L1 has no parent (a comparison row) and is
+     compared with the line and L0. L0 is compared with the line only. Every rung is also compared with matched L1 and
+     L3. Matching uses `evaluate.rescale`, at spread 100 bp in the +75 bp leg.
+  3. Waterfall on arithmetic annualised means: gross + cash − SPY cost − TLT cost − financing = net, then − bill =
+     excess. The identity holds per day ≤ 1e-10. The CAGR gap (vol drag) is shown separately. Bars for 1×, 2×, 3×
+     and +75 bp; zero bars are kept.
+  4. Power: `periods_needed` on per-period Sharpe ratios, with ρ = corr(child excess, matched parent excess). Where
+     the edge is ≤ 0 it prints "∞ (measured edge ≤ 0)". quantkit's HEADER caveat is printed, labelled optimistic.
+  5. Rolling 5-year ΔSharpe matches the parent once over the full development period.
+  6. Development rows only. LOCO uses the six development windows. Descriptive and zoo rows stay out of these tables.
+     Cost, financing and LOCO legs are not new trials (noted in variants.csv).
+- **Why the others lost:** (b) says nothing about the layers. (c) drops the charter's v1 side-by-side and the only
+  levered row.
+
+### D4.5 — Sensitivity grids · confidence high
+- **Options:**
+  - (a) [rec] One factor at a time.
+  - (b) The full width × calendar grid.
+  - (c) Maturity on L3/L5 only.
+- **Choice:** (a), amended:
+  1. The 10y/20y/30y legs are labelled "GSW <n>y constant-maturity proxy, not QA'd vs an ETF". An assert checks that
+     SVENY<n> is reported from the 1986 warm-up start.
+  2. Each variant is compared with its registered rung at matched vol (LW ΔSharpe, CDaR-95 ratio) and with the line,
+     with turnover and cost drag. Development only.
+  3. The band acts on each rung's existing decision rows: month-end for L3/L4, daily for L5–L7, so band 0 there means
+     daily rescaling. Quarterly = the Mar/Jun/Sep/Dec month-end rows at offset 0 for the mix, the L6 gate and the L7
+     read-back. The vol scale and the L8 brake stay daily.
+  4. Two effects are disclosed as untested: quarterly timing luck and band × calendar interactions.
+  5. All 41 books (maturity 3 × 7 [L1, L3–L8]; band 3 × 5 [L3–L7]; quarterly 1 × 5) are registered before any is built.
+  6. L8 is in the maturity grid only.
+- **Why the others lost:** (b) adds near-duplicate trials for interactions the literature does not expect to matter.
+  (c) hides L6, where duration matters (1994), and drops L1.
+
+### D4.6 — DSR trial pool · confidence high (medium on the placebo amendment)
+- **Options:**
+  - (a) [rec] Every registered row with a return series plus v1's 648-config grid on permitted data.
+  - (b) Raw N.
+  - (c) (a) without v1's grid.
+- **Choice:** (a), amended:
+  1. The placebos the register already counts (L8_placebo, the 8 seed-0 gate placebos) stay in. The 100-seed sets
+     stay out.
+  2. Tranche offsets go in. Their flag goes from no to yes before any DSR result.
+  3. N used = n_eff + selection-only rows (walk_chains_O2.3: +1).
+  4. v1's grid is run on the L1/S7 path (KF Hi 20, GSW 25y, realised-vol proxy for ^VIX, charter accounting), varied
+     only through v1_params, and scored 1990–2019.
+  5. Two companion rows: DSR at raw N, and DSR without v1's grid; k_cut_sens is reported. The headline uses ρ* 0.5.
+  6. The S0–S6 rows and diagnostics stay out. R4 rows are registered first.
+- **Why the others lost:** (b) treats near-duplicates as independent. (c) understates the search behind L1 (the
+  flattering direction).
+
+### D4.7 — PBO pool and blocks · confidence high
+- **Options:**
+  - (a) [rec] L5 + the zoo, S = 16.
+  - (b) Everything in one pool.
+  - (c) S = 10.
+- **Choice:** (a), amended:
+  1. Exact-duplicate columns are dropped before the CSCV (L4b ≡ max_div), with the dropped ids logged. They stay in
+     DSR N.
+  2. Secondary pool (descriptive): every selectable rung and sensitivity variant plus the deduped zoo. No placebos, no
+     tranche offsets, no line.
+  3. Inputs are development daily excess returns at the record offset and 1× costs. A zero-variance column is logged
+     and dropped.
+  4. S = 8 and S = 12 are printed beside S = 16 whatever they show.
+- **Why the others lost:** (b) pads the pool with non-trials. (c) has coarser halves and no reason to be primary.

@@ -72,3 +72,16 @@ Note: the grid test is marked `slow` (runtime recorded above, D0.3 amendment 5) 
 | R3 part, warm (facts.json timing_s) | — | 40 s: targets 3.5, zoo 2.3, books 0.9, ablation 17.0, crisis + placebos 16.8 | yes | 20 ablation rows × (LW 1,000 + 2 dd_ratio_ci 1,000); 4 gates × 102 placebo books |
 | one rung's evaluation (4 references) | ≤ 10 s | ≈ 3.4 s | yes | O(draws·T) per interval |
 | `make test` (118 tests, -n auto) | ≤ 60 s | 10.9 s | yes | — |
+
+## R4 budgets (set at the expectation commit, E4.17)
+
+| Step | Budget | Complexity |
+|---|---|---|
+| overlay signals (v1 spread / Bollinger) | ≤ 2 s, ≤ 400 MB | v1's pandas rolling O(T) |
+| GBM: features + 30 walk-forward LightGBM fits (200 trees, ≤ 8,600 rows × 8 features) | ≤ 30 s, ≤ 600 MB | O(fits · trees · rows · features) histogram GBM, threads 1 per fit |
+| sensitivity books: 7 maturity × (L4 vol zoo + targets) + 20 band/calendar targets | ≤ 60 s cold, ≤ 10 s warm (vol zoo Parquet cache) | 7 extra vol-zoo series (GARCH refits) cached by series hash |
+| v1 grid on permitted data (648 configs) | ≤ 90 s, ≤ 1.2 GB (process pool, 4 workers) | 648 × (v1 signals O(T) + numba book O(T·N)) |
+| DSR (effective_trials, N ≈ 800, T ≈ 7,560) | ≤ 10 s, ≤ 300 MB | exact clustering O(N²) correlations |
+| PBO (S = 16, 12,870 splits, N ≤ 60) | ≤ 5 s | block moment sums, chunked |
+| robustness tables (costs, LOCO, decades, rolling, power, waterfall) on 10 rungs | ≤ 40 s | LW 1,000 draws per comparison |
+| whole R4 part, warm | ≤ 150 s; `make ladder` total ≤ 5 min, ≤ 1.5 GB | — |

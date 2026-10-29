@@ -262,3 +262,40 @@ whose worst drawdown is ~13%, so its `judge` failure says little about crash rul
 overlay on L5 and the GBM risk-side sizing row (purged CV, 50% haircut) move to R4. **R4's first step, before any
 computation:** write their definitions into spec/prereg.yaml and record its sha256 here. Zoo rows: they cannot change
 any verdict and are counted in DSR N. R3 is closed on that basis (tag r3-done, owner "tag it").
+
+## R4 — robustness, costs, and the three O3.1 zoo rows (expectations committed before any R4 code or number)
+
+**O3.1 condition met first:** the definitions of the v1 spread overlay on L5, the v1 Bollinger overlay on L5 and the
+GBM risk-side sizing row (purged walk-forward CV, 50% log-space haircut), plus the raw-GBM descriptive row, are written
+in `spec/prereg.yaml` `r4_zoo` (with the R4 evaluation in `r4_evaluation`) **before any R4 computation**.
+Pre-registration hashes: `spec/prereg.yaml` sha256 **c7779261dbd968cb7246fb3af02fda8942b07985e20b01d2168fa62dea70634f**;
+`spec/rules.yaml` sha256 **23ba0469c87ee8ac098a7f82167bf27df8db15bb7a4a78a55c042aa8a7157d36** (adds `r4`).
+Decisions D4.1–D4.7 (advisor, reports/decisions.md; none escalated: D4.3 is not a re-pin or a licence question).
+variants.csv: +4 zoo rows, +41 sensitivity books, tranche offsets now counted in DSR (D4.6), robustness legs and v1's
+permitted-data grid registered as not new trials.
+Scope (D4.4): "built rungs; none promoted (R2 walk seats L1, post-hoc chains seat L0, R3 not walked per O2.4)". Every
+R4 number is descriptive and cannot change any verdict. Scored: development 1990-01-02 → 2019-12-31; 2020+ is R5.
+Disclosed priors: every R2/R3 number (reports/r2, reports/r3), including the development Sharpe ratios L0 0.48, L1
+0.51, L3 0.69, L4 0.82, L5 0.83, L6 0.75, L7 0.58, L8 0.58, the turnovers (L1 27.6×/yr, L5 0.43, L7 1.65) and the
+R3 2×/3× cost rows for L5–L8. No R4 return, signal state or forecast has been computed. Predictions are the author's,
+low-to-medium confidence.
+
+| ID | Expectation (band) | Source | Status |
+|---|---|---|---|
+| E4.1 | Spread overlay vs matched L5: ΔSharpe in [−0.10, +0.05], LW p > 0.05; each state (SPY→cash, TLT→cash) on 0.5%–5% of development days; traded turnover in [1, 10]×/yr (L5 0.43) | D4.1; author | open |
+| E4.2 | Bollinger overlay vs matched L5: ΔSharpe in [−0.15, +0.05], p > 0.05; each state on 2%–15% of development days; turnover in [1, 10]×/yr | D4.1; author | open |
+| E4.3 | GBM row vs matched L5: ΔSharpe in [−0.05, +0.05]; raw GBM in [−0.10, +0.10]; \|ΔSharpe(blend)\| ≤ \|ΔSharpe(raw)\| | D4.2 | open |
+| E4.4 | code: every GBM split passes `cv.check_split` (purge 22) and a split whose training label crosses the refit date raises `LeakageError`; predictions bit-identical with 1 vs 2 workers; overlay and GBM targets at row t unchanged when returns after t are perturbed | D4.2, D4.3 | open |
+| E4.5 | Costs: at 3×, every layer's ΔSharpe vs its matched parent moves by ≤ 0.02 from 1× (L3–L8 turnover ≤ 1.7×/yr); L1's own Sharpe falls by ≥ 0.08 from 1× to 3× (27.6×/yr traded) | D4.4; R3 cost rows | open |
+| E4.6 | +75 bp financing: books with gross ≤ 1 on every row (L0, L3–L8) have net identical bit for bit to 1×; L5-lev vs L5 ΔSharpe moves by ≤ 0.05; L1 and L2 (gross up to 2) lose ≤ 0.10 Sharpe | D4.4 | open |
+| E4.7 | Leave-one-crisis-out: dropping bonds_1994 lowers L6 vs L5 ΔSharpe by ≥ 0.02 (its one helpful window); dropping GFC lowers L7 vs L6 ΔSharpe by ≥ 0.03; no layer's ΔSharpe changes sign in more than 2 of 6 drops | D4.4; R3 crisis.csv | open |
+| E4.8 | Decades: L5 excess Sharpe > 0.4 in each of 1990s/2000s/2010s; L3 vs matched L0 positive in ≥ 2 of 3 decades; L7 vs matched L6 negative in ≥ 2 of 3 | D4.4; author | open |
+| E4.9 | Rolling 5-year: L5 vs matched L4 ΔSharpe positive in 30%–70% of windows (ΔSharpe +0.01 overall); L7 vs matched L6 positive in ≤ 45% of windows | D4.4 | open |
+| E4.10 | Maturity: L5 development Sharpe at 10/20/30y within ±0.15 of 25y (0.83); L3 Sharpe within ±0.20 of 0.69; L6 − L5 matched return in bonds_1994 ≥ +2 pp at 20y and 30y; every SVENY10/20/30 leg reported from the 1986 start (assert) | D4.5 | open |
+| E4.11 | Band / calendar: every variant's development Sharpe within ±0.05 of its registered rung; band 0 on L5 at least doubles L5's turnover; quarterly lowers L3/L4 turnover | D4.5; Jaconetti et al. 2010 | open |
+| E4.12 | DSR: N_eff (ρ* 0.5) in [5, 80] from n_raw ≥ 800; DSR ≥ 0.95 for L4, L5, L6; DSR < 0.95 for L0 and L1 (DSR tests Sharpe > the expected best null, not edge over SPY) | D4.6; author | open |
+| E4.13 | PBO, primary zoo pool, S = 16: in [0.25, 0.75] (near-copies of L5: selection is close to a coin flip); S = 8 and 12 within ±0.15 of S = 16 | D4.7 | open |
+| E4.14 | Power: every layer with measured ΔSharpe ≤ 0 prints ∞; for the positive ones (L3 vs L0, L4 vs L3, L5 vs L4) the years needed exceed 20 for L4 vs L3 and 100 for L5 vs L4 | D4.4 | open |
+| E4.15 | Waterfall: the per-day identity holds ≤ 1e-10 for every rung and cost row; cost drag ≤ 0.05%/yr for L3–L8 at 1×; L1 cost drag ≥ 0.5%/yr; financing non-zero only for L1, L2, L5-lev | D4.4 | open |
+| E4.16 | code: after R4 code, every reports/r2 and reports/r3 statistic file is unchanged (except timing); spec/quantkit_pin.json unchanged byte for byte after the `ml` install; `make verify-pin` passes | D4.3 | open |
+| E4.17 | perf: `make ladder` (R2 + R3 + R4) warm ≤ 5 min and peak RSS ≤ 1.5 GB; R4 part warm ≤ 150 s; GBM fits (30 walk-forward fits) ≤ 30 s; v1 grid (648 books) ≤ 90 s with a process pool | performance contract | open |
