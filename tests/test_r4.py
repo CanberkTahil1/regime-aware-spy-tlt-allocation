@@ -59,7 +59,14 @@ def test_overlay_targets_and_holdings_use_no_future_returns(kind):
     l5 = np.tile([0.5, 0.45], (len(inp.index), 1))
     tg = regime.gate(l5, robust.overlay_keep(p, inp, kind))
     held = rungs.book(tg, inp, band=0.05).held
-    for t in (200, 451, 900, 1300):
+    k = robust.overlay_keep(p, inp, kind)
+    sig = np.flatnonzero((k == 0).any(axis=1))
+    sig = sig[(sig > 50) & (sig < len(inp.index) - 5)]
+    # review R4 MINOR: probe the session before signal days (both states), where a one-day look-ahead would read the
+    # perturbed future; the perturbation (both legs +5%/day) sets the spread to 0 and moves the ratio, flipping the state
+    pick = sig[:: max(1, len(sig) // 6)]
+    ts = sorted({*pick, *(pick - 1), 200, 900})  # s and s − 1: a shifted signal also shifts `sig`, so probe both
+    for t in ts:
         p2 = p.copy()
         p2.loc[p2.index > inp.index[t], ["hi20", "tlt25"]] = 0.05
         inp2 = _inp_of(p2, "1987-03-02")
@@ -197,13 +204,21 @@ def test_v1_grid_net_bit_identical_with_1_and_2_workers(tmp_path):
     assert np.array_equal(a, b)
 
 
-def test_waterfall_vol_drag_is_nonnegative_for_a_low_vol_book():
-    inp = _inp(9, T=800)
-    tg = np.full(inp.R.shape, np.nan)
-    tg[0] = (0.2, 0.2)  # a low-vol book: mean·252 − CAGR < 0 here, the compounded-mean drag is still ≥ 0
-    bk = rungs.book(tg, inp)
-    w = robust.waterfall(bk, bk, inp.bill)
-    assert w["vol_drag_pa"] >= 0 and w["compounded_mean_pa"] >= w["cagr"]
+def test_waterfall_vol_drag_equals_a_hand_computed_value():
+    """Two days, +10% then −10%: mean 0, so the compounded mean is 0 and the drag = −CAGR = 1 − 0.99^126 (review R4
+    MINOR: a value, not an inequality that holds for any input). mean·252 − CAGR would give the same here; the low-vol
+    case below separates the two definitions."""
+    from rspy.accounting import Book
+
+    z = np.zeros(2)
+    net = np.array([0.1, -0.1])
+    bk = Book(pd.RangeIndex(2), np.zeros((2, 2)), net, z, z, z, net, z, np.zeros(2, bool))
+    w = robust.waterfall(bk, bk, z)
+    assert w["vol_drag_pa"] == pytest.approx(1 - 0.99**126, abs=1e-12) and w["compounded_mean_pa"] == 0.0
+    net = np.full(252, 0.0004)  # constant return: no vol, so no vol drag (mean·252 − CAGR = 0.1008 − 0.1060 < 0)
+    bk = Book(pd.RangeIndex(252), np.zeros((252, 2)), net, np.zeros(252), np.zeros(252), np.zeros(252), net,
+              np.zeros(252), np.zeros(252, bool))
+    assert robust.waterfall(bk, bk, np.zeros(252))["vol_drag_pa"] == pytest.approx(0.0, abs=1e-12)
 
 
 def test_gbm_predictions_up_to_t_ignore_returns_after_t():

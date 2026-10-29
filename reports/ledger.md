@@ -282,23 +282,23 @@ low-to-medium confidence.
 
 | ID | Expectation (band) | Source | Status |
 |---|---|---|---|
-| E4.1 | Spread overlay vs matched L5: ΔSharpe in [−0.10, +0.05], LW p > 0.05; each state (SPY→cash, TLT→cash) on 0.5%–5% of development days; traded turnover in [1, 10]×/yr (L5 0.43) | D4.1; author | open |
-| E4.2 | Bollinger overlay vs matched L5: ΔSharpe in [−0.15, +0.05], p > 0.05; each state on 2%–15% of development days; turnover in [1, 10]×/yr | D4.1; author | open |
-| E4.3 | GBM row vs matched L5: ΔSharpe in [−0.05, +0.05]; raw GBM in [−0.10, +0.10]; \|ΔSharpe(blend)\| ≤ \|ΔSharpe(raw)\| | D4.2 | open |
-| E4.4 | code: every GBM split passes `cv.check_split` (purge 22) and a split whose training label crosses the refit date raises `LeakageError`; predictions bit-identical with 1 vs 2 workers; overlay and GBM targets at row t unchanged when returns after t are perturbed | D4.2, D4.3 | open |
-| E4.5 | Costs: at 3×, every layer's ΔSharpe vs its matched parent moves by ≤ 0.02 from 1× (L3–L8 turnover ≤ 1.7×/yr); L1's own Sharpe falls by ≥ 0.08 from 1× to 3× (27.6×/yr traded) | D4.4; R3 cost rows | open |
-| E4.6 | +75 bp financing: books with gross ≤ 1 on every row (L0, L3–L8) have net identical bit for bit to 1×; L5-lev vs L5 ΔSharpe moves by ≤ 0.05; L1 and L2 (gross up to 2) lose ≤ 0.10 Sharpe | D4.4 | open |
-| E4.7 | Leave-one-crisis-out: dropping bonds_1994 lowers L6 vs L5 ΔSharpe by ≥ 0.02 (its one helpful window); dropping GFC lowers L7 vs L6 ΔSharpe by ≥ 0.03; no layer's ΔSharpe changes sign in more than 2 of 6 drops | D4.4; R3 crisis.csv | open |
-| E4.8 | Decades: L5 excess Sharpe > 0.4 in each of 1990s/2000s/2010s; L3 vs matched L0 positive in ≥ 2 of 3 decades; L7 vs matched L6 negative in ≥ 2 of 3 | D4.4; author | open |
-| E4.9 | Rolling 5-year: L5 vs matched L4 ΔSharpe positive in 30%–70% of windows (ΔSharpe +0.01 overall); L7 vs matched L6 positive in ≤ 45% of windows | D4.4 | open |
-| E4.10 | Maturity: L5 development Sharpe at 10/20/30y within ±0.15 of 25y (0.83); L3 Sharpe within ±0.20 of 0.69; L6 − L5 matched return in bonds_1994 ≥ +2 pp at 20y and 30y; every SVENY10/20/30 leg reported from the 1986 start (assert) | D4.5 | open |
-| E4.11 | Band / calendar: every variant's development Sharpe within ±0.05 of its registered rung; band 0 on L5 at least doubles L5's turnover; quarterly lowers L3/L4 turnover | D4.5; Jaconetti et al. 2010 | open |
-| E4.12 | DSR: N_eff (ρ* 0.5) in [5, 80] from n_raw ≥ 800; DSR ≥ 0.95 for L4, L5, L6; DSR < 0.95 for L0 and L1 (DSR tests Sharpe > the expected best null, not edge over SPY) | D4.6; author | open |
-| E4.13 | PBO, primary zoo pool, S = 16: in [0.25, 0.75] (near-copies of L5: selection is close to a coin flip); S = 8 and 12 within ±0.15 of S = 16 | D4.7 | open |
-| E4.14 | Power: every layer with measured ΔSharpe ≤ 0 prints ∞; for the positive ones (L3 vs L0, L4 vs L3, L5 vs L4) the years needed exceed 20 for L4 vs L3 and 100 for L5 vs L4 | D4.4 | open |
-| E4.15 | Waterfall: the per-day identity holds ≤ 1e-10 for every rung and cost row; cost drag ≤ 0.05%/yr for L3–L8 at 1×; L1 cost drag ≥ 0.5%/yr; financing non-zero only for L1, L2, L5-lev | D4.4 | open |
-| E4.16 | code: after R4 code, every reports/r2 and reports/r3 statistic file is unchanged (except timing); spec/quantkit_pin.json unchanged byte for byte after the `ml` install; `make verify-pin` passes | D4.3 | open |
-| E4.17 | perf: `make ladder` (R2 + R3 + R4) warm ≤ 5 min and peak RSS ≤ 1.5 GB; R4 part warm ≤ 150 s; GBM fits (30 walk-forward fits) ≤ 30 s; v1 grid (648 books) ≤ 90 s with a process pool | performance contract | open |
+| E4.1 | Spread overlay vs matched L5: ΔSharpe in [−0.10, +0.05], LW p > 0.05; each state (SPY→cash, TLT→cash) on 0.5%–5% of development days; traded turnover in [1, 10]×/yr (L5 0.43) | D4.1; author | **failed (turnover part)** — `make ladder` → reports/r4/zoo.csv: turnover **11.2×/yr** > 10. Held: ΔSharpe −0.067 [−0.141, +0.007], p 0.978; SPY→cash 2.0% / TLT→cash 2.7% of days (facts.json). Diagnosis: one-day exits, ≈ 0.9 one-way per event |
+| E4.2 | Bollinger overlay vs matched L5: ΔSharpe in [−0.15, +0.05], p > 0.05; each state on 2%–15% of development days; turnover in [1, 10]×/yr | D4.1; author | **failed (turnover part)** — turnover **26.2×/yr** > 10. Held: ΔSharpe −0.037 [−0.159, +0.086], p 0.731; 9.5% / 9.1% of days |
+| E4.3 | GBM row vs matched L5: ΔSharpe in [−0.05, +0.05]; raw GBM in [−0.10, +0.10]; \|ΔSharpe(blend)\| ≤ \|ΔSharpe(raw)\| | D4.2 | **held** — GBM 50% vs L5 −0.003 [−0.029, +0.023]; raw +0.008 [−0.039, +0.056]; \|−0.003\| ≤ \|+0.008\| (zoo.csv); 30 walk-forward fits, first prediction 1990-01-02, 22 last 2019 rows on σ_zoo (facts.json gbm) |
+| E4.4 | code: every GBM split passes `cv.check_split` (purge 22) and a split whose training label crosses the refit date raises `LeakageError`; predictions bit-identical with 1 vs 2 workers; overlay and GBM targets at row t unchanged when returns after t are perturbed | D4.2, D4.3 | **held** — tests/test_r4.py (18): check_split on every split, leaky split raises LeakageError, 1 vs 2 workers bit-identical (GBM and v1 grid), overlay / GBM features / GBM predictions unchanged ≤ t under a post-t shock; 8 guards broken → FAIL, restored → PASS; review MINOR (spread look-ahead probe passed): probe days now include s and s − 1, the reviewer's shift(−1) now FAILS |
+| E4.5 | Costs: at 3×, every layer's ΔSharpe vs its matched parent moves by ≤ 0.02 from 1× (L3–L8 turnover ≤ 1.7×/yr); L1's own Sharpe falls by ≥ 0.08 from 1× to 3× (27.6×/yr traded) | D4.4; R3 cost rows | **failed (L2 part)** — costs.csv: L2 vs L0 ΔSharpe **+0.053 → +0.015** at 3× (−0.038 > 0.02; L2 trades 6.3×/yr); every other layer moves ≤ 0.006. Held: L1's own Sharpe 0.512 → 0.416 (−0.096 ≥ 0.08) |
+| E4.6 | +75 bp financing: books with gross ≤ 1 on every row (L0, L3–L8) have net identical bit for bit to 1×; L5-lev vs L5 ΔSharpe moves by ≤ 0.05; L1 and L2 (gross up to 2) lose ≤ 0.10 Sharpe | D4.4 | **failed (bit-for-bit part)** — facts.json: only L0 bit-identical; L3–L8 carry float-dust financing ≤ 7e-18/yr (gross 1 ± ulp), Sharpe equal to 10 digits. Held: L5-lev vs L5 0.052 → 0.050; L1 −0.016, L2 −0.016 own Sharpe at +75 bp |
+| E4.7 | Leave-one-crisis-out: dropping bonds_1994 lowers L6 vs L5 ΔSharpe by ≥ 0.02 (its one helpful window); dropping GFC lowers L7 vs L6 ΔSharpe by ≥ 0.03; no layer's ΔSharpe changes sign in more than 2 of 6 drops | D4.4; R3 crisis.csv | **held** — loco.csv: dropping bonds_1994 lowers L6 vs L5 by **0.041**; dropping GFC lowers L7 vs L6 by **0.083**; at most 1 sign flip of 6 (L2) |
+| E4.8 | Decades: L5 excess Sharpe > 0.4 in each of 1990s/2000s/2010s; L3 vs matched L0 positive in ≥ 2 of 3 decades; L7 vs matched L6 negative in ≥ 2 of 3 | D4.4; author | **failed (L5 2000s)** — decades.csv: L5 Sharpe 0.842 / **0.345** / 1.425. Held: L3 vs L0 +0.166 (2000s), +0.419 (2010s); L7 vs L6 −0.135 (1990s), −0.633 (2010s) |
+| E4.9 | Rolling 5-year: L5 vs matched L4 ΔSharpe positive in 30%–70% of windows (ΔSharpe +0.01 overall); L7 vs matched L6 positive in ≤ 45% of windows | D4.4 | **held** — rolling.csv: L5 vs L4 positive in **51.1%** of 5-year windows; L7 vs L6 in **30.7%** |
+| E4.10 | Maturity: L5 development Sharpe at 10/20/30y within ±0.15 of 25y (0.83); L3 Sharpe within ±0.20 of 0.69; L6 − L5 matched return in bonds_1994 ≥ +2 pp at 20y and 30y; every SVENY10/20/30 leg reported from the 1986 start (assert) | D4.5 | **held** — sensitivity.csv: L5 Sharpe 0.906 / 0.842 / 0.829 at 10/20/30y (25y 0.833); L3 0.671 / 0.690 / 0.696 (0.695); L6 − L5 matched 1994 +5.6 / +5.9 / +5.9 pp (25y +5.9); SVENY10/20/30 assert passed |
+| E4.11 | Band / calendar: every variant's development Sharpe within ±0.05 of its registered rung; band 0 on L5 at least doubles L5's turnover; quarterly lowers L3/L4 turnover | D4.5; Jaconetti et al. 2010 | **failed (L7 quarterly)** — L7 quarterly Sharpe 0.447 vs 0.580 (**−0.133**); every other variant within ±0.04. Held: L5 band 0 turnover 2.12 vs 0.43×/yr; quarterly L3 0.038 < 0.044, L4 0.173 < 0.222 |
+| E4.12 | DSR: N_eff (ρ* 0.5) in [5, 80] from n_raw ≥ 800; DSR ≥ 0.95 for L4, L5, L6; DSR < 0.95 for L0 and L1 (DSR tests Sharpe > the expected best null, not edge over SPY) | D4.6; author | **failed** — dsr.csv / facts.json: n_eff **3** (N used 4) from **787** series; **L1 DSR 0.959** (not < 0.95). Held: L4 / L5 / L6 DSR 1.000 / 1.000 / 0.999; L0 0.942. At the register's raw N 748: L0 0.727, L1 0.781, L7 0.874 (review MATERIAL 2: now on the site) |
+| E4.13 | PBO, primary zoo pool, S = 16: in [0.25, 0.75] (near-copies of L5: selection is close to a coin flip); S = 8 and 12 within ±0.15 of S = 16 | D4.7 | **held** — pbo.csv: zoo pool S = 16 **0.609**; S = 8 0.571, S = 12 0.695; near-duplicate-dropped companion 0.605 |
+| E4.14 | Power: every layer with measured ΔSharpe ≤ 0 prints ∞; for the positive ones (L3 vs L0, L4 vs L3, L5 vs L4) the years needed exceed 20 for L4 vs L3 and 100 for L5 vs L4 | D4.4 | **held** — power.csv: ∞ for L6, L7, L8; L4 vs L3 **87** years, L5 vs L4 **945** years (L3 vs L0 30, L5-lev vs L5 52, L2 vs L0 570) |
+| E4.15 | Waterfall: the per-day identity holds ≤ 1e-10 for every rung and cost row; cost drag ≤ 0.05%/yr for L3–L8 at 1×; L1 cost drag ≥ 0.5%/yr; financing non-zero only for L1, L2, L5-lev | D4.4 | **failed (financing part)** — waterfall.csv: L3–L8 financing 1e-19 – 7e-18/yr (float dust, as E4.6). Held: per-day identity max residual 1.4e-17; L3–L8 cost drag ≤ 0.039%/yr; L1 0.77%/yr |
+| E4.16 | code: after R4 code, every reports/r2 and reports/r3 statistic file is unchanged (except timing); spec/quantkit_pin.json unchanged byte for byte after the `ml` install; `make verify-pin` passes | D4.3 | **held** — after `make ladder` (R2 + R3 + R4): every reports/r2, reports/r3 file and R2/R3 figure byte-identical except facts.json timing (restored); spec/quantkit_pin.json sha256 08d6c455… unchanged after the `ml` install and `make omp`; `make verify-pin` OK |
+| E4.17 | perf: `make ladder` (R2 + R3 + R4) warm ≤ 5 min and peak RSS ≤ 1.5 GB; R4 part warm ≤ 150 s; GBM fits (30 walk-forward fits) ≤ 30 s; v1 grid (648 books) ≤ 90 s with a process pool | performance contract | **held after the perf fix** — first runs (v1 grid in 4 / 2 loky workers) 2,264 / 1,775 MB summed (logged above); grid in-process: `python scripts/rss_peak.py make ladder` **145 s, 1,122 MB**; R4 part cold 102 s / 995 MB, warm 72 s; GBM ≈ 7 s; v1 grid 31 s |
 
 **R4 first full run (2026-10-29, `scripts/r4.py`; logged before diagnosis).** Contradicting the expectations:
 - **E4.1:** spread overlay turnover is **11.2×/yr**, above the [1, 10] band. The other parts hold: ΔSharpe −0.067, p 0.978,
@@ -322,3 +322,24 @@ Two defects in my own reporting were found on the same run:
 
 L4b and max_div differ by ~1e-15. The byte-exact dedupe registered in D4.7 therefore keeps both in the primary PBO
 pool, although the advisor's premise was that they are identical.
+
+**After review R4 (logged before any fix):**
+- **E4.6** missed its bit-for-bit part. The +75 bp books for L3–L8 are **not** bit-identical to 1×
+  (`facts.json *_f75_net_equals_1x` false; only L0 is identical).
+  - Cause: their held weights sum to 1 ± 1 ulp, so `accrual` charges float-dust financing of 1e-19–1e-18 per year,
+    and the +75 bp leg scales it.
+  - Every Sharpe is equal to 10 digits.
+- **E4.15** missed its "financing only L1, L2, L5-lev" part, for the same reason: L3–L8 show 1e-19–7e-18 per year.
+- Not a bug in the economics. The accounting is unchanged (R2/R3 books depend on it bit for bit).
+- The site text that claimed "bit for bit" was hard-coded and wrong (review MATERIAL 1). It is now built from the facts.
+
+**R4 closed (2026-10-29):** 9 held, 8 failed (E4.1, E4.2, E4.5, E4.6, E4.8, E4.11, E4.12, E4.15), 0 not tested. Every
+failure was diagnosed with no code bug in the economics (the failures are author bands that ignored a one-day round trip,
+L2's daily turnover, the 2000s, quarterly trend lag, one-cluster DSR pools and float-dust financing). Reporting fixes,
+each labelled: the vol-drag definition (D4.4 post-hoc amendment), PBO/DSR column labels, the site text drawn from facts,
+the cache key now including rules.yaml (review R4). Every reported statistic is unchanged by them (diff: labels and
+timing only). Answer for the README: in development 1990–2019, no R4 zoo row beats L5 (−0.067, −0.037, −0.003, +0.008);
+costs and +75 bp change no layer's sign except L1 vs L0 (+0.03 → −0.06 at 3×); the correlation layer's only support is
+1994 (dropping it lowers L6 vs L5 by 0.04), trend's is the GFC and dot-com; 10-year bonds would have helped every
+bond-holding rung (+0.07 to +0.10 Sharpe; a GSW proxy not QA'd vs an ETF); a 30-year sample is too short to confirm
+any layer's measured edge (L4 vs L3 needs 87 years).

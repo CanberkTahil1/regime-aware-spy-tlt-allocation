@@ -56,6 +56,7 @@ verify-pin:  # full tree (also run by doctor)
 logs:
 	mkdir -p logs
 omp:  # R4 D4.3: one OpenMP runtime per process (quantkit.omp: sklearn's vendored libomp -> the one LightGBM uses; idempotent, .venv only, quantkit.omp.restore() undoes it)
+	@$(PY) -c "import pathlib, sys; sys.exit(0 if any(pathlib.Path(p).exists() for p in ('/opt/homebrew/opt/libomp/lib/libomp.dylib', '/usr/local/opt/libomp/lib/libomp.dylib')) else 'FAIL: Homebrew libomp missing (brew install libomp; D4.8)')"
 	@$(PY) -m quantkit.omp --fix | tail -1
 # Raw permitted data to every figure.
 all: data test lint ladder report-site  # reconcile (R1) is a local legacy target: it needs v1's cached file

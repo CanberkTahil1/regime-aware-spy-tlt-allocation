@@ -62,15 +62,15 @@
  "spread_share_dev_days_spy_to_cash": 0.020240772588966796,
  "spread_share_dev_days_tlt_to_cash": 0.02659081889138775,
  "timing_s": {
-  "costs_waterfall": 34.43,
-  "dsr": 71.7,
-  "loco_decades_rolling_power": 34.56,
-  "pbo": 71.76,
-  "pool": 70.97,
-  "sensitivity": 66.46,
-  "total": 71.76,
-  "v1_grid_and_base": 0.77,
-  "zoo": 9.09
+  "costs_waterfall": 64.75,
+  "dsr": 101.86,
+  "loco_decades_rolling_power": 64.88,
+  "pbo": 101.92,
+  "pool": 101.15,
+  "sensitivity": 96.68,
+  "total": 101.92,
+  "v1_grid_and_base": 31.08,
+  "zoo": 39.23
  },
  "v1_grid_selected_column_equals_L1": true
 }

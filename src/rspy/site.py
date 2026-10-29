@@ -168,6 +168,10 @@ def r4_verdicts(zoo: pd.DataFrame, costs: pd.DataFrame, loco: pd.DataFrame, sens
     p = pbo[pbo.role == "primary"].iloc[0]
     q = sens.loc[(sens.vs_registered_dsharpe.abs()).idxmax()]
     d = facts["dsr_pool"]
+    ng = dsr[dsr.pool == "without v1 grid"].set_index("rung")
+    rn = dsr[dsr.pool.str.startswith("raw N")].set_index("rung")
+    one = costs[costs.book == "1x"].drop_duplicates("rung").set_index("rung")
+    fin_dust = [float(one.loc[r, "financing_pa"]) for r in ("L3", "L4", "L5", "L6", "L7", "L8")]
     return [
         {"id": "R4 zoo (O3.1)", "tier": "in-sample",
          "text": pe["label"] + ". The three deferred zoo rows vs L5 at matched vol, ΔSharpe [LW 95%]: " + ", ".join(
@@ -177,7 +181,10 @@ def r4_verdicts(zoo: pd.DataFrame, costs: pd.DataFrame, loco: pd.DataFrame, sens
         {"id": "R4 costs and financing", "tier": "in-sample",
          "text": "Each layer's ΔSharpe vs its parent at 1× / 3× costs / +75 bp: " + ", ".join(
              f"{r} {c.loc[r, '1x']:+.2f} / {c.loc[r, '3x']:+.2f} / {c.loc[r, 'f75']:+.2f}" for r in par)
-                 + ". Only L1, L2 and L5-lev borrow; the other books are unchanged by the financing stress bit for bit."},
+                 + ". Bit-identical under +75 bp: " + (", ".join(r for r in pe["rungs"] if facts.get(f"{r}_f75_net_equals_1x"))
+                                                       or "none")
+                 + f"; the others borrow — materially only L1, L2 and L5-lev; L3–L8 at gross exactly 1 carry float-dust "
+                   f"financing ≤ {max(fin_dust):.0e} per year (Sharpe equal to 10 digits)."},
         {"id": "R4 leave-one-crisis-out", "tier": "in-sample",
          "text": "The window each layer's result leans on most (ΔSharpe change when dropped): " + ", ".join(
              f"{r} {worst.loc[r, 'dropped']} {worst.loc[r, 'change']:+.2f}" for r in par if r in worst.index) + "."},
@@ -188,7 +195,11 @@ def r4_verdicts(zoo: pd.DataFrame, costs: pd.DataFrame, loco: pd.DataFrame, sens
         {"id": "R4 DSR / PBO", "tier": "in-sample",
          "text": f"{d['n_raw_columns']} trial series (incl. v1's 648-config grid on permitted data) cluster to n_eff "
                  f"{d['n_eff']} at ρ* 0.5 (N used {d['n_used_headline']}). DSR (headline): " + ", ".join(
-                     f"{r} {h.loc[r, 'dsr']:.3f}" for r in pe["rungs"]) + f". PBO, zoo pool, S = 16: {p.pbo:.2f}. "
+                     f"{r} {h.loc[r, 'dsr']:.3f}" for r in pe["rungs"])
+                 + f". Pre-registered band for N (E4.12, [5, 80]) missed: at ρ* 0.5 nearly every long-only SPY/TLT trial "
+                   f"is one cluster, so the headline barely deflates (without v1's grid, N used "
+                   f"{int(ng.n_used.iloc[0])}). At the register's raw N = {d['raw_n_variants_csv']}: " + ", ".join(
+                     f"{r} {rn.loc[r, 'dsr']:.3f}" for r in pe["rungs"]) + f". PBO, zoo pool, S = 16: {p.pbo:.2f}. "
                  "DSR tests a Sharpe above the expected best null trial, not an edge over SPY."},
     ]
 

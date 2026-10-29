@@ -541,3 +541,35 @@ any R2 code or result. Research: reports/research/R2.md (16791b4).
      and dropped.
   4. S = 8 and S = 12 are printed beside S = 16 whatever they show.
 - **Why the others lost:** (b) pads the pool with non-trials. (c) has coarser halves and no reason to be primary.
+
+### D4.4 amendment (POST-HOC, after the first R4 run; reporting definition only, not a trial) — vol drag
+- `waterfall.vol_drag_pa` was first defined as mean·252 − CAGR, which also contains the compounding of the mean and went
+  negative for low-vol books (L4/L5: −0.1 pp, first run). Redefined as (1 + mean daily net)^252 − 1 − CAGR (≥ 0 by
+  AM–GM), with the compounded mean reported beside it. No number in the identity, no ΔSharpe and no verdict uses it.
+  Labelled post-hoc here after review R4 MINOR. Test: a hand-computed value (`test_waterfall_vol_drag_equals_a_hand_computed_value`).
+
+### D4.8 — OpenMP runtime for the GBM row (arose in the build; reviewer R4 MINOR: acted on before it was logged) · confidence high · decider = advisor
+- **Facts:**
+  - After D4.3, `quantkit.ml.fit_cv` raised `OpenMPConflictError`: scikit-learn's vendored libomp and Homebrew's libomp
+    (which LightGBM links via @rpath) were both loaded.
+  - quantkit's documented consumer step is `python -m quantkit.omp --fix`, once per environment after `uv sync`. It
+    symlinks the vendored copy to Homebrew's runtime, keeps the original as `.bundled`, and `restore()` undoes it.
+- **Options:**
+  - (a) [rec] Keep an idempotent `make omp` step (a prerequisite of test, test-nolegacy and ladder) and log it.
+  - (b) Avoid loading scikit-learn's runtime. This needs a quantkit change; siblings are read-only, and a re-pin is the
+    owner's.
+  - (c) Drop the `ml` extra and the GBM row. This contradicts O3.1.
+- **Choice:** (a), amended:
+  1. It is stated plainly: `make omp` edits the installed scikit-learn inside `.venv` only. It is reversible and is
+     re-applied after any `uv sync`.
+  2. Homebrew libomp (23.1.4 on 2026-10-29) is an unpinned system prerequisite that D4.3 already brought in, since
+     LightGBM needs it regardless. It is noted in LICENSES.md. The README setup note waits for the owner-approved R5
+     README rewrite.
+  3. `make doctor` fails if Homebrew libomp is missing, and `make omp` fails loudly instead of quantkit's silent
+     "nothing to do".
+  4. The doctor reports the libomp version and the symlink state.
+  5. E4.16 (pin JSON unchanged, R2/R3 statistics unchanged) and the E4.4 1 vs 2 worker identity were checked with the
+     fix applied.
+  6. No quantkit edit.
+- **Why the others lost:** (b) needs a quantkit change or re-pin and is fragile on import order. (c) is a charter-level
+  change for an environment problem with a documented, reversible fix.

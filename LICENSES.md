@@ -60,3 +60,9 @@ quantkit's `ml` extra, installed at the same pinned tag v0.19.2 for the GBM zoo 
 (MIT), scikit-learn 1.9.1 (BSD-3-Clause), xgboost 3.4.1 (Apache-2.0), catboost 1.2.10 (Apache-2.0), optuna 5.0.0
 (MIT), shap 0.54.1 (MIT). These are code licences; nothing is vendored or redistributed beyond lockfile entries, and
 none of them touches any data source's terms.
+
+System prerequisite (R4 D4.8, not in uv.lock): Homebrew `libomp` (LLVM OpenMP runtime, Apache-2.0 WITH LLVM-exception),
+23.1.4 on 2026-10-29. LightGBM's wheel links `@rpath/libomp.dylib`, which resolves to it. `make omp` (quantkit's
+documented `python -m quantkit.omp --fix`) replaces scikit-learn's vendored libomp inside `.venv` with a symlink to the
+same runtime; the original is kept as `libomp.dylib.bundled` and `quantkit.omp.restore()` undoes it. Nothing outside
+`.venv` changes. `make doctor` fails if the runtime is missing.

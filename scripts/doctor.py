@@ -42,6 +42,18 @@ rows.append(("quantkit tag present (sibling, read-only)", OK if tag and tag in g
 probs, warns = pin.verify_pin(), pin.unpinned_files()
 note = "byte-identical, tag + commit match" + (f" ({len(warns)} new unpinned files)" if warns else "")
 rows.append(("quantkit pin (spec/quantkit_pin.json)", OK if not probs else FAIL, note if not probs else "; ".join(probs[:3])))
+# R4 D4.8: Homebrew libomp is an unpinned system prerequisite (LightGBM links @rpath/libomp.dylib; `make omp` points
+# scikit-learn's vendored copy at it). Not covered by uv.lock.
+omp = [p for p in (pathlib.Path("/opt/homebrew/opt/libomp/lib/libomp.dylib"), pathlib.Path("/usr/local/opt/libomp/lib/libomp.dylib"))
+       if p.exists()]
+if omp:
+    ver = omp[0].resolve().parts[-3] if "Cellar" in omp[0].resolve().parts else "unknown version"
+    vend = list((pathlib.Path(sys.prefix) / "lib").glob("python3.12/site-packages/sklearn/.dylibs/libomp.dylib"))
+    linked = bool(vend) and vend[0].is_symlink() and vend[0].resolve() == omp[0].resolve()
+    rows.append(("Homebrew libomp (D4.8, unpinned prerequisite)", OK, f"{omp[0]} ({ver})"))
+    rows.append(("sklearn libomp -> Homebrew (make omp)", OK if linked else WARN, "linked" if linked else "not linked: run make omp"))
+else:
+    rows.append(("Homebrew libomp (D4.8, unpinned prerequisite)", FAIL, "missing: brew install libomp (LightGBM / GBM row)"))
 bp = paths.ROOT / ".claude" / "BUILD_PROMPTS.md"
 ignored = subprocess.run(["git", "check-ignore", "-q", str(bp)], cwd=paths.ROOT, env=GIT_ENV).returncode == 0
 rows.append(("BUILD_PROMPTS present and gitignored", OK if bp.is_file() and ignored else FAIL, str(bp.relative_to(paths.ROOT))))

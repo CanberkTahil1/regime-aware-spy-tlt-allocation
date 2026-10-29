@@ -108,3 +108,10 @@
   re-run on the new data. Near-copies are grouped so they don't inflate the count.
 - **D4.7 (advisor): the "probability of backtest overfitting" is computed over the zoo of core-mix variants,** with
   exact copies removed, splitting history into 16 blocks as in the original paper.
+- **D4.8 (advisor): the machine-learning add-on loaded two copies of a threading library, which can crash.** We use
+  quantkit's documented fix: point scikit-learn's copy at the one LightGBM uses. It only touches this project's own
+  environment and can be undone. The Homebrew library it needs was already required by LightGBM; `make doctor` now
+  checks it.
+- **D4.4 amendment (after results, reporting only):** the "volatility drag" bar was mislabelled. Mean × 252 minus the
+  compound growth rate also counts the compounding of the mean, so it went negative. It is now the compounded mean
+  minus the compound growth rate, which can't go negative.

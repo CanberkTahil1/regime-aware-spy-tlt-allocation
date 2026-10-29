@@ -1,10 +1,10 @@
-pool,blocks,pbo,n_splits,logit_median,n_strategies,dropped_duplicates,role,register_trial_count
-primary (zoo),16,0.6089355089,12870,-0.7884573604,15,,primary,787
-primary (zoo),8,0.5714285714,70,-0.2513144283,15,,descriptive,787
-primary (zoo),12,0.6948051948,924,-1.466337069,15,,descriptive,787
-secondary (rungs + sensitivity + zoo),16,0.3522144522,12870,0.3703737883,70,L8@10y == L7@10y,descriptive,787
-secondary (rungs + sensitivity + zoo),8,0.2857142857,70,0.5193805886,70,L8@10y == L7@10y,descriptive,787
-secondary (rungs + sensitivity + zoo),12,0.3463203463,924,0.8007778448,70,L8@10y == L7@10y,descriptive,787
-"primary, near-duplicates dropped (1e-12; descriptive)",16,0.6052836053,12870,-0.6931471806,14,max_div ~ L4b (max abs 2.4e-17),descriptive,787
-"primary, near-duplicates dropped (1e-12; descriptive)",8,0.5571428571,70,-0.4054651081,14,max_div ~ L4b (max abs 2.4e-17),descriptive,787
-"primary, near-duplicates dropped (1e-12; descriptive)",12,0.6915584416,924,-1.386294361,14,max_div ~ L4b (max abs 2.4e-17),descriptive,787
+pool,blocks,pbo,n_splits,logit_median,n_strategies,dropped_duplicates,role,dsr_pool_series,register_n
+primary (zoo),16,0.6089355089,12870,-0.7884573604,15,,primary,787,748
+primary (zoo),8,0.5714285714,70,-0.2513144283,15,,descriptive,787,748
+primary (zoo),12,0.6948051948,924,-1.466337069,15,,descriptive,787,748
+secondary (rungs + sensitivity + zoo),16,0.3522144522,12870,0.3703737883,70,L8@10y == L7@10y,descriptive,787,748
+secondary (rungs + sensitivity + zoo),8,0.2857142857,70,0.5193805886,70,L8@10y == L7@10y,descriptive,787,748
+secondary (rungs + sensitivity + zoo),12,0.3463203463,924,0.8007778448,70,L8@10y == L7@10y,descriptive,787,748
+"primary, near-duplicates dropped (1e-12; descriptive)",16,0.6052836053,12870,-0.6931471806,14,max_div ~ L4b (max abs 2.4e-17),descriptive,787,748
+"primary, near-duplicates dropped (1e-12; descriptive)",8,0.5571428571,70,-0.4054651081,14,max_div ~ L4b (max abs 2.4e-17),descriptive,787,748
+"primary, near-duplicates dropped (1e-12; descriptive)",12,0.6915584416,924,-1.386294361,14,max_div ~ L4b (max abs 2.4e-17),descriptive,787,748

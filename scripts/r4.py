@@ -49,7 +49,7 @@ panel = build.load()
 # v1's grid first (D4.6), while this process is still small: the pool and the full book set never overlap (perf pass)
 key = hashlib.sha256()
 key.update(panel.loc["1986-01-02":SC[1]].to_numpy(np.float64).tobytes())
-for f in sorted((paths.ROOT / "legacy").rglob("*.py")) + [paths.ROOT / "src/rspy/robust.py",
+for f in sorted((paths.ROOT / "legacy").rglob("*.py")) + [paths.ROOT / "spec/rules.yaml", paths.ROOT / "src/rspy/robust.py",
                                                          paths.ROOT / "src/rspy/accounting.py",
                                                          paths.ROOT / "src/rspy/rungs.py",
                                                          paths.ROOT / "src/rspy/legacy_bridge.py"]:
@@ -374,7 +374,7 @@ for k, x in targets.items():
         dsr_rows.append({"rung": k, "pool": tag, "dsr": d["dsr"], "psr": d["psr"], "sr_ann": d["sr_ann"],
                          "sr0_ann": d["sr0_ann"], "n_used": d["n_eff"], "k_cut": d["k_cut"], "k_gap": d["k_gap"]})
     d = dsr(x, raw_n, sr_pp)
-    dsr_rows.append({"rung": k, "pool": f"raw N = {raw_n}", "dsr": d["dsr"], "psr": d["psr"], "sr_ann": d["sr_ann"],
+    dsr_rows.append({"rung": k, "pool": f"raw N = {raw_n} (variants.csv register count; the pool holds {P.shape[1]} series)", "dsr": d["dsr"], "psr": d["psr"], "sr_ann": d["sr_ann"],
                      "sr0_ann": d["sr0_ann"], "n_used": raw_n, "k_cut": None, "k_gap": None})
 pd.DataFrame(dsr_rows).to_csv(OUT / "dsr.csv", index=False, float_format="%.10g")
 facts["dsr_pool"] = {"n_raw_columns": int(P.shape[1]), "n_registered_series": n_registered_pool,
@@ -432,7 +432,7 @@ for tag, cols, dropped in (("primary (zoo)", prim, drop_p), ("secondary (rungs +
         pbo_rows.append({"pool": tag, "blocks": s_, "pbo": o["pbo"], "n_splits": o["n_splits"],
                          "logit_median": o["logit_median"], "n_strategies": len(cols), "dropped_duplicates": "; ".join(dropped),
                          "role": "primary" if (tag == "primary (zoo)" and s_ == PB["blocks"]) else "descriptive",
-                         "register_trial_count": eff["n_raw"]})
+                         "dsr_pool_series": eff["n_raw"], "register_n": raw_n})
 pd.DataFrame(pbo_rows).to_csv(OUT / "pbo.csv", index=False, float_format="%.10g")
 lap("pbo")
 

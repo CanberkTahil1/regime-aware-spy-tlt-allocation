@@ -47,3 +47,17 @@
 3. **How do you know a regime gate isn't just "less risk"?** Compare at matched volatility, and against the same gate
    with its timing shuffled in 12-month blocks. These gates failed both: no better than the parent at equal risk, and
    inside the distribution of their shuffled copies.
+
+## R4 — Robustness and costs
+
+1. **You added three more models in R4. How do you stop that from being a fishing trip?** Their definitions were
+   written into the pre-registration and hashed before any number existed. They are zoo rows, so they can never be
+   promoted, and they count toward the multiple-testing total. None beat the core mix: the v1 spread overlay came in at
+   −0.07 Sharpe, the Bollinger overlay −0.04 and the GBM sizing −0.003, all inside their intervals.
+2. **Your DSR says 0.99 for the core mix. Is the deflation meaningful?** Barely. 787 trial series cluster into about 3
+   independent bets, because everything is a long-only SPY/TLT mix, so the bar is low (SR0 0.19). At the raw register
+   count (748), SR0 is 0.37. The core mix still clears it (DSR 0.99), but v1 falls to 0.78 and SPY to 0.73. I report
+   both, because the true effective count is in between.
+3. **Would more data settle whether inverse-vol beats 60/40?** Not soon. If the measured +0.13 Sharpe were the truth,
+   with ρ 0.89 between the two daily return series, 80% power at α 0.05 needs about 87 years of daily data. Thirty
+   years is a third of that, and the vol-target layer's +0.01 would need about 900.
