@@ -16,3 +16,9 @@ Measured on the owner's Mac (Apple silicon), `/usr/bin/time -l` for peak RSS.
 
 | Date | Step | Wall | Peak RSS | Within budget |
 |---|---|---|---|---|
+| 2026-10-28 | legacy test-period reproduction | 0.03 s (call) | ≤ 185 MB (shared run) | yes (≤ 5 s) |
+| 2026-10-28 | legacy grid reproduction (v1 main, 1,296 runs) | 6.8–7.3 s | 185 MB (single process) | yes (≤ 60 s, ≤ 800 MB) |
+| 2026-10-28 | `make test` (52 tests, -n auto) | 8.3 s wall | max single process 158 MB as reported by `time -l` | yes (≤ 60 s) |
+| 2026-10-28 | `make lint` | < 1 s | — | yes |
+
+Note: the grid test is marked `slow` (runtime recorded above, D0.3 amendment 5) and stays in `make test`.

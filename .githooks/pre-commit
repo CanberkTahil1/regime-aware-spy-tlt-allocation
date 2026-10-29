@@ -1,0 +1,21 @@
+#!/bin/bash
+# Blocks commits that add data files (data/, legacy/data/, logs/, .cache/, parquet/zip, BUILD_PROMPTS), files > 5 MB, or
+# anything that looks like a secret (private keys, common token formats, or the value of any RSPY_SECRET_* env var).
+# The repo has a PUBLIC remote: what is committed is published once the owner pushes.
+# Adapted from naive-vs-optimal .githooks/pre-commit @ b5f6278 (COPIED.md): no Keychain items are used yet, so the
+# SEC_USER_AGENT check became generic token patterns. Tested by tests/test_precommit.py.
+fail=0
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+for f in $staged; do
+  case "$f" in data/*|legacy/data/*|logs/*|.cache/*|.claude/BUILD_PROMPTS.md|.claude/settings.local.json|*.parquet|*.zip) echo "pre-commit: refusing to commit $f"; fail=1;; esac
+  if [ -f "$f" ] && [ $(wc -c < "$f") -gt 5242880 ]; then echo "pre-commit: $f is larger than 5 MB"; fail=1; fi
+done
+diff=$(git diff --cached -U0 --diff-filter=ACMR | grep '^+' | grep -v '^+++')
+if printf '%s' "$diff" | grep -qE -- '-----BEGIN [A-Z ]*PRIVATE KEY-----|AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{36}|sk-[A-Za-z0-9_-]{32,}|xox[baprs]-[A-Za-z0-9-]{10,}'; then
+  echo "pre-commit: staged changes look like they contain a secret (key or token pattern)"; fail=1
+fi
+for v in $(env | grep -oE '^RSPY_SECRET_[A-Z0-9_]+'); do
+  val="${!v}"
+  if [ -n "$val" ] && printf '%s' "$diff" | grep -qF -- "$val"; then echo "pre-commit: staged changes contain the value of $v"; fail=1; fi
+done
+exit $fail
