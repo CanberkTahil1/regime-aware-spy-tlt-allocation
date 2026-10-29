@@ -1,0 +1,72 @@
+# Single parameter source (charter "Package and layout"). R1 (2026-10-28): data, bills, bonds, accounting, legacy.
+# Values from CLAUDE.md or an advisor decision (reports/decisions.md D1.x); none searched.
+status: DRAFT
+
+sources:   # each series from its source agency; terms in LICENSES.md
+  kf_size_daily: https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/Portfolios_Formed_on_ME_daily_CSV.zip
+  gsw_nominal: https://www.federalreserve.gov/data/yield-curve-tables/feds200628.csv
+  h15: https://www.federalreserve.gov/datadownload/Output.aspx?rel=H15&filetype=zip   # DDP whole release (SDMX)
+
+paths:
+  data_env: RSPY_DATA          # default ./data (gitignored)
+  raw: raw                     # data/raw/<source>/ + manifest.jsonl (UTC, URL, bytes, sha256)
+  v1_cache: data/prices.csv    # v1's local Yahoo + Cboe file: legacy reconciliation S0-S6 and data QA only
+
+equity:   # SPY sleeve
+  label: "SPY proxy (Ken French Hi 20, value-weighted, daily)"
+  section: "Value Weighted Returns -- Daily"
+  column: "Hi 20"
+  calendar: "KF Hi 20 trading days are the session calendar for every daily leg"
+
+bills:    # D1.1
+  series: RIFSGFSM03_N.B
+  days: 91
+  rule: "r_s = P^(-dt/91) - 1, P = 1 - d*91/360, d = last H.15 rate dated <= the previous session (decimal), dt = calendar days between sessions"
+  financing_base: "money-market yield y = (1/P - 1)*360/91 from the same lagged d; accrual dt = calendar days / 360"
+  one_series_for: [cash, sharpe_excess, sortino_excess, line, financing_base]
+
+bonds:    # TLT sleeve, D1.2
+  label: "TLT proxy, QA vs TLT corr 0.99 / TE 2.06%/yr"   # charter wording, printed wherever the leg appears
+  maturity_years: 25
+  sensitivity_maturities: [10, 20, 30]
+  roll: daily
+  coupons_per_year: 2
+  par_col: null              # purchase coupon from the fitted curve (= naive-vs-optimal's validated construction)
+  max_gap_days: 7
+  reported_mask: "SVENY<nn> reported on both curve dates (notna, cummax)"
+  to_sessions: "curve-date returns compounded into the first KF session >= the curve date; a session with none earns 0"
+
+accounting:   # D1.3; charter "Accounting (binding, R1)"
+  execution_lag_sessions: 1        # decided at close t, traded at close t+1, earns from t+2
+  drift: true
+  cost_bp_per_side: {spy: 3, tlt: 2}
+  cost_stress_multipliers: [1, 2, 3]
+  financing_spread_bp: 25
+  financing_stress_extra_bp: 75
+  cash: "max(1 - sum(w_held), 0) earns the bill return r_s"
+  shorts: forbidden                # a negative target raises
+  sharpe: "quantkit.stats.sharpe(net - bill, rf=None), ann 252, ddof 1"
+  sortino: "sqrt(252) * mean(e) / sqrt(mean(min(e, 0)^2)), e = net - bill"
+  turnover: "annualised one-way sum |dw| (drift and vol-scaling trades included)"
+  ann: 252
+
+legacy:   # R1 reconciliation (D1.4, D1.5)
+  steps:
+    S0: "v1 as committed (own Yahoo/Cboe data, own accounting); reproduced"
+    S1: "t+1 execution"
+    S2: "cash at bills + financing (bill MMY + 25 bp on borrowed notional)"
+    S3: "charter costs (3/2 bp per side) on true traded turnover with drift"
+    S4: "excess-return Sharpe + standard Sortino (metric only; returns identical to S3)"
+    S5: "no shorts: negative v1 weights floored at 0 (to cash)"
+    S6: "VIX -> realised-vol proxy (v1's 20-day convention) on v1's local SPY"
+    S7: "permitted prices: KF Hi 20, GSW 25y, H.15, KF calendar; realised vol from Hi 20  (= L1)"
+  vix_proxy: {window: 20, estimator: "pandas rolling std, ddof 1, min_periods 20, returns <= t",
+              label: "realised-vol proxy for VIX (v1's 20-day convention)"}
+  windows: {train: [2005-01-01, 2014-12-31], validation: [2015-01-01, 2019-12-31], test: [2020-01-01, 2025-12-31]}
+
+qa:   # D1.6 (bands also in spec/prereg.yaml)
+  window: [2005-01, 2025-12]
+  method: "calendar-month compounding on each series' own sessions; diff = proxy - ETF; TE = std(diff, ddof 1)*sqrt(12); mean diff annualised"
+  bands:
+    hi20_vs_spy: {corr_min: 0.98, te_max: 0.015}
+    gsw25_vs_tlt: {corr_min: 0.98, te_max: 0.030}

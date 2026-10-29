@@ -1,0 +1,78 @@
+# Pre-registration (R1, 2026-10-28). Transcribed from CLAUDE.md (charter v2) before any rung result; its sha256 is
+# recorded in reports/ledger.md. Changing any value after a result it governs exists is post-hoc (logged, counted).
+version: 1
+source: CLAUDE.md (charter v2, owner 2026-10-28)
+
+windows:
+  warmup:      {start: 1986-01-01, end: 1989-12-31, role: "estimation only; never scored"}
+  development: {start: 1990-01-01, end: 2019-12-31, role: "expanding walk-forward; every ladder decision"}
+  test:        {start: 2020-01-01, end: "last month Ken French has published at R5", role: "frozen rules run once",
+                label: "seen by owner in v1, disclosed"}
+  forward:     {start: "after R5", role: "optional monthly log"}
+  legacy_v1:   # v1's own windows, used only for the R1 reconciliation table
+    train:      {start: 2005-01-01, end: 2014-12-31}
+    validation: {start: 2015-01-01, end: 2019-12-31}
+    test:       {start: 2020-01-01, end: 2025-12-31}
+
+crisis_windows:   # pre-defined (charter "Windows"); drawdowns reported on these only
+  bonds_1994:  {start: 1994-02, end: 1994-11}
+  dotcom:      {start: 2000-03, end: 2002-10}
+  gfc:         {start: 2007-10, end: 2009-03}
+  euro_2011:   {start: 2011-04, end: 2011-10}
+  china_2015:  {start: 2015-05, end: 2016-02}
+  q4_2018:     {start: 2018-09, end: 2018-12}
+  covid:       {start: 2020-02, end: 2020-03}
+  infl_2022:   {start: 2022-01, end: 2022-10}
+
+ladder:   # pre-registered order; each rung adds ONE layer; parameters fixed from the literature, not searched
+  - {id: L0, name: "SPY (proxy)"}
+  - {id: L0-line, name: "SPY + T-bills at the rung's volatility", role: "benchmark every rung is judged against"}
+  - {id: L1, name: "legacy v1 (frozen code + selected params) on new data and new accounting", role: "baseline to beat"}
+  - {id: L2, name: "vol-targeted SPY"}
+  - {id: L3, name: "static 60/40 SPY/TLT", rebalance: monthly, band_pp: 5}
+  - {id: L4, name: "inverse-vol SPY/TLT", vol_window_days: 63, rebalance: monthly, band: true}
+  - {id: L4b, name: "ERC on the 2x2 covariance", role: zoo}
+  - {id: L5, name: "L4 + portfolio vol target", target_vol: 0.10, mode: ex_ante, gross_cap: 1.0}
+  - {id: L5-lev, name: "L5 with gross cap 1.5 and financing", gross_cap: 1.5}
+  - {id: L6, name: "L5 + stock-bond correlation regime", corr_windows_days: [63, 126], threshold: 0.0,
+     sensitivity: [-0.2, 0.2], sensitivity_role: descriptive, action: "TLT weight to cash when corr > threshold"}
+  - {id: L7, name: "L6 + per-asset trend", rule: "hold sleeve only above its 10-month SMA (Faber)",
+     impl: quantkit.signals.trend.faber}
+  - {id: L8, name: "L7 + crash rule", rule: "de-risk to cash on drawdown/vol-spike trigger; no shorts",
+     judged_by: quantkit.sizing.judge, against: ["vol targeting alone", "block-shuffled placebo"]}
+zoo:
+  registered_rows: [hmm_gate, jump_model_gate, ewma_fast, ewma_slow, gjr_garch_t, egarch_t, har, min_cdar, max_div,
+                    gbm_risk_sizing, v1_spread_overlay_on_L5, v1_bollinger_overlay_on_L5]
+  promotion: "never, unless re-registered"
+
+promotion_rule:   # quantkit.ladder four-part rule
+  min_effect: {delta_sharpe: 0.05, or_cdar_lower_pct: 15, at: "matched volatility"}
+  test: "paired one-sided quantkit.stats.sharpe_diff_lw"
+  robustness: ["no loss at 2x costs", "no loss at +75 bp financing", "no loss leave-one-crisis-out"]
+  mcs: {level: 0.90, on: "vol-matched returns"}
+  ties: simpler rung
+  beyond_6040: {delta_sharpe_vs_vol_matched_L3: 0.05, role: descriptive}
+
+costs:   # per side, on TRUE traded turnover including vol-scaling trades
+  spy_bp_per_side: 3
+  treasury_bp_per_side: 2
+  stress_multipliers: [2, 3]
+  financing: {base: "H.15 bill rate", spread_bp: 25, stress_extra_bp: 75}
+  cash: "H.15 bill rate on uninvested capital"
+  shorts: forbidden
+
+accounting:
+  execution: "signals at close t (month-end close for monthly rungs), trades at close t+1"
+  sharpe: "on excess returns over the bill"
+  sortino: "excess returns, standard downside deviation vs 0"
+  turnover: "traded turnover reported"
+
+r1_expectations:   # BUILD_PROMPTS R1 "Pre-registered"
+  v1_reproduction: "exact (<= 1e-12, as R0 E0.1)"
+  correction_signs:
+    financing: "<= 0 when gross > 1"
+    t_plus_1: "<= 0 for a fast signal"
+
+data_qa:   # D1.6; 2005-01 -> 2025-12, monthly, local Yahoo file as comparison only
+  hi20_vs_spy: {corr_min: 0.98, te_max_annual: 0.015}
+  gsw25_vs_tlt: {corr_min: 0.98, te_max_annual: 0.030, prior_disclosed: "sibling 2.06% (2019-10 -> 2026-08) seen before the band was set"}

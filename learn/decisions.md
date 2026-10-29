@@ -15,3 +15,18 @@
   expectation, then capped the workers at 4 (same speed, ~0.7 GB) instead of redefining the budget.
 - **O0.1 (owner): the Yahoo/Cboe price file is no longer tracked by git.** It stays on disk for the v1 tests. It is
   still in the repo's history; you will rewrite that yourself before the next push.
+
+## R1
+
+- **D1.1 (advisor): cash is the Fed's 3-month T-bill**, converted from its discount quote and lagged a day. Borrowing is
+  charged at the bill's (slightly higher) money-market yield plus 25 bp, so leverage is never cheaper than cash.
+- **D1.2 (advisor): the TLT stand-in is a 25-year Treasury rebuilt every day from the Fed's fitted curve**, exactly as
+  the sibling repo validated it (coupon from the fitted curve, not the published one; that detail moves daily returns).
+- **D1.3 (advisor): one accounting function for everything**: decide at today's close, trade at tomorrow's close, pay
+  costs on what you actually trade (including drift and vol-scaling), earn bills on cash, pay bills + 25 bp on leverage,
+  quote Sharpe on returns above bills.
+- **D1.4 (advisor): the v1 → v2 bridge goes one fix at a time** in a fixed order, and swaps VIX out while v1 is still on
+  its own data, so no row mixes excluded and permitted data. The last row is v1 on the new data (L1).
+- **D1.5 (advisor): VIX is replaced by 20-day realised volatility**, the same substitute v1 already used elsewhere.
+- **D1.6 (advisor): the proxies are checked against the real ETFs with pass marks fixed in advance**: monthly
+  correlation ≥ 0.98, tracking error ≤ 1.5%/yr (stocks) and ≤ 3%/yr (bonds).

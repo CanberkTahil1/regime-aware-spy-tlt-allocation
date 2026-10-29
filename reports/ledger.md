@@ -24,3 +24,22 @@ Broken-input checks (2026-10-28): planting `COST_PER_UNIT * 1.0000001` in legacy
 `test_legacy_module_is_v1_except_imports[backtest.py]`, `test_test_metrics_reproduce_from_committed_params` and
 `test_v1_main_reproduces_all_three_tables`; restored from a copy (empty diff). Missing / edited data file → error naming
 the blob (`test_data_guard_fails_on_missing_or_changed_file`).
+
+## R1 — data swap and correct accounting (expectations committed before any R1 code or number)
+
+Pre-registration hashes (before any rung result): `spec/prereg.yaml` sha256 **cb9b7fa9c11578b86e181331c4f0fe10bae515c383b3b8257dd28210fbb8027a**; `spec/rules.yaml` sha256 21cf66f97f77b7383fde543f2a86763a2415bdc95ce7aebff5a7769aca26faf6.
+
+| ID | Expectation (band) | Source | Status |
+|---|---|---|---|
+| E1.1 | S0 = v1 reproduced: test metrics max abs diff ≤ 1e-12 (as E0.1) | BUILD_PROMPTS pre-registered | open |
+| E1.2 | S1 (t+1) ≤ 0: ΔCAGR ≤ 0 and ΔSharpe ≤ 0 vs S0 in each of train / validation / test | BUILD_PROMPTS pre-registered | open |
+| E1.3 | S2: financing charge ≥ 0 on every row (= return effect ≤ 0), > 0 on rows held at gross > 1; cash interest ≥ 0 | BUILD_PROMPTS pre-registered | open |
+| E1.4 | S3: sign NOT claimed (more turnover from drift, lower rate 5 → 3/2 bp); traded turnover (annualised, test) ≥ 18.73× (v1's reported turnover, which excludes vol scaling) | D1.4 (author's disagreement logged) | open |
+| E1.5 | S4: net returns identical to S3 (exact); only the metric changes | D1.4 | open |
+| E1.6 | S5, S6, S7: descriptive (no sign claimed); S7 = L1 runs through `rspy.accounting` without a short | D1.4 | open |
+| E1.7 | Data QA monthly 2005-01 → 2025-12: Hi 20 vs SPY corr ≥ 0.98 and TE ≤ 1.5%/yr; GSW 25y vs TLT corr ≥ 0.98 and TE ≤ 3.0%/yr | D1.6 / prereg | open |
+| E1.8 | `rspy.accounting` fast path = plain reference loop ≤ 1e-10; timing property (returns at rows ≥ t+2 cannot change weights decided at t) | D1.3 | open |
+| E1.9 | Bills: y·91/360 = 91-day r_s (≤ 1e-15); a missing H.15 print carries the last rate, never a later one | D1.1 | open |
+| E1.10 | TLT proxy (quantkit, par_col=None) = sibling `par_total_return` 25y (copied reference) ≤ 1e-10 | D1.2 | open |
+| E1.11 | perf: `make data` ≤ 30 s; reconciliation (8 steps × 3 windows) ≤ 10 s; peak RSS ≤ 1.5 GB (rss_peak) | performance contract | open |
+| E1.0 | (from R0) loaded-module pin check covers > 0 quantkit files | reviewer R0 MINOR 2 | open |
